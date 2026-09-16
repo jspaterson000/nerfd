@@ -19,6 +19,7 @@ const HELP = `nerfd - nerfd.ai. a local-first scorecard of how AI models perform
   nerfd share on|off|status                     autonomous reporting of redacted records after each session
   nerfd share [last|<id>|all] [--dry-run] [--evidence URL]   send specific records
   nerfd export [--public] [--csv]               dump your data
+  nerfd report [--weeks 4] [--out file] [--projects]   your own usage, errors, ranking and economics as one page
   nerfd dash [--port 8787]                      local dashboard over your own sessions
   nerfd backfill [tool] [--since 90d]           import sessions the tool recorded before nerfd existed
   nerfd model-info <raw_id> [--family --version --size --quant --provider --modified]
@@ -70,6 +71,7 @@ async function main(): Promise<void> {
     case 'check': return (await import('./commands/check.ts')).check(a);
     case 'share': return (await import('./commands/share.ts')).share(a);
     case 'export': return (await import('./commands/export.ts')).exportCmd(a);
+    case 'report': return (await import('./commands/report.ts')).report(a);
     case 'backfill': return (await import('./commands/backfill.ts')).backfill(a);
     case 'model-info': case 'model': return (await import('./commands/model.ts')).modelInfo(a);
     case 'privacy': return (await import('./commands/privacy.ts')).privacy(a);
