@@ -85,6 +85,17 @@ Hook errors never surface in the host tool; they go to `~/.nerfd/hook.log`. `ner
 
 The Node server above is the whole public site: landing, board, model pages, privacy page, installer, API and open-data export. Run it behind any reverse proxy with `x-forwarded-proto` and `x-forwarded-host` set, or on a serverless platform by wrapping `queryData` and the page renderers from `packages/server/src`. The nerfd.org instance is one such wrapper; how it is hosted is not part of this repository.
 
+## Roadmap
+
+Public and short. Each item is open to contribution; the method behind them is in [docs/METHOD.md](docs/METHOD.md).
+
+- **Verified reporters**: an opt-in stable identity (GitHub sign-in) that weights higher than a weekly-rotating one, both shown.
+- **Rematch**: rerun the last task on a second model and record which diff survived, the within-person paired comparison nobody has.
+- **Attribution**: separate a weights change from a harness change from capacity, keyed on tool version and effort distribution.
+- **Alerts**: subscribe to a model and hear when it moves against its own baseline.
+- **Adapters**: Droid, Kilo Code and Cursor CLI; the current status per tool is in [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md).
+- **A hand-labelled sample** to measure the behavioural detectors against, rather than reasoning about them.
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE).

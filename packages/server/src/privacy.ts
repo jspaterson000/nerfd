@@ -1,4 +1,4 @@
-import { SHARED_CSS, FAVICON } from './ui.ts';
+import { SHARED_CSS, FAVICON, socialMeta } from './ui.ts';
 
 // The public privacy statement, served at /privacy. Deliberately plain: no
 // external assets, no script, no fonts, no trackers. A page that explains why
@@ -107,6 +107,7 @@ export function privacyPage(origin: string): string {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>privacy &middot; nerfd</title>
 <meta name="description" content="What nerfd collects, what it never collects, and how to stop it.">
+${socialMeta(origin, '/privacy', 'What leaves your machine · nerfd.ai', 'Counts, never conversations. The exact record nerfd sends, what it never sends, and how to stop it.')}
 ${FAVICON}
 <style>${CSS}</style>
 </head>

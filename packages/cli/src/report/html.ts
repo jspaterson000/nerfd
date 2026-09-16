@@ -105,7 +105,7 @@ function wrapText(value: string, limit: number): string[] {
   for (const word of value.split(/\s+/)) { for (let start = 0; start < word.length; start += limit) { const part = word.slice(start, start + limit); if (line && line.length + part.length + 1 > limit) { lines.push(line); line = ''; } line += (line ? ' ' : '') + part; } }
   if (line) lines.push(line); return lines;
 }
-function shareCard(data: ReportData): string {
+export function shareCard(data: ReportData): string {
   const headline = wrapText(data.share.headline, 37);
   const lines = data.share.lines.flatMap(line => wrapText(line, 78));
   const textRows = [...headline.map(text => ({ text, headline: true })), ...lines.map(text => ({ text, headline: false }))];

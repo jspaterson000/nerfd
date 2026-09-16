@@ -17,6 +17,7 @@ export interface Config {
   share: "never" | "ask" | "auto";
   plans: Partial<Record<Tool, { id: string; name: string; usd_month: number | null }>>;
   created_at: string;
+  founder_handle?: string | null;   // the X handle this install put on the founding wall, if any
 }
 
 export function ensureHome(): void {

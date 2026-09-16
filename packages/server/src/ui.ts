@@ -2,6 +2,23 @@ import { READ_GUIDE, READABLE_CSS, READABLE_JS, defineHeaders } from '../assets/
 // Shared inline assets keep the public page and local dashboard in one visual family.
 export const FAVICON = `<link rel="icon" href="/assets/logos/nerfd.svg">`;
 
+/** Open Graph and X card tags. One static image for every page; X will not render an SVG. */
+export function socialMeta(origin: string, path: string, title: string, description: string): string {
+  const url = esc(origin + path);
+  return `<meta property="og:type" content="website">
+<meta property="og:site_name" content="nerfd.ai">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(description)}">
+<meta property="og:url" content="${url}">
+<meta property="og:image" content="${esc(origin)}/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(title)}">
+<meta name="twitter:description" content="${esc(description)}">
+<meta name="twitter:image" content="${esc(origin)}/assets/og.png">`;
+}
+
 export const IDENTITY_JS = `
 function logoFor(id) {
   const key = String(id ?? '').toLowerCase().split('/').pop();
@@ -446,6 +463,8 @@ export function boardPage(title: string, readOnly: boolean, origin: string): str
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
+<meta name="description" content="Every AI coding model ranked on real work: tiers, best at each kind of work, plans, friction and weekly change.">
+${readOnly ? '' : socialMeta(origin, '/board', 'The public scorecard · nerfd.ai', 'Every AI coding model ranked on real work: tiers, best at each kind of work, what a plan gives you, friction and weekly change.')}
 ${FAVICON}
 <style>${BASE_CSS}</style>
 </head>

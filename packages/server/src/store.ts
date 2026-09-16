@@ -1,5 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
 import type { Report } from "@nerfd/core";
+import type { FounderRow, FounderStore } from './founders.ts';
 
 // The public store. One row per report; the record is kept as JSON with a
 // few indexed columns. Reports are append-only; there is no update path.
@@ -18,9 +19,14 @@ CREATE TABLE IF NOT EXISTS reports (
 CREATE INDEX IF NOT EXISTS reports_week ON reports(week);
 CREATE INDEX IF NOT EXISTS reports_model ON reports(model);
 CREATE INDEX IF NOT EXISTS reports_reporter ON reports(reporter_id, received_at);
+CREATE TABLE IF NOT EXISTS founders (
+  handle       TEXT PRIMARY KEY,
+  owner        TEXT NOT NULL,
+  added_at     TEXT NOT NULL
+);
 `;
 
-export class ReportStore {
+export class ReportStore implements FounderStore {
   private db: DatabaseSync;
 
   constructor(path: string) {
@@ -83,4 +89,11 @@ export class ReportStore {
   reporters(): number {
     return this.reporterWeeks();
   }
+
+  // ---- founding reporters: handles by choice, joined to nothing ----------
+  list(): FounderRow[] { return this.db.prepare('SELECT handle, owner, added_at FROM founders').all() as unknown as FounderRow[]; }
+  get(handle: string): FounderRow | null { return (this.db.prepare('SELECT handle, owner, added_at FROM founders WHERE handle = ?').get(handle) as FounderRow | undefined) ?? null; }
+  byOwner(owner: string): FounderRow | null { return (this.db.prepare('SELECT handle, owner, added_at FROM founders WHERE owner = ?').get(owner) as FounderRow | undefined) ?? null; }
+  put(row: FounderRow): void { this.db.prepare('INSERT OR REPLACE INTO founders (handle, owner, added_at) VALUES (?, ?, ?)').run(row.handle, row.owner, row.added_at); }
+  remove(handle: string): void { this.db.prepare('DELETE FROM founders WHERE handle = ?').run(handle); }
 }

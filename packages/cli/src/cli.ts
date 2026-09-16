@@ -19,7 +19,10 @@ const HELP = `nerfd - nerfd.ai. a local-first scorecard of how AI models perform
   nerfd share on|off|status                     autonomous reporting of redacted records after each session
   nerfd share [last|<id>|all] [--dry-run] [--resend] [--evidence URL]   send specific records (--resend re-sends ones already shared)
   nerfd export [--public] [--csv]               dump your data
-  nerfd report [--weeks 4] [--out file] [--projects]   your own usage, errors, ranking and economics as one page
+  nerfd report [--weeks 4] [--out file] [--projects] [--share]   your own usage, errors, ranking and economics as one page
+                                                (--share writes the card to post and prints the text)
+  nerfd post weekly [--weeks 8]                 compose the weekly drift report from the public board: text and card
+  nerfd founder [@handle|remove]                put your X handle on the founding reporters wall, by choice
   nerfd dash [--port 8787]                      local dashboard over your own sessions
   nerfd backfill [tool] [--since 90d] [--refresh] [--restamp]  import sessions the tool recorded before nerfd existed
                                                 (--refresh re-reads the ledger for sessions already on record)
@@ -73,6 +76,8 @@ async function main(): Promise<void> {
     case 'share': return (await import('./commands/share.ts')).share(a);
     case 'export': return (await import('./commands/export.ts')).exportCmd(a);
     case 'report': return (await import('./commands/report.ts')).report(a);
+    case 'post': return (await import('./commands/post.ts')).post(a);
+    case 'founder': return (await import('./commands/founder.ts')).founder(a);
     case 'backfill': return (await import('./commands/backfill.ts')).backfill(a);
     case 'model-info': case 'model': return (await import('./commands/model.ts')).modelInfo(a);
     case 'privacy': return (await import('./commands/privacy.ts')).privacy(a);

@@ -2,7 +2,8 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validateReport, type Report, type Row } from '@nerfd/core';
+import { isoWeek, validateReport, type Report, type Row } from '@nerfd/core';
+import { applyFounder, publicFounders, validateFounder } from './founders.ts';
 import { installScript } from './installer.ts';
 import { landingPage } from './landing.ts';
 import type { ReportStore } from './store.ts';
@@ -103,6 +104,19 @@ export function startServer(o: ServerOptions) {
         if (!existsSync(f)) return text(res, 404, 'release tarball not built. run: pnpm release');
         res.writeHead(200, { 'content-type': 'application/gzip', 'content-length': statSync(f).size, 'cache-control': 'no-store' });
         return createReadStream(f).pipe(res);
+      }
+
+      if (p === '/v1/founders') {
+        if (req.method === 'GET') return json(res, 200, o.store ? publicFounders(o.store, isoWeek) : { founders: [], n: 0, cap: 0 });
+        if (req.method === 'POST') {
+          if (o.readOnly || !o.store) return json(res, 405, { error: 'read-only' });
+          let parsed: unknown;
+          try { parsed = JSON.parse(await readBody(req, 4096)); } catch { return json(res, 400, { error: 'invalid json' }); }
+          const v = validateFounder(parsed);
+          if (!v.ok) return json(res, 422, { error: v.error });
+          const out = applyFounder(o.store, v.value);
+          return json(res, out.status, out.body);
+        }
       }
 
       if (req.method === 'GET') {

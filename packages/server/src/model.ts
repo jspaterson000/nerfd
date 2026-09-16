@@ -1,5 +1,5 @@
 import { READ_GUIDE, READABLE_CSS, READABLE_JS, defineHeaders } from '../assets/presentation.ts';
-import { esc, FAVICON, IDENTITY_JS, SHARED_CSS } from './ui.ts';
+import { esc, FAVICON, IDENTITY_JS, SHARED_CSS, socialMeta } from './ui.ts';
 
 // One model, one page: where it ranks, on what work, and how it has moved
 // since it was first seen. Everything is fetched from /v1/model, which runs
@@ -207,6 +207,7 @@ export function modelPage(title: string, readOnly: boolean, origin: string, id: 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${index ? 'Models' : esc(id)} · ${esc(title)}</title>
 <meta name="description" content="${index ? 'Every AI model on the nerfd record, with where each ranks, on what work, and how it has changed over time.' : esc(id) + ' on real work: rank, strengths by kind of work, and week-by-week change since release.'}">
+${readOnly ? '' : socialMeta(origin, index ? '/model' : '/model/' + encodeURIComponent(id), index ? 'Models on record · nerfd.ai' : id + ' on real work · nerfd.ai', index ? 'Every AI model on the record, with where each ranks, on what work, and how it has changed over time.' : id + ': rank in the field, strengths by kind of work, and week-by-week change since release.')}
 ${FAVICON}
 <style>${SHARED_CSS}${READABLE_CSS}${MODEL_CSS}
 body.index .model-only,body.missing .model-only{display:none}body:not(.index) .index-only{display:none}

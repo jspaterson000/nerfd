@@ -7,9 +7,14 @@ import { buildReportData } from '../report/data.ts';
 import { renderFallback } from '../report/fallback.ts';
 import { openPath } from '../report/open.ts';
 import type { ReportData } from '../report/types.ts';
+import { svgToPng } from '../report/png.ts';
 
 /**
- * `nerfd report [--weeks 4] [--out path] [--no-open] [--projects] [--json]`
+ * `nerfd report [--weeks 4] [--out path] [--no-open] [--projects] [--json] [--share]`
+ *
+ * `--share` writes the share card beside the report (SVG, and PNG when a
+ * browser is on the machine) and prints the post text. The card carries
+ * model names, scores and dollars and nothing else.
  *
  * One self-contained HTML file built from the local database and opened with
  * the OS opener. No server, no port, no network: the file is the product, and
@@ -26,6 +31,8 @@ export async function report(a: Args): Promise<void> {
     return;
   }
 
+  if (flag(a, 'share')) return share(data);
+
   const html = await render(data);
   const out = outPath(str(a, 'out'));
   ensureHome();
@@ -36,6 +43,19 @@ export async function report(a: Args): Promise<void> {
   process.stdout.write(`${out}\n`);
   process.stdout.write(`${data.glance.sentence}\n`);
   if (!flag(a, 'no-open')) openPath(out);
+}
+
+async function share(data: ReportData): Promise<void> {
+  ensureHome();
+  const url = new URL('../report/html.ts', import.meta.url).href;
+  const mod = (await import(url).catch(() => null)) as { shareCard?: (d: ReportData) => string } | null;
+  if (!mod?.shareCard) { process.stderr.write('the share card renderer is not available in this install.\n'); process.exitCode = 1; return; }
+  const svg = mod.shareCard(data);
+  const base = join(HOME, 'share');
+  writeFileSync(base + '.svg', svg, { mode: 0o600 });
+  const png = svgToPng(svg, base + '.png');
+  process.stdout.write(`${data.share.caption} ${'https://nerfd.org'}\n\n`);
+  process.stdout.write(`card: ${png ? base + '.png' : base + '.svg (no browser found for PNG; set NERFD_BROWSER, or open the report and use Copy image)'}\n`);
 }
 
 function outPath(given: string | undefined): string {
