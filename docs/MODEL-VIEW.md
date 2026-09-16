@@ -41,7 +41,7 @@ The board's drift table compares only the latest week. The model page runs the s
 - The **shift** card compares the earliest period on record with the latest. Each side grows week by week until it holds five sessions, up to four weeks, and the two never overlap. Under five sessions a side is `insufficient`, and the page says which side is thin.
 - Tool and effort are listed per week because a harness change looks exactly like a weights change from here.
 
-The tone rule from docs/PLAN.md holds: change detection, not accusation. The page says "worse than when it arrived" with the z-scores beside it, never "nerfed".
+The tone rule from docs/METHOD.md holds: change detection, not accusation. The page says "worse than when it arrived" with the z-scores beside it, never "nerfed".
 
 ## Kinds of work
 

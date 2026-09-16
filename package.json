@@ -16,19 +16,10 @@
     "nerfd": "node packages/cli/src/cli.ts",
     "server": "node packages/server/src/main.ts",
     "dash": "node packages/cli/src/cli.ts dash",
-    "release": "node scripts/release.ts",
-    "cf:build": "node scripts/build-cloudflare.ts",
-    "cf:login": "node scripts/cloudflare.ts login --scopes account:read user:read workers:write workers_scripts:write workers_routes:write zone:read",
-    "cf:whoami": "node scripts/cloudflare.ts whoami",
-    "cf:dev": "pnpm cf:build && node scripts/cloudflare.ts dev",
-    "cf:deploy": "pnpm cf:build && node scripts/cloudflare.ts deploy",
-    "cf:check": "tsc -p tsconfig.cloudflare.json",
-    "cf:smoke": "node scripts/check-cloudflare.ts"
+    "release": "node scripts/release.ts"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260916.1",
     "@types/node": "^24.0.0",
-    "typescript": "^5.7.0",
-    "wrangler": "4.132.0"
+    "typescript": "^5.7.0"
   }
 }

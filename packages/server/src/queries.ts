@@ -26,7 +26,7 @@ function steered(rows: Row[], url: URL): Row[] {
   return url.searchParams.get('automated') === '1' ? rows : steeredRows(rows);
 }
 
-/** Shared public queries for Node and Cloudflare. Raw reports never leave this boundary. */
+/** Shared public queries for the Node server and any serverless wrapper. Raw reports never leave this boundary. */
 export function queryData(url: URL, source: (weeks: number) => Row[], readOnly: boolean, origin: string,
   counts?: { count(): number; reporterWeeks(): number }): { body: unknown; status: number } | undefined {
   const p = url.pathname;

@@ -20,8 +20,5 @@
   "include": [
     "packages/*/src/**/*.ts",
     "packages/*/test/**/*.ts"
-  ],
-  "exclude": [
-    "packages/server/src/cloudflare.ts"
   ]
 }

@@ -4,7 +4,7 @@ The public record of how AI models actually perform on real work. Captured autom
 
 Live at [nerfd.org](https://nerfd.org): the [board](https://nerfd.org/board), one page per [model](https://nerfd.org/model) with its rank, its standing by kind of work and the week it changed, and the [open data](https://nerfd.org/export.json) (CC BY 4.0). Counts, never conversations; the [privacy page](https://nerfd.org/privacy) shows the exact record. No money from model labs.
 
-Plan, context, market research, the multi-tool integration plan, the behavioural signals, the plan detector, tokens versus limits, the model view, the personal report, the privacy statement and the launch plan: [docs/PLAN.md](docs/PLAN.md), [docs/MARKET.md](docs/MARKET.md), [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md), [docs/SIGNALS.md](docs/SIGNALS.md), [docs/PLAN-DETECTION.md](docs/PLAN-DETECTION.md), [docs/LIMITS.md](docs/LIMITS.md), [docs/MODEL-VIEW.md](docs/MODEL-VIEW.md), [docs/REPORT.md](docs/REPORT.md), [docs/PRIVACY.md](docs/PRIVACY.md), [docs/LAUNCH.md](docs/LAUNCH.md).
+The method and principles, the multi-tool integration plan, the behavioural signals, the plan detector, tokens versus limits, the model view, the personal report and the privacy statement: [docs/METHOD.md](docs/METHOD.md), [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md), [docs/SIGNALS.md](docs/SIGNALS.md), [docs/PLAN-DETECTION.md](docs/PLAN-DETECTION.md), [docs/LIMITS.md](docs/LIMITS.md), [docs/MODEL-VIEW.md](docs/MODEL-VIEW.md), [docs/REPORT.md](docs/REPORT.md), [docs/PRIVACY.md](docs/PRIVACY.md).
 
 ![landing](docs/landing.png)
 
@@ -81,23 +81,9 @@ NERFD_HOME=/tmp/mshome pnpm nerfd sessions   # isolated data dir
 
 Hook errors never surface in the host tool; they go to `~/.nerfd/hook.log`. `nerfd doctor` shows the tail. Model list prices live in `packages/core/src/pricing.ts`, subscription plans in `packages/core/src/plans.ts`.
 
-## Deploy to Cloudflare
+## Hosting
 
-The public site runs as a Cloudflare Worker with a SQLite Durable Object for
-reports. To run your own copy: set your domain and public origin in
-`wrangler.jsonc`, put your account id in `CLOUDFLARE_ACCOUNT_ID` or
-`~/.config/nerfd-cloudflare/account_id`, then
-
-```sh
-pnpm cf:login && pnpm cf:whoami
-pnpm typecheck && pnpm cf:check && pnpm test
-pnpm cf:deploy
-```
-
-The full walk-through, local Worker checks and operating notes are in
-[docs/deployment/cloudflare.md](docs/deployment/cloudflare.md). The repository
-names no account; the `cf:*` commands keep their login under
-`~/.config/nerfd-cloudflare`, separate from any other project's Wrangler state.
+The Node server above is the whole public site: landing, board, model pages, privacy page, installer, API and open-data export. Run it behind any reverse proxy with `x-forwarded-proto` and `x-forwarded-host` set, or on a serverless platform by wrapping `queryData` and the page renderers from `packages/server/src`. The nerfd.org instance is one such wrapper; how it is hosted is not part of this repository.
 
 ## Licence
 

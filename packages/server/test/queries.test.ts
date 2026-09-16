@@ -5,7 +5,7 @@ import { queryData } from '../src/queries.ts';
 
 // The two things the first real data on the live board got wrong: what the
 // headline number counts, and what a session with no human in it is evidence
-// of. Both are decided here, in the one query layer Node and Cloudflare share.
+// of. Both are decided here, in the one query layer every host shares.
 
 function row(over: Partial<Row> = {}): Row {
   return {
