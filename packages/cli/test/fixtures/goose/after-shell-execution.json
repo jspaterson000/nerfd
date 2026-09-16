@@ -1,0 +1,1 @@
+{"event":"AfterShellExecution","session_id":"goose-smoke-1","matcher_context":"cargo test","tool_name":"developer__shell","tool_input":{"command":"cargo test"},"working_dir":"/Users/someone/secret-project"}

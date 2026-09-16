@@ -1,0 +1,61 @@
+[
+ {
+  "ts": 1757980800000,
+  "type": "say",
+  "say": "task",
+  "text": "add pagination to the users list"
+ },
+ {
+  "ts": 1757980801000,
+  "type": "say",
+  "say": "api_req_started",
+  "text": "{\"request\": \"<task>add pagination\\u2026</task>\"}"
+ },
+ {
+  "ts": 1757980806000,
+  "type": "say",
+  "say": "api_req_finished",
+  "text": "{\"tokensIn\": 1200, \"tokensOut\": 300, \"cacheWrites\": 100, \"cacheReads\": 50, \"cost\": 0.0041}"
+ },
+ {
+  "ts": 1757980807000,
+  "type": "say",
+  "say": "text",
+  "text": "Done. Want me to add tests?",
+  "modelInfo": {
+   "modelId": "qwen3-coder",
+   "providerId": "openrouter",
+   "mode": "act"
+  }
+ },
+ {
+  "ts": 1757980808000,
+  "type": "say",
+  "say": "tool",
+  "text": "{\"tool\": \"editedExistingFile\", \"path\": \"/Users/x/app/src/users.ts\", \"diff\": \"- old\\n+ new\"}"
+ },
+ {
+  "ts": 1757980809000,
+  "type": "say",
+  "say": "diff_error",
+  "text": "the SEARCH block did not match"
+ },
+ {
+  "ts": 1757980810000,
+  "type": "say",
+  "say": "compaction",
+  "text": "{\"status\": \"completed\", \"mode\": \"auto\", \"tokensBefore\": 180000, \"tokensAfter\": 40000}"
+ },
+ {
+  "ts": 1757980820000,
+  "type": "say",
+  "say": "api_req_started",
+  "text": "{\"tokensIn\": 900, \"tokensOut\": 120, \"cacheReads\": 400, \"cost\": 0.002, \"cancelReason\": \"user_cancelled\"}"
+ },
+ {
+  "ts": 1757980830000,
+  "type": "say",
+  "say": "deleted_api_reqs",
+  "text": "{\"tokensIn\": 50, \"tokensOut\": 10, \"cost\": 0.0001}"
+ }
+]

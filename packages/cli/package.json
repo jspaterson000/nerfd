@@ -1,0 +1,11 @@
+{
+  "name": "@nerfd/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "bin": { "nerfd": "./src/cli.ts", "ms": "./src/cli.ts" },
+  "dependencies": {
+    "@nerfd/core": "workspace:*",
+    "@nerfd/server": "workspace:*"
+  }
+}

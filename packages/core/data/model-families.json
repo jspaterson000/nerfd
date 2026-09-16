@@ -1,0 +1,4513 @@
+{
+  "generated_at": "2026-09-16",
+  "families": [
+    {
+      "family": "claude-opus",
+      "vendor": "anthropic",
+      "display": "Claude Opus",
+      "open_weights": false,
+      "patterns": [
+        "claude[-._]?opus",
+        "claude-[0-9](?:[-._][0-9])?-opus",
+        "anthropic[./]claude[-._]?opus"
+      ],
+      "versions": [
+        {
+          "version": "5",
+          "patterns": [
+            "(?<![0-9])5(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-07"
+        },
+        {
+          "version": "4.8",
+          "patterns": [
+            "(?<![0-9])4[-._]8(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-05"
+        },
+        {
+          "version": "4.7",
+          "patterns": [
+            "(?<![0-9])4[-._]7(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-04"
+        },
+        {
+          "version": "4.6",
+          "patterns": [
+            "(?<![0-9])4[-._]6(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-02"
+        },
+        {
+          "version": "4.5",
+          "patterns": [
+            "(?<![0-9])4[-._]5(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2025-11"
+        },
+        {
+          "version": "4.1",
+          "patterns": [
+            "(?<![0-9])4[-._]1(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2025-08"
+        },
+        {
+          "version": "4",
+          "patterns": [
+            "(?<![0-9])4(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [],
+          "released": "2025-05"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "(?<![0-9])3(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [],
+          "released": "2024-03"
+        }
+      ],
+      "aliases": {
+        "opus": {
+          "version": "latest"
+        },
+        "opusplan": {
+          "version": "latest"
+        },
+        "claude-opus-latest": {
+          "version": "latest"
+        },
+        "~anthropic/claude-opus-latest": {
+          "version": "latest"
+        },
+        "claude-3-opus-20240229": {
+          "version": "3"
+        }
+      },
+      "size_patterns": {
+        "[1m]": "1m-context",
+        "-1m": "1m-context"
+      }
+    },
+    {
+      "family": "claude-sonnet",
+      "vendor": "anthropic",
+      "display": "Claude Sonnet",
+      "open_weights": false,
+      "patterns": [
+        "claude[-._]?sonnet",
+        "claude-[0-9](?:[-._][0-9])?-sonnet",
+        "anthropic[./]claude[-._]?sonnet"
+      ],
+      "versions": [
+        {
+          "version": "5",
+          "patterns": [
+            "(?<![0-9])5(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-06"
+        },
+        {
+          "version": "4.6",
+          "patterns": [
+            "(?<![0-9])4[-._]6(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-02"
+        },
+        {
+          "version": "4.5",
+          "patterns": [
+            "(?<![0-9])4[-._]5(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2025-09"
+        },
+        {
+          "version": "4",
+          "patterns": [
+            "(?<![0-9])4(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [],
+          "released": "2025-05"
+        },
+        {
+          "version": "3.7",
+          "patterns": [
+            "(?<![0-9])3[-._]7(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2025-02"
+        },
+        {
+          "version": "3.5",
+          "patterns": [
+            "(?<![0-9])3[-._]5(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2024-06"
+        }
+      ],
+      "aliases": {
+        "sonnet": {
+          "version": "latest"
+        },
+        "claude-sonnet-latest": {
+          "version": "latest"
+        },
+        "~anthropic/claude-sonnet-latest": {
+          "version": "latest"
+        },
+        "claude-3-5-sonnet-20241022": {
+          "version": "3.5"
+        },
+        "claude-3-7-sonnet-20250219": {
+          "version": "3.7"
+        }
+      },
+      "size_patterns": {
+        "[1m]": "1m-context",
+        "-1m": "1m-context"
+      }
+    },
+    {
+      "family": "claude-haiku",
+      "vendor": "anthropic",
+      "display": "Claude Haiku",
+      "open_weights": false,
+      "patterns": [
+        "claude[-._]?haiku",
+        "claude-[0-9](?:[-._][0-9])?-haiku",
+        "anthropic[./]claude[-._]?haiku"
+      ],
+      "versions": [
+        {
+          "version": "4.5",
+          "patterns": [
+            "(?<![0-9])4[-._]5(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2025-10"
+        },
+        {
+          "version": "3.5",
+          "patterns": [
+            "(?<![0-9])3[-._]5(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2024-10"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "(?<![0-9])3(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [],
+          "released": "2024-03"
+        }
+      ],
+      "aliases": {
+        "haiku": {
+          "version": "latest"
+        },
+        "claude-haiku-latest": {
+          "version": "latest"
+        },
+        "~anthropic/claude-haiku-latest": {
+          "version": "latest"
+        }
+      },
+      "size_patterns": {}
+    },
+    {
+      "family": "claude-fable",
+      "vendor": "anthropic",
+      "display": "Claude Fable",
+      "open_weights": false,
+      "patterns": [
+        "claude[-._]?fable",
+        "claude-[0-9](?:[-._][0-9])?-fable",
+        "anthropic[./]claude[-._]?fable"
+      ],
+      "versions": [
+        {
+          "version": "5.1",
+          "patterns": [
+            "(?<![0-9])5[-._]1(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-09"
+        },
+        {
+          "version": "5",
+          "patterns": [
+            "(?<![0-9])5(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-06"
+        }
+      ],
+      "aliases": {
+        "fable": {
+          "version": "latest"
+        },
+        "claude-fable-latest": {
+          "version": "latest"
+        },
+        "~anthropic/claude-fable-latest": {
+          "version": "latest"
+        }
+      },
+      "size_patterns": {
+        "[1m]": "1m-context",
+        "-1m": "1m-context"
+      }
+    },
+    {
+      "family": "claude-mythos",
+      "vendor": "anthropic",
+      "display": "Claude Mythos",
+      "open_weights": false,
+      "patterns": [
+        "claude[-._]?mythos",
+        "claude-[0-9](?:[-._][0-9])?-mythos",
+        "anthropic[./]claude[-._]?mythos"
+      ],
+      "versions": [
+        {
+          "version": "5",
+          "patterns": [
+            "(?<![0-9])5(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-06"
+        }
+      ],
+      "aliases": {
+        "mythos": {
+          "version": "latest"
+        }
+      },
+      "size_patterns": {}
+    },
+    {
+      "family": "gpt-6",
+      "vendor": "openai",
+      "display": "GPT-6",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])gpt-?6(?![0-9])",
+        "gpt-astra",
+        "gpt-?6[-._]astra"
+      ],
+      "versions": [
+        {
+          "version": "astra",
+          "patterns": [
+            "astra"
+          ],
+          "sizes": [
+            "standard",
+            "pro"
+          ],
+          "released": "2026-09"
+        }
+      ],
+      "aliases": {
+        "gpt-6-astra": {
+          "version": "astra",
+          "size": "standard"
+        },
+        "gpt-6-astra-pro": {
+          "version": "astra",
+          "size": "pro"
+        },
+        "~openai/gpt-astra-latest": {
+          "version": "astra"
+        }
+      },
+      "size_patterns": {
+        "-pro": "pro",
+        "-mini": "mini",
+        "-nano": "nano"
+      }
+    },
+    {
+      "family": "gpt-5",
+      "vendor": "openai",
+      "display": "GPT-5",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])gpt-?5(?![0-9])(?!.*codex)",
+        "gpt-?5\\.[0-9](?!.*codex)",
+        "(?:^|[/._-])gpt-(?:luna|sol|terra|mini|chat)-latest"
+      ],
+      "versions": [
+        {
+          "version": "5.6",
+          "patterns": [
+            "(?<![0-9])5[-._]6(?![0-9])"
+          ],
+          "sizes": [
+            "luna",
+            "sol",
+            "terra",
+            "pro"
+          ],
+          "released": "2026-07"
+        },
+        {
+          "version": "5.5",
+          "patterns": [
+            "(?<![0-9])5[-._]5(?![0-9])"
+          ],
+          "sizes": [
+            "standard",
+            "pro"
+          ],
+          "released": "2026-04"
+        },
+        {
+          "version": "5.4",
+          "patterns": [
+            "(?<![0-9])5[-._]4(?![0-9])"
+          ],
+          "sizes": [
+            "standard",
+            "mini",
+            "nano",
+            "pro"
+          ],
+          "released": "2026-03"
+        },
+        {
+          "version": "5.3",
+          "patterns": [
+            "(?<![0-9])5[-._]3(?![0-9])"
+          ],
+          "sizes": [
+            "chat"
+          ],
+          "released": "2026-03"
+        },
+        {
+          "version": "5.2",
+          "patterns": [
+            "(?<![0-9])5[-._]2(?![0-9])"
+          ],
+          "sizes": [
+            "standard",
+            "chat",
+            "pro"
+          ],
+          "released": "2025-12"
+        },
+        {
+          "version": "5.1",
+          "patterns": [
+            "(?<![0-9])5[-._]1(?![0-9])"
+          ],
+          "sizes": [
+            "standard"
+          ],
+          "released": "2025-11"
+        },
+        {
+          "version": "5",
+          "patterns": [
+            "(?<![0-9])5(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [
+            "standard",
+            "mini",
+            "nano",
+            "pro"
+          ],
+          "released": "2025-08"
+        }
+      ],
+      "aliases": {
+        "gpt-5.6-luna": {
+          "version": "5.6",
+          "size": "luna"
+        },
+        "gpt-5.6-sol": {
+          "version": "5.6",
+          "size": "sol"
+        },
+        "gpt-5.6-terra": {
+          "version": "5.6",
+          "size": "terra"
+        },
+        "gpt-5.6-luna-pro": {
+          "version": "5.6",
+          "size": "luna-pro"
+        },
+        "gpt-5.6-sol-pro": {
+          "version": "5.6",
+          "size": "sol-pro"
+        },
+        "gpt-5.6-terra-pro": {
+          "version": "5.6",
+          "size": "terra-pro"
+        },
+        "~openai/gpt-luna-latest": {
+          "version": "5.6",
+          "size": "luna"
+        },
+        "~openai/gpt-sol-latest": {
+          "version": "5.6",
+          "size": "sol"
+        },
+        "~openai/gpt-terra-latest": {
+          "version": "5.6",
+          "size": "terra"
+        },
+        "~openai/gpt-mini-latest": {
+          "size": "mini"
+        },
+        "gpt-chat-latest": {
+          "version": "chat-latest",
+          "size": "chat"
+        }
+      },
+      "size_patterns": {
+        "-luna": "luna",
+        "-sol": "sol",
+        "-terra": "terra",
+        "-pro": "pro",
+        "-mini": "mini",
+        "-nano": "nano",
+        "-chat": "chat"
+      }
+    },
+    {
+      "family": "gpt-codex",
+      "vendor": "openai",
+      "display": "GPT Codex",
+      "open_weights": false,
+      "patterns": [
+        "codex",
+        "gpt-?5(?:\\.[0-9])?[-._]codex",
+        "(?:^|[/._-])codex-mini"
+      ],
+      "versions": [
+        {
+          "version": "5.3-codex",
+          "patterns": [
+            "5[-._]3[-._]codex(?![-._]spark)"
+          ],
+          "sizes": [
+            "standard"
+          ],
+          "released": "2026-02"
+        },
+        {
+          "version": "5.3-codex-spark",
+          "patterns": [
+            "5[-._]3[-._]codex[-._]spark"
+          ],
+          "sizes": [
+            "spark"
+          ],
+          "released": "2026-02"
+        },
+        {
+          "version": "5.2-codex",
+          "patterns": [
+            "5[-._]2[-._]codex"
+          ],
+          "sizes": [
+            "standard"
+          ],
+          "released": "2026-01"
+        },
+        {
+          "version": "5.1-codex",
+          "patterns": [
+            "5[-._]1[-._]codex"
+          ],
+          "sizes": [
+            "standard",
+            "max",
+            "mini"
+          ],
+          "released": "2025-11"
+        },
+        {
+          "version": "5-codex",
+          "patterns": [
+            "gpt-?5[-._]codex"
+          ],
+          "sizes": [
+            "standard"
+          ],
+          "released": "2025-09"
+        },
+        {
+          "version": "codex-mini",
+          "patterns": [
+            "^codex-mini"
+          ],
+          "sizes": [
+            "mini"
+          ],
+          "released": "2025-05"
+        }
+      ],
+      "aliases": {
+        "gpt-5.1-codex-max": {
+          "version": "5.1-codex",
+          "size": "max"
+        },
+        "gpt-5.1-codex-mini": {
+          "version": "5.1-codex",
+          "size": "mini"
+        }
+      },
+      "size_patterns": {
+        "-max": "max",
+        "-mini": "mini",
+        "-spark": "spark"
+      }
+    },
+    {
+      "family": "gpt-4",
+      "vendor": "openai",
+      "display": "GPT-4",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])gpt-?4(?![0-9])",
+        "gpt-?4\\.[0-9]",
+        "gpt-?4o"
+      ],
+      "versions": [
+        {
+          "version": "4.1",
+          "patterns": [
+            "4[-._]1"
+          ],
+          "sizes": [
+            "standard",
+            "mini",
+            "nano"
+          ],
+          "released": "2025-04"
+        },
+        {
+          "version": "4o",
+          "patterns": [
+            "4o"
+          ],
+          "sizes": [
+            "standard",
+            "mini"
+          ],
+          "released": "2024-05"
+        },
+        {
+          "version": "4-turbo",
+          "patterns": [
+            "4-turbo"
+          ],
+          "sizes": [],
+          "released": "2023-11"
+        },
+        {
+          "version": "4",
+          "patterns": [
+            "(?<![0-9])4(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [],
+          "released": "2023-03"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "-mini": "mini",
+        "-nano": "nano",
+        "-turbo": "turbo"
+      }
+    },
+    {
+      "family": "gpt-3-5",
+      "vendor": "openai",
+      "display": "GPT-3.5",
+      "open_weights": false,
+      "patterns": [
+        "gpt-?3\\.5",
+        "gpt-?35-turbo"
+      ],
+      "versions": [
+        {
+          "version": "3.5-turbo",
+          "patterns": [
+            "turbo"
+          ],
+          "sizes": [],
+          "released": "2023-03"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {}
+    },
+    {
+      "family": "openai-o",
+      "vendor": "openai",
+      "display": "OpenAI o-series",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])o[1341](?:-(?:mini|pro|preview|high|low))?(?![0-9a-z])",
+        "(?:^|[/._-])o[1341]-\\d{4}-\\d{2}-\\d{2}"
+      ],
+      "versions": [
+        {
+          "version": "o4",
+          "patterns": [
+            "(?<![0-9a-z])o4"
+          ],
+          "sizes": [
+            "mini"
+          ],
+          "released": "2025-04"
+        },
+        {
+          "version": "o3",
+          "patterns": [
+            "(?<![0-9a-z])o3"
+          ],
+          "sizes": [
+            "standard",
+            "mini",
+            "pro"
+          ],
+          "released": "2025-04"
+        },
+        {
+          "version": "o1",
+          "patterns": [
+            "(?<![0-9a-z])o1"
+          ],
+          "sizes": [
+            "standard",
+            "pro"
+          ],
+          "released": "2024-12"
+        }
+      ],
+      "aliases": {
+        "o3-mini-high": {
+          "version": "o3",
+          "size": "mini"
+        },
+        "o4-mini-high": {
+          "version": "o4",
+          "size": "mini"
+        }
+      },
+      "size_patterns": {
+        "-mini": "mini",
+        "-pro": "pro"
+      }
+    },
+    {
+      "family": "gpt-oss",
+      "vendor": "openai",
+      "display": "gpt-oss",
+      "open_weights": true,
+      "patterns": [
+        "gpt-?oss"
+      ],
+      "versions": [
+        {
+          "version": "safeguard",
+          "patterns": [
+            "safeguard"
+          ],
+          "sizes": [
+            "120B-A5.1B",
+            "20B-A3.6B"
+          ],
+          "released": "2025-10"
+        },
+        {
+          "version": "1",
+          "patterns": [
+            "gpt-?oss"
+          ],
+          "sizes": [
+            "120B-A5.1B",
+            "20B-A3.6B"
+          ],
+          "released": "2025-08"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "120b": "120B-A5.1B",
+        "20b": "20B-A3.6B"
+      }
+    },
+    {
+      "family": "gemini",
+      "vendor": "google",
+      "display": "Gemini",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])gemini(?![a-z])",
+        "google[/.]gemini",
+        "~google/gemini-(?:pro|flash|flash-lite)-latest"
+      ],
+      "versions": [
+        {
+          "version": "3.8",
+          "patterns": [
+            "(?<![0-9])3[-._]8(?![0-9])"
+          ],
+          "sizes": [
+            "flash"
+          ],
+          "released": "2026-09"
+        },
+        {
+          "version": "3.7",
+          "patterns": [
+            "(?<![0-9])3[-._]7(?![0-9])"
+          ],
+          "sizes": [
+            "flash"
+          ],
+          "released": "2026-08"
+        },
+        {
+          "version": "3.6",
+          "patterns": [
+            "(?<![0-9])3[-._]6(?![0-9])"
+          ],
+          "sizes": [
+            "flash"
+          ],
+          "released": "2026-07"
+        },
+        {
+          "version": "3.5",
+          "patterns": [
+            "(?<![0-9])3[-._]5(?![0-9])"
+          ],
+          "sizes": [
+            "flash",
+            "flash-lite"
+          ],
+          "released": "2026-05"
+        },
+        {
+          "version": "3.1",
+          "patterns": [
+            "(?<![0-9])3[-._]1(?![0-9])"
+          ],
+          "sizes": [
+            "pro",
+            "flash",
+            "flash-lite"
+          ],
+          "released": "2026-02"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "(?<![0-9])3(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [
+            "pro",
+            "flash"
+          ],
+          "released": "2025-11"
+        },
+        {
+          "version": "2.5",
+          "patterns": [
+            "(?<![0-9])2[-._]5(?![0-9])"
+          ],
+          "sizes": [
+            "pro",
+            "flash",
+            "flash-lite"
+          ],
+          "released": "2025-06"
+        },
+        {
+          "version": "2.0",
+          "patterns": [
+            "(?<![0-9])2[-._]0(?![0-9])"
+          ],
+          "sizes": [
+            "pro",
+            "flash",
+            "flash-lite"
+          ],
+          "released": "2024-12"
+        },
+        {
+          "version": "1.5",
+          "patterns": [
+            "(?<![0-9])1[-._]5(?![0-9])"
+          ],
+          "sizes": [
+            "pro",
+            "flash"
+          ],
+          "released": "2024-02"
+        }
+      ],
+      "aliases": {
+        "gemini-flash-latest": {
+          "version": "latest",
+          "size": "flash"
+        },
+        "gemini-flash-lite-latest": {
+          "version": "latest",
+          "size": "flash-lite"
+        },
+        "gemini-pro-latest": {
+          "version": "latest",
+          "size": "pro"
+        },
+        "~google/gemini-pro-latest": {
+          "version": "latest",
+          "size": "pro"
+        },
+        "~google/gemini-flash-latest": {
+          "version": "latest",
+          "size": "flash"
+        }
+      },
+      "size_patterns": {
+        "flash-lite": "flash-lite",
+        "-flash": "flash",
+        "-pro": "pro",
+        "-nano": "nano"
+      }
+    },
+    {
+      "family": "gemma",
+      "vendor": "google",
+      "display": "Gemma",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])gemma(?![a-z])",
+        "google[/.]gemma",
+        "gemma-?[0-9]"
+      ],
+      "versions": [
+        {
+          "version": "4",
+          "patterns": [
+            "gemma-?4"
+          ],
+          "sizes": [
+            "31B",
+            "26B-A4B",
+            "E2B"
+          ],
+          "released": "2026-04"
+        },
+        {
+          "version": "3n",
+          "patterns": [
+            "gemma-?3n"
+          ],
+          "sizes": [
+            "E4B",
+            "E2B"
+          ],
+          "released": "2025-06"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "gemma-?3(?!n)"
+          ],
+          "sizes": [
+            "27B",
+            "12B",
+            "4B",
+            "1B"
+          ],
+          "released": "2025-03"
+        },
+        {
+          "version": "2",
+          "patterns": [
+            "gemma-?2"
+          ],
+          "sizes": [
+            "27B",
+            "9B",
+            "2B"
+          ],
+          "released": "2024-06"
+        }
+      ],
+      "aliases": {
+        "gemma4": {
+          "version": "4"
+        }
+      },
+      "size_patterns": {
+        "31b": "31B",
+        "26b-a4b": "26B-A4B",
+        "27b": "27B",
+        "12b": "12B",
+        "9b": "9B",
+        "4b": "4B",
+        "2b": "2B",
+        "1b": "1B",
+        "e4b": "E4B",
+        "e2b": "E2B"
+      }
+    },
+    {
+      "family": "kimi-k3",
+      "vendor": "moonshot",
+      "display": "Kimi K3",
+      "open_weights": true,
+      "patterns": [
+        "kimi[-._]?k3",
+        "(?:^|[/._-])k3(?:-256k)?(?![0-9a-z])",
+        "moonshotai?[/.]kimi-k3",
+        "^kimi-for-coding(?:-highspeed)?$",
+        "(?:^|[/._-])kimi-latest$"
+      ],
+      "versions": [
+        {
+          "version": "k3",
+          "patterns": [
+            "k3"
+          ],
+          "sizes": [
+            "2.8T-A104B"
+          ],
+          "released": "2026-07"
+        }
+      ],
+      "aliases": {
+        "k3": {
+          "version": "k3"
+        },
+        "k3-256k": {
+          "version": "k3",
+          "size": "2.8T-A104B"
+        },
+        "kimi-for-coding": {
+          "version": "k3"
+        },
+        "kimi-for-coding-highspeed": {
+          "version": "k3"
+        },
+        "~moonshotai/kimi-latest": {
+          "version": "k3"
+        },
+        "kimi-latest": {
+          "version": "k3"
+        }
+      },
+      "size_patterns": {
+        "2.8t": "2.8T-A104B"
+      }
+    },
+    {
+      "family": "kimi-k2",
+      "vendor": "moonshot",
+      "display": "Kimi K2",
+      "open_weights": true,
+      "patterns": [
+        "kimi[-._]?k2",
+        "moonshotai?[/.]kimi-k2",
+        "(?:^|[/._-])k2[-._.]?[0-9]"
+      ],
+      "versions": [
+        {
+          "version": "k2.7-code",
+          "patterns": [
+            "k2[-._]7"
+          ],
+          "sizes": [
+            "1T-A32B"
+          ],
+          "released": "2026-06"
+        },
+        {
+          "version": "k2.6",
+          "patterns": [
+            "k2[-._]6"
+          ],
+          "sizes": [
+            "1T-A32B"
+          ],
+          "released": "2026-04"
+        },
+        {
+          "version": "k2.5",
+          "patterns": [
+            "k2[-._]5"
+          ],
+          "sizes": [
+            "1T-A32B"
+          ],
+          "released": "2026-01"
+        },
+        {
+          "version": "k2-thinking",
+          "patterns": [
+            "k2[-._]thinking"
+          ],
+          "sizes": [
+            "1T-A32B"
+          ],
+          "released": "2025-11"
+        },
+        {
+          "version": "k2-0905",
+          "patterns": [
+            "k2[-._](?:instruct[-._])?0905"
+          ],
+          "sizes": [
+            "1T-A32B"
+          ],
+          "released": "2025-09"
+        },
+        {
+          "version": "k2",
+          "patterns": [
+            "k2(?![-._]?[0-9])"
+          ],
+          "sizes": [
+            "1T-A32B"
+          ],
+          "released": "2025-07"
+        }
+      ],
+      "aliases": {
+        "kimi-k2.7-code-highspeed": {
+          "version": "k2.7-code",
+          "size": "1T-A32B"
+        },
+        "kimi-k2-instruct-0905": {
+          "version": "k2-0905",
+          "size": "1T-A32B"
+        },
+        "kimi-k2-instruct": {
+          "version": "k2",
+          "size": "1T-A32B"
+        },
+        "moonshot.kimi-k2-thinking": {
+          "version": "k2-thinking"
+        }
+      },
+      "size_patterns": {
+        "1t": "1T-A32B"
+      }
+    },
+    {
+      "family": "glm",
+      "vendor": "zhipu",
+      "display": "GLM",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])glm(?![-._]?[0-9](?:[-._][0-9])?v)-?[0-9]",
+        "z-?ai[/.-]glm(?![-._]?[0-9](?:[-._][0-9])?v)-?[0-9]",
+        "zai-org[/.]glm(?![-._]?[0-9](?:[-._][0-9])?v)-?[0-9]",
+        "zhipuai?[/.]glm(?![-._]?[0-9](?:[-._][0-9])?v)-?[0-9]",
+        "~?z-ai/glm-(?:flash-)?latest"
+      ],
+      "versions": [
+        {
+          "version": "5.3",
+          "patterns": [
+            "(?<![0-9])5[-._]3(?![0-9])"
+          ],
+          "sizes": [
+            "744B-A40B",
+            "320B-A18B"
+          ],
+          "released": "2026-08"
+        },
+        {
+          "version": "5.2",
+          "patterns": [
+            "(?<![0-9])5[-._]2(?![0-9])"
+          ],
+          "sizes": [
+            "744B-A40B"
+          ],
+          "released": "2026-06"
+        },
+        {
+          "version": "5.1",
+          "patterns": [
+            "(?<![0-9])5[-._]1(?![0-9])"
+          ],
+          "sizes": [
+            "744B-A40B"
+          ],
+          "released": "2026-04"
+        },
+        {
+          "version": "5",
+          "patterns": [
+            "(?<![0-9])5(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [
+            "744B-A40B"
+          ],
+          "released": "2026-02"
+        },
+        {
+          "version": "4.7",
+          "patterns": [
+            "(?<![0-9])4[-._]7(?![0-9])"
+          ],
+          "sizes": [
+            "355B-A32B",
+            "30B-A3B"
+          ],
+          "released": "2025-12"
+        },
+        {
+          "version": "4.6",
+          "patterns": [
+            "(?<![0-9])4[-._]6(?![0-9])"
+          ],
+          "sizes": [
+            "355B-A32B"
+          ],
+          "released": "2025-09"
+        },
+        {
+          "version": "4.5",
+          "patterns": [
+            "(?<![0-9])4[-._]5(?![0-9])"
+          ],
+          "sizes": [
+            "355B-A32B",
+            "106B-A12B"
+          ],
+          "released": "2025-07"
+        }
+      ],
+      "aliases": {
+        "glm-4.5-air": {
+          "version": "4.5",
+          "size": "106B-A12B"
+        },
+        "glm-4.7-flash": {
+          "version": "4.7",
+          "size": "30B-A3B"
+        },
+        "glm-4.7-flashx": {
+          "version": "4.7",
+          "size": "30B-A3B"
+        },
+        "glm-5.3-flash": {
+          "version": "5.3",
+          "size": "320B-A18B"
+        },
+        "glm-5-turbo": {
+          "version": "5",
+          "size": "turbo"
+        },
+        "~z-ai/glm-latest": {
+          "version": "latest"
+        },
+        "~z-ai/glm-flash-latest": {
+          "version": "latest",
+          "size": "flash"
+        }
+      },
+      "size_patterns": {
+        "-air": "106B-A12B",
+        "-flashx": "30B-A3B",
+        "-flash": "flash",
+        "-turbo": "turbo",
+        "-highspeed": "highspeed",
+        "355b": "355B-A32B",
+        "744b": "744B-A40B",
+        "320b": "320B-A18B"
+      }
+    },
+    {
+      "family": "glm-v",
+      "vendor": "zhipu",
+      "display": "GLM Vision",
+      "open_weights": true,
+      "patterns": [
+        "glm-?[0-9](?:\\.[0-9])?v(?![a-z])",
+        "glm-?5v"
+      ],
+      "versions": [
+        {
+          "version": "5v",
+          "patterns": [
+            "5v"
+          ],
+          "sizes": [
+            "turbo"
+          ],
+          "released": "2026-04"
+        },
+        {
+          "version": "4.6v",
+          "patterns": [
+            "4[-._]6v"
+          ],
+          "sizes": [],
+          "released": "2025-12"
+        },
+        {
+          "version": "4.5v",
+          "patterns": [
+            "4[-._]5v"
+          ],
+          "sizes": [
+            "106B-A12B"
+          ],
+          "released": "2025-08"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "-turbo": "turbo"
+      }
+    },
+    {
+      "family": "deepseek-v4",
+      "vendor": "deepseek",
+      "display": "DeepSeek V4",
+      "open_weights": true,
+      "patterns": [
+        "deepseek[-._/]?v4",
+        "deepseek-ai[/.]deepseek-v4",
+        "(?:^|[/._-])deepseek-flash(?![a-z])",
+        "deepseek-(?:pro|flash)-latest",
+        "deepseek-chat(?![-._]?v)",
+        "^deepseek-reasoner$"
+      ],
+      "versions": [
+        {
+          "version": "v4.1-flash",
+          "patterns": [
+            "v4[-._]1[-._]flash"
+          ],
+          "sizes": [
+            "A8B-A16B"
+          ],
+          "released": "2026-09"
+        },
+        {
+          "version": "v4-pro",
+          "patterns": [
+            "v4[-._]pro"
+          ],
+          "sizes": [
+            "1.6T-A49B"
+          ],
+          "released": "2026-04"
+        },
+        {
+          "version": "v4-flash",
+          "patterns": [
+            "v4[-._]flash"
+          ],
+          "sizes": [
+            "284B-A13B"
+          ],
+          "released": "2026-04"
+        }
+      ],
+      "aliases": {
+        "deepseek-flash": {
+          "version": "v4.1-flash"
+        },
+        "deepseek-v4-pro-0813": {
+          "version": "v4-pro",
+          "size": "1.6T-A49B"
+        },
+        "deepseek-v4-flash-0731": {
+          "version": "v4-flash",
+          "size": "284B-A13B"
+        },
+        "deepseek-v4-flash-vision-exp": {
+          "version": "v4-flash",
+          "size": "284B-A13B"
+        },
+        "deepseek-reasoner": {
+          "version": "v4-pro"
+        },
+        "deepseek-chat": {
+          "version": "v4-flash"
+        },
+        "~deepseek/deepseek-pro-latest": {
+          "version": "v4-pro"
+        },
+        "~deepseek/deepseek-flash-latest": {
+          "version": "v4.1-flash"
+        },
+        "~deepseek/deepseek-v4-flash-latest": {
+          "version": "v4-flash"
+        }
+      },
+      "size_patterns": {
+        "1.6t": "1.6T-A49B",
+        "284b": "284B-A13B"
+      }
+    },
+    {
+      "family": "deepseek-v3",
+      "vendor": "deepseek",
+      "display": "DeepSeek V3",
+      "open_weights": true,
+      "patterns": [
+        "deepseek[-._/]?v3",
+        "deepseek-chat-v3",
+        "deepseek\\.v3",
+        "deepseek-ai[/.]deepseek-v3"
+      ],
+      "versions": [
+        {
+          "version": "v3.2",
+          "patterns": [
+            "v3[-._]2"
+          ],
+          "sizes": [
+            "685B-A37B"
+          ],
+          "released": "2025-12"
+        },
+        {
+          "version": "v3.1",
+          "patterns": [
+            "v3[-._]1"
+          ],
+          "sizes": [
+            "685B-A37B"
+          ],
+          "released": "2025-08"
+        },
+        {
+          "version": "v3-0324",
+          "patterns": [
+            "0324"
+          ],
+          "sizes": [
+            "685B-A37B"
+          ],
+          "released": "2025-03"
+        },
+        {
+          "version": "v3",
+          "patterns": [
+            "v3(?![-._]?[0-9])"
+          ],
+          "sizes": [
+            "671B-A37B"
+          ],
+          "released": "2024-12"
+        }
+      ],
+      "aliases": {
+        "deepseek-v3.2-exp": {
+          "version": "v3.2"
+        },
+        "deepseek-v3.2-speciale": {
+          "version": "v3.2"
+        },
+        "deepseek-v3.1-terminus": {
+          "version": "v3.1"
+        }
+      },
+      "size_patterns": {
+        "671b": "671B-A37B",
+        "685b": "685B-A37B"
+      }
+    },
+    {
+      "family": "deepseek-r1",
+      "vendor": "deepseek",
+      "display": "DeepSeek R1",
+      "open_weights": true,
+      "patterns": [
+        "deepseek[-._/]?r1",
+        "deepseek\\.r1"
+      ],
+      "versions": [
+        {
+          "version": "r1-0528",
+          "patterns": [
+            "0528"
+          ],
+          "sizes": [
+            "685B-A37B"
+          ],
+          "released": "2025-05"
+        },
+        {
+          "version": "r1",
+          "patterns": [
+            "r1"
+          ],
+          "sizes": [
+            "671B-A37B",
+            "70B",
+            "32B",
+            "14B",
+            "8B",
+            "7B",
+            "1.5B"
+          ],
+          "released": "2025-01"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "671b": "671B-A37B",
+        "70b": "70B",
+        "32b": "32B",
+        "14b": "14B",
+        "8b": "8B",
+        "7b": "7B",
+        "1.5b": "1.5B"
+      }
+    },
+    {
+      "family": "qwen3-coder",
+      "vendor": "alibaba",
+      "display": "Qwen3 Coder",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])qwen-?3(?:\\.[0-9])?[-._]?coder",
+        "qwen[/.]qwen3[-._]?coder",
+        "qwen\\.qwen3-coder"
+      ],
+      "versions": [
+        {
+          "version": "next",
+          "patterns": [
+            "coder[-._]next"
+          ],
+          "sizes": [],
+          "released": "2026-02"
+        },
+        {
+          "version": "2507",
+          "patterns": [
+            "2507",
+            "480b",
+            "30b",
+            "qwen-?3[-._]?coder(?![-._]next)"
+          ],
+          "sizes": [
+            "480B-A35B",
+            "30B-A3B"
+          ],
+          "released": "2025-07"
+        }
+      ],
+      "aliases": {
+        "qwen3-coder-plus": {
+          "version": "plus"
+        },
+        "qwen3-coder-flash": {
+          "version": "flash",
+          "size": "30B-A3B"
+        },
+        "qwen3-coder": {
+          "version": "2507",
+          "size": "480B-A35B"
+        },
+        "qwen3-coder-next": {
+          "version": "next"
+        }
+      },
+      "size_patterns": {
+        "480b": "480B-A35B",
+        "30b": "30B-A3B",
+        "-flash": "30B-A3B",
+        "-plus": "480B-A35B"
+      }
+    },
+    {
+      "family": "qwen3",
+      "vendor": "alibaba",
+      "display": "Qwen3",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])qwen-?3(?:\\.[0-9])?(?![-._]?coder)",
+        "qwen[/.]qwen-?3(?:\\.[0-9])?(?![-._]?coder)",
+        "qwen\\.qwen3(?:\\.[0-9])?(?![-._]?coder)",
+        "(?:^|[/._-])qwen3[0-9](?![0-9])"
+      ],
+      "versions": [
+        {
+          "version": "3.8",
+          "patterns": [
+            "(?<![0-9])3[-._]8(?![0-9])"
+          ],
+          "sizes": [
+            "2.4T-A95B",
+            "27B",
+            "max",
+            "flash"
+          ],
+          "released": "2026-08"
+        },
+        {
+          "version": "3.7",
+          "patterns": [
+            "(?<![0-9])3[-._]7(?![0-9])"
+          ],
+          "sizes": [
+            "max",
+            "plus",
+            "flash"
+          ],
+          "released": "2026-05"
+        },
+        {
+          "version": "3.6",
+          "patterns": [
+            "(?<![0-9])3[-._]6(?![0-9])"
+          ],
+          "sizes": [
+            "35B-A3B",
+            "27B",
+            "max",
+            "plus",
+            "flash"
+          ],
+          "released": "2026-04"
+        },
+        {
+          "version": "3.5",
+          "patterns": [
+            "(?<![0-9])3[-._]5(?![0-9])"
+          ],
+          "sizes": [
+            "397B-A17B",
+            "122B-A10B",
+            "35B-A3B",
+            "27B",
+            "9B",
+            "plus",
+            "flash"
+          ],
+          "released": "2026-02"
+        },
+        {
+          "version": "next",
+          "patterns": [
+            "3[-._]next"
+          ],
+          "sizes": [
+            "80B-A3B"
+          ],
+          "released": "2025-09"
+        },
+        {
+          "version": "3-2507",
+          "patterns": [
+            "2507"
+          ],
+          "sizes": [
+            "235B-A22B",
+            "30B-A3B"
+          ],
+          "released": "2025-07"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "qwen-?3(?![0-9.])"
+          ],
+          "sizes": [
+            "235B-A22B",
+            "32B",
+            "30B-A3B",
+            "14B",
+            "8B",
+            "4B",
+            "1.7B",
+            "0.6B"
+          ],
+          "released": "2025-04"
+        }
+      ],
+      "aliases": {
+        "qwen3-max": {
+          "version": "3",
+          "size": "max"
+        },
+        "qwen3-max-thinking": {
+          "version": "3",
+          "size": "max"
+        },
+        "qwen3.7-max": {
+          "version": "3.7",
+          "size": "max"
+        },
+        "qwen3.8-max": {
+          "version": "3.8",
+          "size": "max"
+        },
+        "qwen3.6-max-preview": {
+          "version": "3.6",
+          "size": "max"
+        },
+        "qwen38-27b-abliterated": {
+          "version": "3.8",
+          "size": "27B"
+        }
+      },
+      "size_patterns": {
+        "2.4t": "2.4T-A95B",
+        "397b": "397B-A17B",
+        "235b": "235B-A22B",
+        "122b": "122B-A10B",
+        "80b": "80B-A3B",
+        "35b": "35B-A3B",
+        "32b": "32B",
+        "30b": "30B-A3B",
+        "27b": "27B",
+        "14b": "14B",
+        "9b": "9B",
+        "8b": "8B",
+        "4b": "4B",
+        "1.7b": "1.7B",
+        "0.6b": "0.6B",
+        "-max": "max",
+        "-plus": "plus",
+        "-flash": "flash",
+        "-turbo": "turbo"
+      }
+    },
+    {
+      "family": "qwen2-5-coder",
+      "vendor": "alibaba",
+      "display": "Qwen2.5 Coder",
+      "open_weights": true,
+      "patterns": [
+        "qwen-?2\\.?5[-._]coder",
+        "qwen2-5-coder"
+      ],
+      "versions": [
+        {
+          "version": "2.5",
+          "patterns": [
+            "2\\.?5"
+          ],
+          "sizes": [
+            "32B",
+            "14B",
+            "7B",
+            "3B",
+            "1.5B",
+            "0.5B"
+          ],
+          "released": "2024-11"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "32b": "32B",
+        "14b": "14B",
+        "7b": "7B",
+        "3b": "3B",
+        "1.5b": "1.5B",
+        "0.5b": "0.5B"
+      }
+    },
+    {
+      "family": "qwen2-5",
+      "vendor": "alibaba",
+      "display": "Qwen2.5",
+      "open_weights": true,
+      "patterns": [
+        "qwen-?2\\.?5(?![-._]coder)",
+        "qwen2-5-"
+      ],
+      "versions": [
+        {
+          "version": "2.5",
+          "patterns": [
+            "2\\.?5"
+          ],
+          "sizes": [
+            "72B",
+            "32B",
+            "14B",
+            "7B",
+            "3B"
+          ],
+          "released": "2024-09"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "72b": "72B",
+        "32b": "32B",
+        "14b": "14B",
+        "7b": "7B",
+        "3b": "3B"
+      }
+    },
+    {
+      "family": "qwq",
+      "vendor": "alibaba",
+      "display": "QwQ / QVQ",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])qwq",
+        "(?:^|[/._-])qvq"
+      ],
+      "versions": [
+        {
+          "version": "qvq-max",
+          "patterns": [
+            "qvq"
+          ],
+          "sizes": [],
+          "released": "2025-03"
+        },
+        {
+          "version": "qwq-32b",
+          "patterns": [
+            "qwq"
+          ],
+          "sizes": [
+            "32B"
+          ],
+          "released": "2025-03"
+        }
+      ],
+      "aliases": {
+        "qwq-plus": {
+          "version": "qwq-32b"
+        }
+      },
+      "size_patterns": {
+        "32b": "32B"
+      }
+    },
+    {
+      "family": "qwen-legacy",
+      "vendor": "alibaba",
+      "display": "Qwen (unversioned commercial)",
+      "open_weights": false,
+      "patterns": [
+        "^qwen-(?:max|plus|turbo|flash|omni-turbo|vl-max|vl-plus|vl-ocr|mt-plus|mt-turbo)(?![0-9])"
+      ],
+      "versions": [
+        {
+          "version": "commercial",
+          "patterns": [
+            "qwen-"
+          ],
+          "sizes": [
+            "max",
+            "plus",
+            "turbo",
+            "flash"
+          ],
+          "released": "2024-01"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "-max": "max",
+        "-plus": "plus",
+        "-turbo": "turbo",
+        "-flash": "flash"
+      }
+    },
+    {
+      "family": "minimax-m",
+      "vendor": "minimax",
+      "display": "MiniMax M",
+      "open_weights": true,
+      "patterns": [
+        "minimax[-._/]?m[0-9]",
+        "minimax\\.minimax-m",
+        "minimaxai?[/.]minimax-m",
+        "(?:^|[/._-])minimax-(?:text-)?0?1(?![0-9])"
+      ],
+      "versions": [
+        {
+          "version": "m3",
+          "patterns": [
+            "m3(?![0-9.])"
+          ],
+          "sizes": [
+            "428B-A23B"
+          ],
+          "released": "2026-06"
+        },
+        {
+          "version": "m2.7",
+          "patterns": [
+            "m2[-._]7"
+          ],
+          "sizes": [
+            "229B-A10B"
+          ],
+          "released": "2026-03"
+        },
+        {
+          "version": "m2.5",
+          "patterns": [
+            "m2[-._]5"
+          ],
+          "sizes": [
+            "230B-A10B"
+          ],
+          "released": "2026-02"
+        },
+        {
+          "version": "m2.1",
+          "patterns": [
+            "m2[-._]1"
+          ],
+          "sizes": [
+            "230B-A10B"
+          ],
+          "released": "2025-12"
+        },
+        {
+          "version": "m2",
+          "patterns": [
+            "m2(?![-._]?[0-9])"
+          ],
+          "sizes": [
+            "230B-A10B"
+          ],
+          "released": "2025-10"
+        },
+        {
+          "version": "m1",
+          "patterns": [
+            "m1(?![0-9])"
+          ],
+          "sizes": [
+            "456B-A45B"
+          ],
+          "released": "2025-06"
+        }
+      ],
+      "aliases": {
+        "minimax-m2.5-highspeed": {
+          "version": "m2.5",
+          "size": "230B-A10B"
+        },
+        "minimax-m2.7-highspeed": {
+          "version": "m2.7",
+          "size": "229B-A10B"
+        },
+        "minimax-m2-her": {
+          "version": "m2"
+        }
+      },
+      "size_patterns": {
+        "428b": "428B-A23B",
+        "230b": "230B-A10B",
+        "229b": "229B-A10B",
+        "456b": "456B-A45B"
+      }
+    },
+    {
+      "family": "llama",
+      "vendor": "meta",
+      "display": "Llama",
+      "open_weights": true,
+      "patterns": [
+        "^(?:(?:meta-llama|meta|unsloth|nvidia|cerebras|groq|llama)[-/._])?llama-?[0-9](?![0-9.\\-]*nemotron)",
+        "^meta-llama[/.]",
+        "meta\\.llama[0-9]",
+        "(?:^|[/._-])llama-?4-(?:maverick|scout)"
+      ],
+      "versions": [
+        {
+          "version": "4",
+          "patterns": [
+            "llama-?4"
+          ],
+          "sizes": [
+            "400B-A17B",
+            "109B-A17B",
+            "12B"
+          ],
+          "released": "2025-04"
+        },
+        {
+          "version": "3.3",
+          "patterns": [
+            "llama-?3[-._]3"
+          ],
+          "sizes": [
+            "70B",
+            "8B"
+          ],
+          "released": "2024-12"
+        },
+        {
+          "version": "3.2",
+          "patterns": [
+            "llama-?3[-._]2"
+          ],
+          "sizes": [
+            "90B",
+            "11B",
+            "3B",
+            "1B"
+          ],
+          "released": "2024-09"
+        },
+        {
+          "version": "3.1",
+          "patterns": [
+            "llama-?3[-._]1"
+          ],
+          "sizes": [
+            "405B",
+            "70B",
+            "8B"
+          ],
+          "released": "2024-07"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "llama-?3(?![-._]?[0-9])"
+          ],
+          "sizes": [
+            "70B",
+            "8B"
+          ],
+          "released": "2024-04"
+        },
+        {
+          "version": "2",
+          "patterns": [
+            "llama-?2",
+            "(?:^|[/._-])l[23](?:\\.[0-9])?-"
+          ],
+          "sizes": [
+            "70B",
+            "13B",
+            "7B"
+          ],
+          "released": "2023-07"
+        }
+      ],
+      "aliases": {
+        "llama-4-maverick": {
+          "version": "4",
+          "size": "400B-A17B"
+        },
+        "llama-4-scout": {
+          "version": "4",
+          "size": "109B-A17B"
+        },
+        "meta.llama4-maverick-17b-instruct-v1:0": {
+          "version": "4",
+          "size": "400B-A17B"
+        },
+        "meta.llama4-scout-17b-instruct-v1:0": {
+          "version": "4",
+          "size": "109B-A17B"
+        },
+        "llama-guard-4-12b": {
+          "version": "4",
+          "size": "12B"
+        }
+      },
+      "size_patterns": {
+        "maverick": "400B-A17B",
+        "scout": "109B-A17B",
+        "405b": "405B",
+        "90b": "90B",
+        "70b": "70B",
+        "13b": "13B",
+        "11b": "11B",
+        "8b": "8B",
+        "3b": "3B",
+        "1b": "1B"
+      }
+    },
+    {
+      "family": "muse",
+      "vendor": "meta",
+      "display": "Meta Muse",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])muse-(?:spark|glimmer)",
+        "meta(?:-models)?[/.]muse"
+      ],
+      "versions": [
+        {
+          "version": "spark-1.3",
+          "patterns": [
+            "spark-?1[-._]3"
+          ],
+          "sizes": [
+            "standard",
+            "contributor"
+          ],
+          "released": "2026-09"
+        },
+        {
+          "version": "spark-1.2",
+          "patterns": [
+            "spark-?1[-._]2"
+          ],
+          "sizes": [
+            "standard",
+            "contributor"
+          ],
+          "released": "2026-08"
+        },
+        {
+          "version": "spark-1.1",
+          "patterns": [
+            "spark-?1[-._]1"
+          ],
+          "sizes": [
+            "standard"
+          ],
+          "released": "2026-04"
+        },
+        {
+          "version": "glimmer",
+          "patterns": [
+            "glimmer"
+          ],
+          "sizes": [
+            "30B"
+          ],
+          "released": "2026-08"
+        }
+      ],
+      "aliases": {
+        "muse-glimmer-30b": {
+          "version": "glimmer",
+          "size": "30B"
+        },
+        "muse-spark-1.3-contributor": {
+          "version": "spark-1.3",
+          "size": "contributor"
+        },
+        "muse-spark-1.2-contributor": {
+          "version": "spark-1.2",
+          "size": "contributor"
+        }
+      },
+      "size_patterns": {
+        "contributor": "contributor",
+        "30b": "30B"
+      }
+    },
+    {
+      "family": "devstral",
+      "vendor": "mistral",
+      "display": "Devstral",
+      "open_weights": true,
+      "patterns": [
+        "devstral",
+        "mistral\\.devstral"
+      ],
+      "versions": [
+        {
+          "version": "2512",
+          "patterns": [
+            "2512",
+            "devstral-2(?![0-9])"
+          ],
+          "sizes": [
+            "123B",
+            "24B"
+          ],
+          "released": "2025-12"
+        },
+        {
+          "version": "2507",
+          "patterns": [
+            "2507"
+          ],
+          "sizes": [
+            "24B"
+          ],
+          "released": "2025-07"
+        },
+        {
+          "version": "2505",
+          "patterns": [
+            "2505"
+          ],
+          "sizes": [
+            "24B"
+          ],
+          "released": "2025-05"
+        }
+      ],
+      "aliases": {
+        "devstral-latest": {
+          "version": "2512"
+        },
+        "devstral-medium-latest": {
+          "version": "2512"
+        }
+      },
+      "size_patterns": {
+        "123b": "123B",
+        "24b": "24B",
+        "-small": "24B",
+        "-medium": "123B"
+      }
+    },
+    {
+      "family": "codestral",
+      "vendor": "mistral",
+      "display": "Codestral",
+      "open_weights": false,
+      "patterns": [
+        "codestral"
+      ],
+      "versions": [
+        {
+          "version": "2508",
+          "patterns": [
+            "2508"
+          ],
+          "sizes": [],
+          "released": "2025-08"
+        },
+        {
+          "version": "2501",
+          "patterns": [
+            "2501"
+          ],
+          "sizes": [
+            "22B"
+          ],
+          "released": "2025-01"
+        },
+        {
+          "version": "22b",
+          "patterns": [
+            "22b"
+          ],
+          "sizes": [
+            "22B"
+          ],
+          "released": "2024-05"
+        }
+      ],
+      "aliases": {
+        "codestral-latest": {
+          "version": "2508"
+        }
+      },
+      "size_patterns": {
+        "22b": "22B"
+      }
+    },
+    {
+      "family": "mistral-large",
+      "vendor": "mistral",
+      "display": "Mistral Large",
+      "open_weights": true,
+      "patterns": [
+        "mistral[-._]large",
+        "mistral\\.mistral-large"
+      ],
+      "versions": [
+        {
+          "version": "3",
+          "patterns": [
+            "2512",
+            "large-3"
+          ],
+          "sizes": [
+            "675B-A41B"
+          ],
+          "released": "2025-12"
+        },
+        {
+          "version": "2411",
+          "patterns": [
+            "2411"
+          ],
+          "sizes": [
+            "123B"
+          ],
+          "released": "2024-11"
+        },
+        {
+          "version": "2407",
+          "patterns": [
+            "2407"
+          ],
+          "sizes": [
+            "123B"
+          ],
+          "released": "2024-07"
+        }
+      ],
+      "aliases": {
+        "mistral-large-latest": {
+          "version": "3"
+        }
+      },
+      "size_patterns": {
+        "675b": "675B-A41B",
+        "123b": "123B"
+      }
+    },
+    {
+      "family": "mistral-medium",
+      "vendor": "mistral",
+      "display": "Mistral Medium",
+      "open_weights": true,
+      "patterns": [
+        "mistral[-._]medium"
+      ],
+      "versions": [
+        {
+          "version": "3.5",
+          "patterns": [
+            "2604",
+            "3[-._]5"
+          ],
+          "sizes": [
+            "128B"
+          ],
+          "released": "2026-04"
+        },
+        {
+          "version": "3.1",
+          "patterns": [
+            "2508",
+            "3[-._]1"
+          ],
+          "sizes": [],
+          "released": "2025-08"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "2505"
+          ],
+          "sizes": [],
+          "released": "2025-05"
+        }
+      ],
+      "aliases": {
+        "mistral-medium-latest": {
+          "version": "3.5"
+        }
+      },
+      "size_patterns": {
+        "128b": "128B"
+      }
+    },
+    {
+      "family": "mistral-small",
+      "vendor": "mistral",
+      "display": "Mistral Small",
+      "open_weights": true,
+      "patterns": [
+        "mistral[-._]small"
+      ],
+      "versions": [
+        {
+          "version": "4",
+          "patterns": [
+            "2603",
+            "small-4"
+          ],
+          "sizes": [
+            "119B-A12B"
+          ],
+          "released": "2026-03"
+        },
+        {
+          "version": "3.2",
+          "patterns": [
+            "2506",
+            "3[-._]2"
+          ],
+          "sizes": [
+            "24B"
+          ],
+          "released": "2025-06"
+        },
+        {
+          "version": "3.1",
+          "patterns": [
+            "2503",
+            "3[-._]1"
+          ],
+          "sizes": [
+            "24B"
+          ],
+          "released": "2025-03"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "2501"
+          ],
+          "sizes": [
+            "24B"
+          ],
+          "released": "2025-01"
+        }
+      ],
+      "aliases": {
+        "mistral-small-latest": {
+          "version": "4"
+        }
+      },
+      "size_patterns": {
+        "119b": "119B-A12B",
+        "24b": "24B"
+      }
+    },
+    {
+      "family": "ministral",
+      "vendor": "mistral",
+      "display": "Ministral",
+      "open_weights": true,
+      "patterns": [
+        "ministral",
+        "mistral\\.ministral"
+      ],
+      "versions": [
+        {
+          "version": "3",
+          "patterns": [
+            "2512",
+            "ministral-3"
+          ],
+          "sizes": [
+            "14B",
+            "8B",
+            "3B"
+          ],
+          "released": "2025-12"
+        },
+        {
+          "version": "1",
+          "patterns": [
+            "ministral-(?:3b|8b)-latest"
+          ],
+          "sizes": [
+            "8B",
+            "3B"
+          ],
+          "released": "2024-10"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "14b": "14B",
+        "8b": "8B",
+        "3b": "3B"
+      }
+    },
+    {
+      "family": "magistral",
+      "vendor": "mistral",
+      "display": "Magistral",
+      "open_weights": true,
+      "patterns": [
+        "magistral"
+      ],
+      "versions": [
+        {
+          "version": "1.2",
+          "patterns": [
+            "2509"
+          ],
+          "sizes": [
+            "24B"
+          ],
+          "released": "2025-09"
+        },
+        {
+          "version": "1.1",
+          "patterns": [
+            "2507"
+          ],
+          "sizes": [
+            "24B"
+          ],
+          "released": "2025-07"
+        },
+        {
+          "version": "1",
+          "patterns": [
+            "2506",
+            "magistral"
+          ],
+          "sizes": [
+            "24B",
+            "medium"
+          ],
+          "released": "2025-06"
+        }
+      ],
+      "aliases": {
+        "magistral-medium-latest": {
+          "version": "1.2",
+          "size": "medium"
+        }
+      },
+      "size_patterns": {
+        "24b": "24B",
+        "-small": "24B",
+        "-medium": "medium"
+      }
+    },
+    {
+      "family": "mixtral",
+      "vendor": "mistral",
+      "display": "Mixtral",
+      "open_weights": true,
+      "patterns": [
+        "mixtral",
+        "open-mixtral"
+      ],
+      "versions": [
+        {
+          "version": "8x22b",
+          "patterns": [
+            "8x22b"
+          ],
+          "sizes": [
+            "141B-A39B"
+          ],
+          "released": "2024-04"
+        },
+        {
+          "version": "8x7b",
+          "patterns": [
+            "8x7b"
+          ],
+          "sizes": [
+            "46.7B-A12.9B"
+          ],
+          "released": "2023-12"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "8x22b": "141B-A39B",
+        "8x7b": "46.7B-A12.9B"
+      }
+    },
+    {
+      "family": "mistral-nemo",
+      "vendor": "mistral",
+      "display": "Mistral Nemo",
+      "open_weights": true,
+      "patterns": [
+        "mistral[-._]nemo(?!tron)",
+        "open-mistral-nemo",
+        "(?:^|[/._-])nemo(?:mix|-12b)"
+      ],
+      "versions": [
+        {
+          "version": "2407",
+          "patterns": [
+            "2407",
+            "nemo"
+          ],
+          "sizes": [
+            "12B"
+          ],
+          "released": "2024-07"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "12b": "12B"
+      }
+    },
+    {
+      "family": "grok",
+      "vendor": "xai",
+      "display": "Grok",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])grok-?[0-9]",
+        "x-?ai[/.]grok(?![-._](?:build|code))",
+        "xai\\.grok(?![-._](?:build|code))",
+        "~x-ai/grok-latest"
+      ],
+      "versions": [
+        {
+          "version": "4.6",
+          "patterns": [
+            "(?<![0-9])4[-._]6(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-08"
+        },
+        {
+          "version": "4.5",
+          "patterns": [
+            "(?<![0-9])4[-._]5(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-07"
+        },
+        {
+          "version": "4.3",
+          "patterns": [
+            "(?<![0-9])4[-._]3(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-04"
+        },
+        {
+          "version": "4.20",
+          "patterns": [
+            "4[-._]20"
+          ],
+          "sizes": [
+            "reasoning",
+            "non-reasoning",
+            "multi-agent"
+          ],
+          "released": "2026-03"
+        },
+        {
+          "version": "4.1",
+          "patterns": [
+            "(?<![0-9])4[-._]1(?![0-9])"
+          ],
+          "sizes": [
+            "fast-reasoning",
+            "fast-non-reasoning"
+          ],
+          "released": "2025-12"
+        },
+        {
+          "version": "4",
+          "patterns": [
+            "(?<![0-9])4(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [
+            "standard",
+            "fast"
+          ],
+          "released": "2025-07"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "(?<![0-9])3(?![0-9]|[-._][0-9])"
+          ],
+          "sizes": [
+            "standard",
+            "mini"
+          ],
+          "released": "2025-02"
+        }
+      ],
+      "aliases": {
+        "~x-ai/grok-latest": {
+          "version": "latest"
+        }
+      },
+      "size_patterns": {
+        "multi-agent": "multi-agent",
+        "non-reasoning": "non-reasoning",
+        "reasoning": "reasoning",
+        "-fast": "fast",
+        "-mini": "mini"
+      }
+    },
+    {
+      "family": "grok-code",
+      "vendor": "xai",
+      "display": "Grok Code",
+      "open_weights": false,
+      "patterns": [
+        "grok-?code"
+      ],
+      "versions": [
+        {
+          "version": "fast-1",
+          "patterns": [
+            "fast"
+          ],
+          "sizes": [],
+          "released": "2025-08"
+        }
+      ],
+      "aliases": {
+        "grok-code": {
+          "version": "fast-1"
+        },
+        "grok-code-fast-1": {
+          "version": "fast-1"
+        }
+      },
+      "size_patterns": {}
+    },
+    {
+      "family": "grok-build",
+      "vendor": "xai",
+      "display": "Grok Build",
+      "open_weights": false,
+      "patterns": [
+        "grok-?build"
+      ],
+      "versions": [
+        {
+          "version": "0.1",
+          "patterns": [
+            "0[-._]1"
+          ],
+          "sizes": [],
+          "released": "2026-04"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {}
+    },
+    {
+      "family": "command-a",
+      "vendor": "cohere",
+      "display": "Cohere Command A",
+      "open_weights": true,
+      "patterns": [
+        "command-a(?![a-z])",
+        "c4ai-command-a",
+        "cohere[-._/]+command-a"
+      ],
+      "versions": [
+        {
+          "version": "plus-05-2026",
+          "patterns": [
+            "plus-05-2026"
+          ],
+          "sizes": [],
+          "released": "2026-05"
+        },
+        {
+          "version": "translate-08-2025",
+          "patterns": [
+            "translate"
+          ],
+          "sizes": [],
+          "released": "2025-08"
+        },
+        {
+          "version": "reasoning-08-2025",
+          "patterns": [
+            "reasoning"
+          ],
+          "sizes": [],
+          "released": "2025-08"
+        },
+        {
+          "version": "vision-07-2025",
+          "patterns": [
+            "vision"
+          ],
+          "sizes": [
+            "32B"
+          ],
+          "released": "2025-07"
+        },
+        {
+          "version": "03-2025",
+          "patterns": [
+            "03-2025"
+          ],
+          "sizes": [
+            "111B"
+          ],
+          "released": "2025-03"
+        }
+      ],
+      "aliases": {
+        "cohere-command-a": {
+          "version": "03-2025"
+        }
+      },
+      "size_patterns": {
+        "111b": "111B",
+        "32b": "32B"
+      }
+    },
+    {
+      "family": "command-r",
+      "vendor": "cohere",
+      "display": "Cohere Command R",
+      "open_weights": true,
+      "patterns": [
+        "command-r(?![a-z])",
+        "command-r7b",
+        "command-r-plus"
+      ],
+      "versions": [
+        {
+          "version": "r7b-12-2024",
+          "patterns": [
+            "r7b"
+          ],
+          "sizes": [
+            "7B"
+          ],
+          "released": "2024-12"
+        },
+        {
+          "version": "r-plus-08-2024",
+          "patterns": [
+            "r-plus"
+          ],
+          "sizes": [
+            "104B"
+          ],
+          "released": "2024-08"
+        },
+        {
+          "version": "r-08-2024",
+          "patterns": [
+            "r-08-2024"
+          ],
+          "sizes": [
+            "32B"
+          ],
+          "released": "2024-08"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "7b": "7B",
+        "-plus": "104B"
+      }
+    },
+    {
+      "family": "north",
+      "vendor": "cohere",
+      "display": "Cohere North",
+      "open_weights": true,
+      "patterns": [
+        "north-mini-code",
+        "cohere(?:labs)?[/.]north"
+      ],
+      "versions": [
+        {
+          "version": "1.0",
+          "patterns": [
+            "1[-._]0",
+            "north-mini-code"
+          ],
+          "sizes": [],
+          "released": "2026-06"
+        }
+      ],
+      "aliases": {
+        "north-mini-code-1-0": {
+          "version": "1.0"
+        },
+        "north-mini-code-free": {
+          "version": "1.0"
+        }
+      },
+      "size_patterns": {}
+    },
+    {
+      "family": "aya",
+      "vendor": "cohere",
+      "display": "Cohere Aya",
+      "open_weights": true,
+      "patterns": [
+        "c4ai-aya",
+        "(?:^|[/._-])aya-(?:expanse|vision)"
+      ],
+      "versions": [
+        {
+          "version": "vision",
+          "patterns": [
+            "vision"
+          ],
+          "sizes": [
+            "32B",
+            "8B"
+          ],
+          "released": "2025-03"
+        },
+        {
+          "version": "expanse",
+          "patterns": [
+            "expanse"
+          ],
+          "sizes": [
+            "32B",
+            "8B"
+          ],
+          "released": "2024-10"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "32b": "32B",
+        "8b": "8B"
+      }
+    },
+    {
+      "family": "nemotron",
+      "vendor": "nvidia",
+      "display": "NVIDIA Nemotron",
+      "open_weights": true,
+      "patterns": [
+        "nemotron",
+        "nvidia[/.]nemotron",
+        "nvidia\\.nemotron"
+      ],
+      "versions": [
+        {
+          "version": "3.5",
+          "patterns": [
+            "3[-._]5"
+          ],
+          "sizes": [
+            "30B-A3B"
+          ],
+          "released": "2026-08"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "nemotron-3",
+            "nemotron-(?:nano|super|ultra)-3"
+          ],
+          "sizes": [
+            "550B-A55B",
+            "120B-A12B",
+            "30B-A3B"
+          ],
+          "released": "2025-12"
+        },
+        {
+          "version": "2",
+          "patterns": [
+            "-v2"
+          ],
+          "sizes": [
+            "12B",
+            "9B"
+          ],
+          "released": "2025-08"
+        },
+        {
+          "version": "1.5",
+          "patterns": [
+            "-v1[-._]5"
+          ],
+          "sizes": [
+            "49B"
+          ],
+          "released": "2025-07"
+        },
+        {
+          "version": "1",
+          "patterns": [
+            "-v1(?![-._][0-9])"
+          ],
+          "sizes": [
+            "253B",
+            "70B",
+            "49B",
+            "8B"
+          ],
+          "released": "2025-03"
+        }
+      ],
+      "aliases": {
+        "nemotron-3-ultra-550b-a55b": {
+          "version": "3",
+          "size": "550B-A55B"
+        },
+        "nemotron-3-super-120b-a12b": {
+          "version": "3",
+          "size": "120B-A12B"
+        },
+        "nemotron-3-nano-30b-a3b": {
+          "version": "3",
+          "size": "30B-A3B"
+        },
+        "nemotron-3.5-lightning": {
+          "version": "3.5",
+          "size": "30B-A3B"
+        }
+      },
+      "size_patterns": {
+        "550b": "550B-A55B",
+        "253b": "253B",
+        "120b": "120B-A12B",
+        "49b": "49B",
+        "30b": "30B-A3B",
+        "12b": "12B",
+        "9b": "9B",
+        "8b": "8B",
+        "4b": "4B",
+        "-ultra": "550B-A55B",
+        "-super": "120B-A12B",
+        "-nano": "30B-A3B",
+        "-lightning": "30B-A3B"
+      }
+    },
+    {
+      "family": "phi",
+      "vendor": "microsoft",
+      "display": "Microsoft Phi",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])phi-?[0-9]",
+        "microsoft[/.]phi"
+      ],
+      "versions": [
+        {
+          "version": "4",
+          "patterns": [
+            "phi-?4"
+          ],
+          "sizes": [
+            "14B",
+            "3.8B"
+          ],
+          "released": "2024-12"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "phi-?3"
+          ],
+          "sizes": [
+            "14B",
+            "7B",
+            "3.8B"
+          ],
+          "released": "2024-04"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "14b": "14B",
+        "7b": "7B",
+        "3.8b": "3.8B",
+        "-mini": "3.8B"
+      }
+    },
+    {
+      "family": "mai",
+      "vendor": "microsoft",
+      "display": "Microsoft MAI",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])mai-(?:code|voice|1)"
+      ],
+      "versions": [
+        {
+          "version": "code-1.1",
+          "patterns": [
+            "code-1[-._]1"
+          ],
+          "sizes": [
+            "flash"
+          ],
+          "released": "2026-08"
+        },
+        {
+          "version": "code-1",
+          "patterns": [
+            "code-1(?![-._][0-9])"
+          ],
+          "sizes": [
+            "flash"
+          ],
+          "released": "2026-06"
+        }
+      ],
+      "aliases": {
+        "mai-code-1-flash-picker": {
+          "version": "code-1",
+          "size": "flash"
+        }
+      },
+      "size_patterns": {
+        "-flash": "flash"
+      }
+    },
+    {
+      "family": "granite",
+      "vendor": "ibm",
+      "display": "IBM Granite",
+      "open_weights": true,
+      "patterns": [
+        "granite-?[0-9]",
+        "ibm-?granite[/.]"
+      ],
+      "versions": [
+        {
+          "version": "4.2",
+          "patterns": [
+            "4[-._]2"
+          ],
+          "sizes": [
+            "8B"
+          ],
+          "released": "2026-08"
+        },
+        {
+          "version": "4.1",
+          "patterns": [
+            "4[-._]1"
+          ],
+          "sizes": [
+            "8B"
+          ],
+          "released": "2026-04"
+        },
+        {
+          "version": "4.0",
+          "patterns": [
+            "4[-._]0"
+          ],
+          "sizes": [
+            "32B-A9B",
+            "7B-A1B",
+            "3B"
+          ],
+          "released": "2025-10"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "granite-?3"
+          ],
+          "sizes": [
+            "8B",
+            "2B"
+          ],
+          "released": "2024-10"
+        }
+      ],
+      "aliases": {
+        "granite-4.0-h-micro": {
+          "version": "4.0",
+          "size": "3B"
+        }
+      },
+      "size_patterns": {
+        "32b": "32B-A9B",
+        "8b": "8B",
+        "3b": "3B",
+        "2b": "2B",
+        "micro": "3B",
+        "tiny": "7B-A1B",
+        "small": "32B-A9B"
+      }
+    },
+    {
+      "family": "nova",
+      "vendor": "amazon",
+      "display": "Amazon Nova",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])(?:amazon[./])?nova-(?:2-)?(?:premier|pro|lite|micro|canvas|reel)",
+        "amazon\\.nova"
+      ],
+      "versions": [
+        {
+          "version": "2",
+          "patterns": [
+            "nova-2"
+          ],
+          "sizes": [
+            "lite"
+          ],
+          "released": "2025-12"
+        },
+        {
+          "version": "1",
+          "patterns": [
+            "nova-(?:premier|pro|lite|micro)"
+          ],
+          "sizes": [
+            "premier",
+            "pro",
+            "lite",
+            "micro"
+          ],
+          "released": "2024-12"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "premier": "premier",
+        "-pro": "pro",
+        "-lite": "lite",
+        "-micro": "micro"
+      }
+    },
+    {
+      "family": "hunyuan",
+      "vendor": "tencent",
+      "display": "Tencent Hunyuan / Hy",
+      "open_weights": true,
+      "patterns": [
+        "hunyuan",
+        "(?:^|[/._-])hy[0-9]",
+        "tencent[/.]hy",
+        "(?:^|[/._-])hy-mt[0-9]"
+      ],
+      "versions": [
+        {
+          "version": "hy4",
+          "patterns": [
+            "hy4"
+          ],
+          "sizes": [
+            "770B-A49B"
+          ],
+          "released": "2026-08"
+        },
+        {
+          "version": "hy3",
+          "patterns": [
+            "hy3"
+          ],
+          "sizes": [
+            "295B-A21B"
+          ],
+          "released": "2026-07"
+        },
+        {
+          "version": "hy-mt2",
+          "patterns": [
+            "hy-mt2"
+          ],
+          "sizes": [
+            "30B-A3B",
+            "7B",
+            "1.8B"
+          ],
+          "released": "2026-05"
+        },
+        {
+          "version": "a13b",
+          "patterns": [
+            "a13b"
+          ],
+          "sizes": [
+            "80B-A13B"
+          ],
+          "released": "2025-06"
+        }
+      ],
+      "aliases": {
+        "hy3-free": {
+          "version": "hy3"
+        },
+        "hy3-preview": {
+          "version": "hy3"
+        },
+        "hy4-preview": {
+          "version": "hy4"
+        }
+      },
+      "size_patterns": {
+        "770b": "770B-A49B",
+        "295b": "295B-A21B",
+        "30b": "30B-A3B",
+        "7b": "7B",
+        "1.8b": "1.8B"
+      }
+    },
+    {
+      "family": "seed",
+      "vendor": "bytedance",
+      "display": "ByteDance Seed / Doubao",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])seed-[0-9]",
+        "bytedance-?seed[/.]",
+        "doubao-seed",
+        "seed-oss"
+      ],
+      "versions": [
+        {
+          "version": "2.1",
+          "patterns": [
+            "2-1",
+            "2\\.1"
+          ],
+          "sizes": [
+            "turbo"
+          ],
+          "released": "2026-08"
+        },
+        {
+          "version": "2.0",
+          "patterns": [
+            "2[-._]0"
+          ],
+          "sizes": [
+            "code",
+            "pro",
+            "lite",
+            "mini"
+          ],
+          "released": "2026-02"
+        },
+        {
+          "version": "1.6",
+          "patterns": [
+            "1[-._]6"
+          ],
+          "sizes": [
+            "standard",
+            "flash"
+          ],
+          "released": "2025-06"
+        },
+        {
+          "version": "oss",
+          "patterns": [
+            "oss"
+          ],
+          "sizes": [
+            "36B"
+          ],
+          "released": "2025-09"
+        }
+      ],
+      "aliases": {
+        "seed-2.0-code": {
+          "version": "2.0",
+          "size": "code"
+        }
+      },
+      "size_patterns": {
+        "36b": "36B",
+        "-code": "code",
+        "-flash": "flash",
+        "-lite": "lite",
+        "-mini": "mini",
+        "-turbo": "turbo"
+      }
+    },
+    {
+      "family": "mimo",
+      "vendor": "xiaomi",
+      "display": "Xiaomi MiMo",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])mimo-?v?[0-9]",
+        "xiaomi(?:mimo)?[/.]mimo"
+      ],
+      "versions": [
+        {
+          "version": "v2.5",
+          "patterns": [
+            "v?2[-._]5"
+          ],
+          "sizes": [
+            "standard",
+            "pro"
+          ],
+          "released": "2026-04"
+        },
+        {
+          "version": "v2",
+          "patterns": [
+            "v2(?![-._]?[0-9])"
+          ],
+          "sizes": [
+            "pro",
+            "flash",
+            "omni"
+          ],
+          "released": "2026-03"
+        }
+      ],
+      "aliases": {
+        "mimo-v2.5-pro": {
+          "version": "v2.5",
+          "size": "pro"
+        }
+      },
+      "size_patterns": {
+        "-pro": "pro",
+        "-flash": "flash",
+        "-omni": "omni"
+      }
+    },
+    {
+      "family": "ernie",
+      "vendor": "baidu",
+      "display": "Baidu ERNIE",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])ernie-?[0-9x]",
+        "baidu[/.]ernie"
+      ],
+      "versions": [
+        {
+          "version": "5.1",
+          "patterns": [
+            "5[-._]1"
+          ],
+          "sizes": [],
+          "released": "2026-05"
+        },
+        {
+          "version": "5.0",
+          "patterns": [
+            "5[-._]0"
+          ],
+          "sizes": [],
+          "released": "2026-01"
+        },
+        {
+          "version": "4.5",
+          "patterns": [
+            "4[-._]5"
+          ],
+          "sizes": [
+            "424B-A47B",
+            "300B-A47B"
+          ],
+          "released": "2025-06"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "424b": "424B-A47B",
+        "300b": "300B-A47B"
+      }
+    },
+    {
+      "family": "ling",
+      "vendor": "inclusionai",
+      "display": "InclusionAI Ling",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])ling-?[0-9]",
+        "inclusionai[/.]ling"
+      ],
+      "versions": [
+        {
+          "version": "3.0",
+          "patterns": [
+            "3[-._]0"
+          ],
+          "sizes": [
+            "124B-A5.5B"
+          ],
+          "released": "2026-07"
+        },
+        {
+          "version": "2.6",
+          "patterns": [
+            "2[-._]6"
+          ],
+          "sizes": [],
+          "released": "2026-05"
+        }
+      ],
+      "aliases": {
+        "ling-3.0-flash": {
+          "version": "3.0",
+          "size": "124B-A5.5B"
+        },
+        "ling-3.0-flash-fin": {
+          "version": "3.0",
+          "size": "124B-A5.5B"
+        },
+        "ling-3.0-flash-vl": {
+          "version": "3.0",
+          "size": "124B-A5.5B"
+        }
+      },
+      "size_patterns": {
+        "124b": "124B-A5.5B",
+        "-tiny": "tiny",
+        "-flash": "124B-A5.5B"
+      }
+    },
+    {
+      "family": "ring",
+      "vendor": "inclusionai",
+      "display": "InclusionAI Ring",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])ring-?[0-9]",
+        "inclusionai[/.]ring"
+      ],
+      "versions": [
+        {
+          "version": "2.6",
+          "patterns": [
+            "2[-._]6"
+          ],
+          "sizes": [
+            "1T"
+          ],
+          "released": "2026-05"
+        },
+        {
+          "version": "1T",
+          "patterns": [
+            "ring-?1t"
+          ],
+          "sizes": [
+            "1T"
+          ],
+          "released": "2025-10"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "1t": "1T"
+      }
+    },
+    {
+      "family": "longcat",
+      "vendor": "meituan",
+      "display": "Meituan LongCat",
+      "open_weights": true,
+      "patterns": [
+        "longcat",
+        "meituan(?:-longcat)?[/.]longcat"
+      ],
+      "versions": [
+        {
+          "version": "2.0",
+          "patterns": [
+            "2[-._]0"
+          ],
+          "sizes": [
+            "A48B"
+          ],
+          "released": "2026-07"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {}
+    },
+    {
+      "family": "step",
+      "vendor": "stepfun",
+      "display": "StepFun Step",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])step-?[0-9]",
+        "stepfun(?:-ai)?[/.]step"
+      ],
+      "versions": [
+        {
+          "version": "3.7",
+          "patterns": [
+            "3[-._]7"
+          ],
+          "sizes": [
+            "flash"
+          ],
+          "released": "2026-05"
+        },
+        {
+          "version": "3.5",
+          "patterns": [
+            "3[-._]5"
+          ],
+          "sizes": [
+            "flash"
+          ],
+          "released": "2026-02"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "step-?3(?![-._]?[0-9])"
+          ],
+          "sizes": [],
+          "released": "2025-07"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "-flash": "flash"
+      }
+    },
+    {
+      "family": "kat-coder",
+      "vendor": "kwai",
+      "display": "Kwaipilot KAT Coder",
+      "open_weights": false,
+      "patterns": [
+        "kat-?coder",
+        "kwaipilot[/.]"
+      ],
+      "versions": [
+        {
+          "version": "pro-v2.5",
+          "patterns": [
+            "v2[-._]5"
+          ],
+          "sizes": [
+            "pro",
+            "air"
+          ],
+          "released": "2026-07"
+        },
+        {
+          "version": "pro-v2",
+          "patterns": [
+            "v2(?![-._]?[0-9])"
+          ],
+          "sizes": [
+            "pro"
+          ],
+          "released": "2026-03"
+        },
+        {
+          "version": "pro-v1",
+          "patterns": [
+            "v1"
+          ],
+          "sizes": [
+            "pro"
+          ],
+          "released": "2025-11"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "-pro": "pro",
+        "-air": "air"
+      }
+    },
+    {
+      "family": "inkling",
+      "vendor": "thinking-machines",
+      "display": "Thinking Machines Inkling",
+      "open_weights": true,
+      "patterns": [
+        "inkling",
+        "thinkingmachines[/.]"
+      ],
+      "versions": [
+        {
+          "version": "1",
+          "patterns": [
+            "inkling"
+          ],
+          "sizes": [
+            "975B-A41B",
+            "276B-A12B"
+          ],
+          "released": "2026-07"
+        }
+      ],
+      "aliases": {
+        "inkling-small": {
+          "version": "1",
+          "size": "276B-A12B"
+        },
+        "inkling": {
+          "version": "1",
+          "size": "975B-A41B"
+        }
+      },
+      "size_patterns": {
+        "-small": "276B-A12B",
+        "975b": "975B-A41B",
+        "276b": "276B-A12B"
+      }
+    },
+    {
+      "family": "laguna",
+      "vendor": "poolside",
+      "display": "Poolside Laguna",
+      "open_weights": true,
+      "patterns": [
+        "laguna",
+        "poolside[/.]"
+      ],
+      "versions": [
+        {
+          "version": "2.1",
+          "patterns": [
+            "2[-._]1"
+          ],
+          "sizes": [
+            "118B-A8B",
+            "33B-A3B"
+          ],
+          "released": "2026-07"
+        },
+        {
+          "version": "m.1",
+          "patterns": [
+            "m\\.1"
+          ],
+          "sizes": [],
+          "released": "2026-04"
+        }
+      ],
+      "aliases": {
+        "laguna-s-2.1": {
+          "version": "2.1",
+          "size": "118B-A8B"
+        },
+        "laguna-xs-2.1": {
+          "version": "2.1",
+          "size": "33B-A3B"
+        }
+      },
+      "size_patterns": {
+        "-s-": "118B-A8B",
+        "-xs-": "33B-A3B",
+        "118b": "118B-A8B",
+        "33b": "33B-A3B"
+      }
+    },
+    {
+      "family": "trinity",
+      "vendor": "arcee",
+      "display": "Arcee Trinity",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])trinity-",
+        "arcee(?:-ai|_ai)?[/.]"
+      ],
+      "versions": [
+        {
+          "version": "large",
+          "patterns": [
+            "large"
+          ],
+          "sizes": [
+            "large"
+          ],
+          "released": "2026-01"
+        },
+        {
+          "version": "mini",
+          "patterns": [
+            "mini"
+          ],
+          "sizes": [
+            "mini"
+          ],
+          "released": "2025-12"
+        }
+      ],
+      "aliases": {
+        "trinity-large-preview-free": {
+          "version": "large"
+        }
+      },
+      "size_patterns": {
+        "-large": "large",
+        "-mini": "mini"
+      }
+    },
+    {
+      "family": "fugu",
+      "vendor": "sakana",
+      "display": "Sakana Fugu",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])fugu-",
+        "sakana[/.]"
+      ],
+      "versions": [
+        {
+          "version": "max",
+          "patterns": [
+            "max"
+          ],
+          "sizes": [],
+          "released": "2026-09"
+        },
+        {
+          "version": "ultra-v2",
+          "patterns": [
+            "ultra-v2"
+          ],
+          "sizes": [],
+          "released": "2026-09"
+        },
+        {
+          "version": "ultra",
+          "patterns": [
+            "ultra"
+          ],
+          "sizes": [],
+          "released": "2026-06"
+        },
+        {
+          "version": "namazu",
+          "patterns": [
+            "namazu"
+          ],
+          "sizes": [],
+          "released": "2026-08"
+        }
+      ],
+      "aliases": {
+        "sakana-namazu": {
+          "version": "namazu"
+        }
+      },
+      "size_patterns": {}
+    },
+    {
+      "family": "mercury",
+      "vendor": "inception",
+      "display": "Inception Mercury",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])mercury",
+        "inception[/.]mercury"
+      ],
+      "versions": [
+        {
+          "version": "2.5",
+          "patterns": [
+            "2[-._]5"
+          ],
+          "sizes": [],
+          "released": "2026-09"
+        },
+        {
+          "version": "2",
+          "patterns": [
+            "mercury-2(?![-._]?[0-9])"
+          ],
+          "sizes": [],
+          "released": "2026-03"
+        },
+        {
+          "version": "coder",
+          "patterns": [
+            "coder"
+          ],
+          "sizes": [
+            "small"
+          ],
+          "released": "2025-02"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "-small": "small"
+      }
+    },
+    {
+      "family": "morph",
+      "vendor": "morph",
+      "display": "Morph Apply",
+      "open_weights": false,
+      "patterns": [
+        "morph-?v[0-9]",
+        "morph[/.]morph"
+      ],
+      "versions": [
+        {
+          "version": "v3",
+          "patterns": [
+            "v3"
+          ],
+          "sizes": [
+            "large",
+            "fast"
+          ],
+          "released": "2025-07"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "-large": "large",
+        "-fast": "fast"
+      }
+    },
+    {
+      "family": "relace",
+      "vendor": "relace",
+      "display": "Relace",
+      "open_weights": false,
+      "patterns": [
+        "relace"
+      ],
+      "versions": [
+        {
+          "version": "apply-3",
+          "patterns": [
+            "apply-3"
+          ],
+          "sizes": [],
+          "released": "2026-02"
+        },
+        {
+          "version": "search",
+          "patterns": [
+            "search"
+          ],
+          "sizes": [],
+          "released": "2025-12"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {}
+    },
+    {
+      "family": "palmyra",
+      "vendor": "writer",
+      "display": "Writer Palmyra",
+      "open_weights": false,
+      "patterns": [
+        "palmyra",
+        "writer[/.]palmyra",
+        "writer\\.palmyra"
+      ],
+      "versions": [
+        {
+          "version": "x5",
+          "patterns": [
+            "x5"
+          ],
+          "sizes": [],
+          "released": "2025-04"
+        },
+        {
+          "version": "x4",
+          "patterns": [
+            "x4"
+          ],
+          "sizes": [],
+          "released": "2024-10"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {}
+    },
+    {
+      "family": "sonar",
+      "vendor": "perplexity",
+      "display": "Perplexity Sonar",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])sonar",
+        "perplexity(?:ai)?[/.]"
+      ],
+      "versions": [
+        {
+          "version": "pro-search",
+          "patterns": [
+            "pro-search"
+          ],
+          "sizes": [],
+          "released": "2025-10"
+        },
+        {
+          "version": "deep-research",
+          "patterns": [
+            "deep-research"
+          ],
+          "sizes": [],
+          "released": "2025-02"
+        },
+        {
+          "version": "reasoning-pro",
+          "patterns": [
+            "reasoning"
+          ],
+          "sizes": [],
+          "released": "2025-02"
+        },
+        {
+          "version": "pro",
+          "patterns": [
+            "sonar-pro(?![a-z-])"
+          ],
+          "sizes": [],
+          "released": "2025-01"
+        },
+        {
+          "version": "sonar",
+          "patterns": [
+            "sonar(?!-)"
+          ],
+          "sizes": [],
+          "released": "2025-01"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {}
+    },
+    {
+      "family": "lfm",
+      "vendor": "liquid",
+      "display": "Liquid LFM",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])lfm-?[0-9]",
+        "liquidai[/.]lfm",
+        "liquid[/.]lfm"
+      ],
+      "versions": [
+        {
+          "version": "2.5",
+          "patterns": [
+            "2[-._]5"
+          ],
+          "sizes": [
+            "2.6B"
+          ],
+          "released": "2026-08"
+        },
+        {
+          "version": "2",
+          "patterns": [
+            "lfm2"
+          ],
+          "sizes": [
+            "24B-A2B"
+          ],
+          "released": "2026-01"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "2.6b": "2.6B",
+        "24b": "24B-A2B"
+      }
+    },
+    {
+      "family": "reka",
+      "vendor": "reka",
+      "display": "Reka",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])reka-",
+        "rekaai[/.]"
+      ],
+      "versions": [
+        {
+          "version": "edge",
+          "patterns": [
+            "edge"
+          ],
+          "sizes": [],
+          "released": "2026-03"
+        },
+        {
+          "version": "flash-3",
+          "patterns": [
+            "flash-3"
+          ],
+          "sizes": [
+            "21B"
+          ],
+          "released": "2025-03"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "21b": "21B"
+      }
+    },
+    {
+      "family": "hermes",
+      "vendor": "nous-research",
+      "display": "Nous Hermes",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])hermes-?[0-9]",
+        "nousresearch[/.]"
+      ],
+      "versions": [
+        {
+          "version": "4",
+          "patterns": [
+            "hermes-?4"
+          ],
+          "sizes": [
+            "405B"
+          ],
+          "released": "2025-08"
+        },
+        {
+          "version": "3",
+          "patterns": [
+            "hermes-?3"
+          ],
+          "sizes": [
+            "405B",
+            "70B",
+            "8B"
+          ],
+          "released": "2024-08"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "405b": "405B",
+        "70b": "70B",
+        "8b": "8B"
+      }
+    },
+    {
+      "family": "sarvam",
+      "vendor": "sarvam",
+      "display": "Sarvam",
+      "open_weights": true,
+      "patterns": [
+        "sarvam"
+      ],
+      "versions": [
+        {
+          "version": "m",
+          "patterns": [
+            "sarvam-m"
+          ],
+          "sizes": [
+            "24B"
+          ],
+          "released": "2025-07"
+        },
+        {
+          "version": "2",
+          "patterns": [
+            "sarvam-(?:105b|30b)"
+          ],
+          "sizes": [
+            "105B",
+            "30B"
+          ],
+          "released": "2026-02"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "105b": "105B",
+        "30b": "30B",
+        "24b": "24B"
+      }
+    },
+    {
+      "family": "solar",
+      "vendor": "upstage",
+      "display": "Upstage Solar",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])solar-(?:pro|mini|[0-9])",
+        "upstage[/.]solar"
+      ],
+      "versions": [
+        {
+          "version": "pro4",
+          "patterns": [
+            "pro-?4"
+          ],
+          "sizes": [],
+          "released": "2026-08"
+        },
+        {
+          "version": "pro3",
+          "patterns": [
+            "pro-?3"
+          ],
+          "sizes": [],
+          "released": "2026-01"
+        },
+        {
+          "version": "pro2",
+          "patterns": [
+            "pro-?2"
+          ],
+          "sizes": [],
+          "released": "2025-05"
+        },
+        {
+          "version": "10.7b",
+          "patterns": [
+            "10\\.7b"
+          ],
+          "sizes": [
+            "10.7B"
+          ],
+          "released": "2023-12"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "10.7b": "10.7B"
+      }
+    },
+    {
+      "family": "aion",
+      "vendor": "aion-labs",
+      "display": "AionLabs Aion",
+      "open_weights": false,
+      "patterns": [
+        "aion-labs[/.]",
+        "(?:^|[/._-])aion-[0-9]"
+      ],
+      "versions": [
+        {
+          "version": "3.0",
+          "patterns": [
+            "3[-._]0"
+          ],
+          "sizes": [
+            "standard",
+            "mini"
+          ],
+          "released": "2026-07"
+        },
+        {
+          "version": "2.0",
+          "patterns": [
+            "2[-._]0"
+          ],
+          "sizes": [],
+          "released": "2026-02"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "-mini": "mini"
+      }
+    },
+    {
+      "family": "dolphin",
+      "vendor": "cognitive-computations",
+      "display": "Dolphin (community fine-tune)",
+      "open_weights": true,
+      "patterns": [
+        "dolphin",
+        "cognitivecomputations[/.]",
+        "venice[-/._]uncensored"
+      ],
+      "versions": [
+        {
+          "version": "mistral-24b",
+          "patterns": [
+            "24b"
+          ],
+          "sizes": [
+            "24B"
+          ],
+          "released": "2025-02"
+        }
+      ],
+      "aliases": {
+        "venice-uncensored": {
+          "version": "mistral-24b",
+          "size": "24B"
+        },
+        "venice/uncensored": {
+          "version": "mistral-24b"
+        }
+      },
+      "size_patterns": {
+        "24b": "24B"
+      }
+    },
+    {
+      "family": "magnum",
+      "vendor": "anthracite",
+      "display": "Magnum (community fine-tune)",
+      "open_weights": true,
+      "patterns": [
+        "(?:^|[/._-])magnum-v?[0-9]",
+        "anthracite-org[/.]"
+      ],
+      "versions": [
+        {
+          "version": "v4",
+          "patterns": [
+            "v4"
+          ],
+          "sizes": [
+            "72B"
+          ],
+          "released": "2024-10"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "72b": "72B"
+      }
+    },
+    {
+      "family": "cursor-composer",
+      "vendor": "cursor",
+      "display": "Cursor Composer",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])composer-?[0-9]?(?![a-z])",
+        "cursor[/.](?:composer|small|fast)",
+        "cursor-small"
+      ],
+      "versions": [
+        {
+          "version": "2",
+          "patterns": [
+            "composer-?2"
+          ],
+          "sizes": [],
+          "released": "2026-03"
+        },
+        {
+          "version": "1",
+          "patterns": [
+            "composer-?1?(?![0-9])"
+          ],
+          "sizes": [],
+          "released": "2025-10"
+        }
+      ],
+      "aliases": {
+        "composer": {
+          "version": "1"
+        },
+        "composer-1": {
+          "version": "1"
+        },
+        "composer-2": {
+          "version": "2"
+        }
+      },
+      "size_patterns": {}
+    },
+    {
+      "family": "windsurf-swe",
+      "vendor": "cognition",
+      "display": "Windsurf SWE",
+      "open_weights": false,
+      "patterns": [
+        "(?:^|[/._-])swe-?[0-9](?:\\.[0-9])?(?![a-z])",
+        "windsurf[/.]swe"
+      ],
+      "versions": [
+        {
+          "version": "2",
+          "patterns": [
+            "swe-?2"
+          ],
+          "sizes": [
+            "standard",
+            "fast"
+          ],
+          "released": "2026-05"
+        },
+        {
+          "version": "1.5",
+          "patterns": [
+            "swe-?1[-._]5"
+          ],
+          "sizes": [],
+          "released": "2025-10"
+        },
+        {
+          "version": "1",
+          "patterns": [
+            "swe-?1(?![-._]?[0-9])"
+          ],
+          "sizes": [
+            "standard",
+            "lite",
+            "mini"
+          ],
+          "released": "2025-05"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "-lite": "lite",
+        "-mini": "mini",
+        "-fast": "fast"
+      }
+    },
+    {
+      "family": "big-pickle",
+      "vendor": "unknown",
+      "display": "Big Pickle (OpenCode Zen stealth)",
+      "open_weights": false,
+      "patterns": [
+        "big-?pickle",
+        "(?:^|[/._-])(?:omen|ox)-alpha",
+        "x-preview-[a-z]-free"
+      ],
+      "versions": [
+        {
+          "version": "stealth",
+          "patterns": [
+            "."
+          ],
+          "sizes": [],
+          "released": "2026-04"
+        }
+      ],
+      "aliases": {
+        "big-pickle": {
+          "version": "stealth"
+        },
+        "omen-alpha": {
+          "version": "stealth"
+        },
+        "ox-alpha-free": {
+          "version": "stealth"
+        }
+      },
+      "size_patterns": {}
+    },
+    {
+      "family": "openrouter-auto",
+      "vendor": "openrouter",
+      "display": "OpenRouter routers",
+      "open_weights": false,
+      "patterns": [
+        "^openrouter/(?:auto|auto-beta|free|fusion|pareto-code|bodybuilder)$",
+        "^(?:auto|auto-model)(?:-[a-z]+)?$",
+        "model-router"
+      ],
+      "versions": [
+        {
+          "version": "router",
+          "patterns": [
+            "."
+          ],
+          "sizes": [],
+          "released": "2025-04"
+        }
+      ],
+      "aliases": {
+        "openrouter/auto": {
+          "version": "router"
+        },
+        "openrouter/fusion": {
+          "version": "router"
+        },
+        "openrouter/pareto-code": {
+          "version": "router"
+        },
+        "model-router": {
+          "version": "router"
+        }
+      },
+      "size_patterns": {}
+    },
+    {
+      "family": "mistral-7b",
+      "vendor": "mistral",
+      "display": "Mistral 7B",
+      "open_weights": true,
+      "patterns": [
+        "mistral-7b",
+        "open-mistral-7b"
+      ],
+      "versions": [
+        {
+          "version": "v0.3",
+          "patterns": [
+            "v0[-._]3"
+          ],
+          "sizes": [
+            "7B"
+          ],
+          "released": "2024-05"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "7b": "7B"
+      }
+    },
+    {
+      "family": "nex-n",
+      "vendor": "nex-agi",
+      "display": "Nex-AGI Nex-N",
+      "open_weights": true,
+      "patterns": [
+        "nex-agi[/.]",
+        "(?:^|[/._-])nex-n[0-9]"
+      ],
+      "versions": [
+        {
+          "version": "n2.5",
+          "patterns": [
+            "n2[-._]5"
+          ],
+          "sizes": [
+            "pro",
+            "mini"
+          ],
+          "released": "2026-09"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "-pro": "pro",
+        "-mini": "mini"
+      }
+    },
+    {
+      "family": "dots",
+      "vendor": "dots-studio",
+      "display": "dots",
+      "open_weights": false,
+      "patterns": [
+        "dots-studio[/.]",
+        "(?:^|[/._-])dots-[0-9]"
+      ],
+      "versions": [
+        {
+          "version": "3",
+          "patterns": [
+            "dots-3"
+          ],
+          "sizes": [
+            "note"
+          ],
+          "released": "2026-08"
+        }
+      ],
+      "aliases": {},
+      "size_patterns": {
+        "-note": "note"
+      }
+    }
+  ]
+}

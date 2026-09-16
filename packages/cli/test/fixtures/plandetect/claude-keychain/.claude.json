@@ -1,0 +1,10 @@
+{
+  "hasCompletedOnboarding": true,
+  "oauthAccount": {
+    "accountUuid": "00000000-0000-4000-8000-000000000000",
+    "emailAddress": "fake@example.invalid",
+    "organizationName": "Fake Org That Must Never Be Read",
+    "organizationUuid": "00000000-0000-4000-8000-000000000001",
+    "billingType": "stripe_subscription"
+  }
+}

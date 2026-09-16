@@ -1,0 +1,30 @@
+{
+ "files_in_context": [
+  {
+   "path": "/Users/x/app/src/users.ts",
+   "record_state": "active",
+   "record_source": "cline_edited",
+   "cline_read_date": 1757980802000,
+   "cline_edit_date": 1757980808000
+  }
+ ],
+ "model_usage": [
+  {
+   "ts": 1757980806000,
+   "model_id": "qwen/qwen3-coder",
+   "model_provider_id": "openrouter",
+   "mode": "act"
+  }
+ ],
+ "environment_history": [
+  {
+   "ts": 1757980800000,
+   "os_name": "darwin",
+   "os_version": "25.6.0",
+   "os_arch": "arm64",
+   "host_name": "vscode",
+   "host_version": "1.104",
+   "cline_version": "3.39.2"
+  }
+ ]
+}

@@ -1,0 +1,28 @@
+{
+  // A user-declared, OpenAI-compatible provider. This is the shape that
+  // matters: the model id is whatever the person typed, the cost is zero,
+  // and the only evidence of quantisation is the human-readable name.
+  "$schema": "https://opencode.ai/config.json",
+  "model": "qwen-local/qwen38-27b-abliterated",
+  "provider": {
+    "qwen-local": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Qwen (local)",
+      "options": {
+        "baseURL": "http://127.0.0.1:8080/v1",
+        /* must never be read, and is stripped on the way in */
+        "apiKey": "sk-do-not-read-me"
+      },
+      "models": {
+        "qwen38-27b-abliterated": {
+          "name": "Qwen 3.8 27B Abliterated AWQ INT4",
+          "limit": { "context": 262144, "output": 16384 }
+        }
+      }
+    },
+    "env-provider": {
+      "options": { "baseURL": "{env:NERFD_TEST_BASE_URL}" },
+      "models": { "m1": { "name": "Some Model q4_K_M" } }
+    }
+  }
+}

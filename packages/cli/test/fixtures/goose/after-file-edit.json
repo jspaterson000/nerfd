@@ -1,0 +1,1 @@
+{"event":"AfterFileEdit","session_id":"goose-smoke-1","matcher_context":"/Users/someone/secret-project/src/lib.rs","tool_name":"developer__write","tool_input":{"path":"/Users/someone/secret-project/src/lib.rs","content":"fn main() {}"},"working_dir":"/Users/someone/secret-project"}

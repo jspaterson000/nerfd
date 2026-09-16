@@ -1,0 +1,1 @@
+{"hook_event_name":"TurnStarted","session_id":"sess_alpha","client_type":"kimi_code_cli","cwd":"/Users/someone/dev/models","turn_id":"turn_4","origin_kind":"system_trigger","origin_name":"cron nightly","prompt":"run the nightly check on /Users/someone/dev/models"}

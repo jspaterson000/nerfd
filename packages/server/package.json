@@ -1,0 +1,11 @@
+{
+  "name": "@nerfd/server",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "exports": { ".": "./src/index.ts" },
+  "bin": { "nerfd-server": "./src/main.ts" },
+  "dependencies": {
+    "@nerfd/core": "workspace:*"
+  }
+}

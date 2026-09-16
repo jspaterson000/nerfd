@@ -1,0 +1,11 @@
+{"type": "session.start", "timestamp": "2026-09-16T11:00:00.000Z", "data": {"version": "1.0.85", "model": "claude-sonnet-4.6", "cwd": "/Users/x/acme"}}
+{"type": "user.message", "timestamp": "2026-09-16T11:00:05.000Z", "data": {"content": "why does the checkout total round wrong"}}
+{"type": "assistant.turn_start", "timestamp": "2026-09-16T11:00:06.000Z", "data": {}}
+{"type": "tool.execution_start", "timestamp": "2026-09-16T11:00:07.000Z", "data": {"toolName": "bash", "toolArgs": {"command": "npm test -- checkout"}}}
+{"type": "tool.execution_complete", "timestamp": "2026-09-16T11:00:12.000Z", "data": {"toolName": "bash", "success": false, "error": "invalid tool input: required property \"command\" is missing"}}
+{"type": "assistant.message", "timestamp": "2026-09-16T11:00:15.000Z", "data": {"content": "Rounding fixed in cart.ts. Want me to run the tests?", "model": "claude-sonnet-4.6"}}
+not json at all {
+{"type": "session.compaction_complete", "timestamp": "2026-09-16T11:05:00.000Z", "data": {"copilotUsage": {"tokenDetails": [{"tokenType": "input", "tokenCount": 120000}]}}}
+{"type": "session.model_change", "timestamp": "2026-09-16T11:06:00.000Z", "data": {"model": "gpt-5.4"}}
+{"type": "abort", "timestamp": "2026-09-16T11:07:00.000Z", "data": {"reason": "user"}}
+{"type": "session.shutdown", "timestamp": "2026-09-16T11:10:00.000Z", "data": {"modelMetrics": {"claude-sonnet-4.6": {"usage": {"inputTokens": 23399, "outputTokens": 2994, "cacheReadTokens": 10069, "cacheWriteTokens": 13324, "reasoningTokens": 0}, "requests": {"count": 3, "cost": 15}}, "gpt-5.4": {"usage": {"inputTokens": 1000, "outputTokens": 100, "cacheReadTokens": 200, "cacheWriteTokens": 0}, "requests": {"count": 1, "cost": 1}}}}}

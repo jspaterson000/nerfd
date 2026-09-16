@@ -1,0 +1,13 @@
+{"timestamp": "2025-09-16T05:20:00.000Z", "type": "session_meta", "payload": {"id": "0199c0de-dead-beef-cafe-000000000001", "cli_version": "0.52.0", "cwd": "/repo"}}
+{"timestamp": "2025-09-16T05:20:00.100Z", "type": "turn_context", "payload": {"model": "gpt-5-codex", "cwd": "/repo"}}
+{"timestamp": "2025-09-16T05:20:00.200Z", "type": "response_item", "payload": {"type": "message", "role": "developer", "content": [{"type": "input_text", "text": "developer instructions"}]}}
+{"timestamp": "2025-09-16T05:20:00.300Z", "type": "response_item", "payload": {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "<environment_context>\n  <cwd>/repo</cwd>\n</environment_context>"}]}}
+{"timestamp": "2025-09-16T05:20:01.000Z", "type": "response_item", "payload": {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "write a parser for the config file"}]}}
+{"timestamp": "2025-09-16T05:20:03.000Z", "type": "response_item", "payload": {"type": "message", "role": "assistant", "content": [{"type": "output_text", "text": "On it."}]}}
+{"timestamp": "2025-09-16T05:20:03.500Z", "type": "response_item", "payload": {"type": "function_call", "name": "shell", "call_id": "call_1", "arguments": "{\"command\": [\"bash\", \"-lc\", \"pnpm test\"], \"workdir\": \"/repo\"}"}}
+{"timestamp": "2025-09-16T05:20:06.000Z", "type": "response_item", "payload": {"type": "function_call_output", "call_id": "call_1", "output": "Wall time: 2.0 seconds\nOutput: 1 test failed\nerror: assertion failed"}}
+{"timestamp": "2025-09-16T05:20:06.500Z", "type": "response_item", "payload": {"type": "custom_tool_call", "name": "apply_patch", "call_id": "call_2", "input": "{\"file_path\": \"/repo/src/parse.ts\"}"}}
+{"timestamp": "2025-09-16T05:20:07.000Z", "type": "response_item", "payload": {"type": "custom_tool_call_output", "call_id": "call_2", "output": [{"type": "input_text", "text": "Script completed\nWall time 0.3 seconds\nOutput:\n {\"exit_code\":0}"}]}}
+{"timestamp": "2025-09-16T05:20:09.000Z", "type": "response_item", "payload": {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "no, that is not what I asked for"}]}}
+{"timestamp": "2025-09-16T05:20:11.000Z", "type": "response_item", "payload": {"type": "message", "role": "assistant", "content": [{"type": "output_text", "text": "Understood. Should I start again?"}]}}
+{"timestamp": "2025-09-16T05:20:12.000Z", "type": "event_msg", "payload": {"type": "turn_aborted", "reason": "interrupted"}}

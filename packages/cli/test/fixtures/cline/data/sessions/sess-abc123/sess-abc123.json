@@ -1,0 +1,26 @@
+{
+ "version": 1,
+ "session_id": "sess-abc123",
+ "source": "cli",
+ "pid": 4242,
+ "started_at": "2026-09-16T09:00:00.000Z",
+ "ended_at": "2026-09-16T09:12:00.000Z",
+ "status": "completed",
+ "interactive": true,
+ "provider": "ollama",
+ "model": "qwen3-coder:30b",
+ "cwd": "/Users/x/app",
+ "workspace_root": "/Users/x/app",
+ "enable_tools": true,
+ "enable_spawn": false,
+ "enable_teams": false,
+ "messages_path": "/Users/x/.cline/data/sessions/sess-abc123/sess-abc123.messages.json",
+ "metadata": {
+  "title": "refactor the payment adapter",
+  "tokensIn": 500,
+  "tokensOut": 80,
+  "cacheReads": 20,
+  "cacheWrites": 10,
+  "totalCost": 0
+ }
+}

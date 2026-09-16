@@ -1,0 +1,33 @@
+{
+ "version": 1,
+ "updated_at": "2026-09-16T09:12:00.000Z",
+ "agent": "lead",
+ "sessionId": "sess-abc123",
+ "messages": [
+  {
+   "role": "user",
+   "ts": 1789549320000,
+   "content": [
+    {
+     "type": "text",
+     "text": "refactor the payment adapter"
+    }
+   ]
+  },
+  {
+   "role": "assistant",
+   "ts": 1789549530000,
+   "content": [
+    {
+     "type": "text",
+     "text": "Refactored. Shall I run the tests?"
+    }
+   ],
+   "modelInfo": {
+    "modelId": "qwen3-coder:30b",
+    "providerId": "ollama",
+    "mode": "act"
+   }
+  }
+ ]
+}

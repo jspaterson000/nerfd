@@ -1,0 +1,1 @@
+{"event":"PostToolUseFailure","session_id":"goose-smoke-1","matcher_context":"developer__shell","tool_name":"developer__shell","tool_input":{"command":"cargo build"},"tool_call_id":"call-3","tool_output":{"error":"HTTP 429 rate limit exceeded"},"working_dir":"/Users/someone/secret-project"}

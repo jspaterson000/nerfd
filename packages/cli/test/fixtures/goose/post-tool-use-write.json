@@ -1,0 +1,1 @@
+{"event":"PostToolUse","session_id":"goose-smoke-1","matcher_context":"developer__write","tool_name":"developer__write","tool_input":{"path":"/Users/someone/secret-project/src/billing.ts","content":"export const RATE = 0.175;"},"tool_call_id":"call-2","working_dir":"/Users/someone/secret-project"}

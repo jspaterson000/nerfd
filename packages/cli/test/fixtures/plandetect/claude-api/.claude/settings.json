@@ -1,0 +1,4 @@
+{
+  "apiKeyHelper": "/usr/local/bin/fake-key-helper.sh",
+  "model": "opus"
+}

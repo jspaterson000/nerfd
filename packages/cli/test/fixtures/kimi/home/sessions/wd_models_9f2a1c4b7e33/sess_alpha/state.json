@@ -1,0 +1,13 @@
+{
+  "id": "sess_alpha",
+  "version": 2,
+  "title": "Fix the login page",
+  "titleKind": "generated",
+  "isCustomTitle": false,
+  "lastPrompt": "please finish the refactor of src/auth/login.ts",
+  "createdAt": 1758016800000,
+  "updatedAt": 1758017550000,
+  "archived": false,
+  "cwd": "/Users/someone/dev/models",
+  "lastTurnReason": "failed"
+}

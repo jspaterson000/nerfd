@@ -1,0 +1,46 @@
+# Somebody else's Kimi Code config. Nothing in this file is ours.
+default_model = "kimi-code/k3"
+default_permission_mode = "manual"
+telemetry = false
+
+[providers."managed:kimi-code"]
+type = "kimi"
+base_url = "https://api.kimi.com/coding/v1"
+api_key = "sk-do-not-read-this-ever"
+
+[providers.local-vllm]
+type = "openai"
+base_url = "http://localhost:8000/v1"
+api_key = "not-a-real-key"
+
+[models."kimi-code/k3"]
+provider = "managed:kimi-code"
+model = "k3"
+max_context_size = 1048576
+display_name = "K3"
+capabilities = [ "thinking", "tool_use" ]
+
+[models."kimi-code/kimi-for-coding"]
+provider = "managed:kimi-code"
+model = "kimi-for-coding"
+max_context_size = 262144
+
+[models."local/qwen"]
+provider = "local-vllm"
+model = "qwen3-coder-30b-a3b-awq-int4"
+max_context_size = 262144
+
+[[permission.rules]]
+decision = "deny"
+pattern = "Bash(rm -rf*)"
+
+[[hooks]]
+event = "PreToolUse"
+matcher = "Bash"
+command = "node ~/.kimi-code/hooks/block-dangerous-bash.mjs"
+timeout = 5
+
+[[hooks]]
+event = "Notification"
+matcher = "task\\.completed"
+command = "terminal-notifier -title Kimi -message 'Task done'"

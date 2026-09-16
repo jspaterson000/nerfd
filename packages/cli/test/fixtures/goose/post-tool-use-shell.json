@@ -1,0 +1,1 @@
+{"event":"PostToolUse","session_id":"goose-smoke-1","matcher_context":"developer__shell","tool_name":"developer__shell","tool_input":{"command":"pnpm test"},"tool_call_id":"call-1","working_dir":"/Users/someone/secret-project"}

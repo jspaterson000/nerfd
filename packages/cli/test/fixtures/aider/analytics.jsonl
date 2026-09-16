@@ -1,0 +1,13 @@
+{"event": "launched", "properties": {}, "user_id": "0f1a2b3c-4d5e-6f70-8192-a3b4c5d6e7f8", "time": 1789545600}
+{"event": "cli session", "properties": {"main_model": "openrouter/qwen/qwen3-coder", "weak_model": "openrouter/qwen/qwen3-coder", "editor_model": "openrouter/qwen/qwen3-coder", "edit_format": "diff"}, "user_id": "0f1a2b3c-4d5e-6f70-8192-a3b4c5d6e7f8", "time": 1789545601}
+{"event": "message_send_starting", "properties": {}, "user_id": "0f1a2b3c-4d5e-6f70-8192-a3b4c5d6e7f8", "time": 1789545620}
+{"event": "message_send", "properties": {"main_model": "openrouter/qwen/qwen3-coder", "weak_model": "openrouter/qwen/qwen3-coder", "editor_model": "openrouter/qwen/qwen3-coder", "edit_format": "diff", "prompt_tokens": 8200, "completion_tokens": 640, "total_tokens": 8840, "cost": 0.0031, "total_cost": 0.0031}, "user_id": "0f1a2b3c-4d5e-6f70-8192-a3b4c5d6e7f8", "time": 1789545645}
+{"event": "command_add", "properties": {}, "user_id": "0f1a2b3c-4d5e-6f70-8192-a3b4c5d6e7f8", "time": 1789545720}
+{"event": "message_send", "properties": {"main_model": "openrouter/qwen/qwen3-coder", "weak_model": "openrouter/qwen/qwen3-coder", "editor_model": "openrouter/qwen/qwen3-coder", "edit_format": "diff", "prompt_tokens": 9100, "completion_tokens": 410, "total_tokens": 9510, "cost": 0.0027, "total_cost": 0.0058}, "user_id": "0f1a2b3c-4d5e-6f70-8192-a3b4c5d6e7f8", "time": 1789545790}
+{"event": "message_send_exception", "properties": {"exception": "litellm.APIError: the prompt 'refactor billing.py' could not be sent"}, "user_id": "0f1a2b3c-4d5e-6f70-8192-a3b4c5d6e7f8", "time": 1789545840}
+{"event": "exit", "properties": {"reason": "Control-C"}, "user_id": "0f1a2b3c-4d5e-6f70-8192-a3b4c5d6e7f8", "time": 1789545900}
+{"event": "launched", "properties": {}, "user_id": "0f1a2b3c-4d5e-6f70-8192-a3b4c5d6e7f8", "time": 1789554600}
+{"event": "message_send", "properties": {"main_model": "ollama/qwen3-coder:30b-q4_K_M", "weak_model": "None", "editor_model": "None", "edit_format": "whole", "prompt_tokens": 1500, "completion_tokens": 200, "total_tokens": 1700, "cost": 0, "total_cost": 0}, "user_id": "0f1a2b3c-4d5e-6f70-8192-a3b4c5d6e7f8", "time": 1789554660}
+{"event": "exit", "properties": {"reason": "/exit"}, "user_id": "0f1a2b3c-4d5e-6f70-8192-a3b4c5d6e7f8", "time": 1789554900}
+
+{ half a line
