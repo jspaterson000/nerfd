@@ -1,51 +1,45 @@
-import { esc, FAVICON, SHARED_CSS, IDENTITY_JS, STAT_STRIP, WORK_JS, readablePublic } from './ui.ts';
+import { esc, FAVICON, SHARED_CSS, IDENTITY_JS, WORK_JS, readablePublic } from './ui.ts';
 import { READ_GUIDE } from '../assets/presentation.ts';
+import { PROMISES, terminalDemo, TRUST, FOUNDERS_FAQ, LANDING_CSS, LANDING_JS } from '../assets/landing-presentation.ts';
 
 // The public front door. Self-contained HTML using the same visual primitives as the board.
 
 export function landingPage(origin: string): string {
   const install = `curl -fsSL ${origin}/install.sh | sh`;
-  // Keep the landing intro outside the shared renderer's legacy hero rewrites.
-  // Its glance matcher consumes nested closing tags and can close the page wrap.
+  const sub = 'nerfd watches your AI coding sessions from the terminal, scores every model on the work it actually did for you, and shows the week it changed. One command. Nothing you typed ever leaves your machine.';
+  const socialTitle = 'nerfd — is it you, or did the model get worse?';
+  // Insert after readablePublic so legacy hero and intro rewrites cannot alter this copy.
   const intro = `<div class="hero">
-  <p class="eyebrow">Real sessions. Measurable outcomes.</p>
-  <h1>The public record of how AI models actually perform on real work.</h1>
-  <p class="lede">nerfd captures what happens when developers use Claude Code, Codex, OpenCode, Gemini CLI, Kimi Code and other terminals on real code, then ranks models by outcome, not benchmark: quality, reliability, steering, survival, speed and value. It also tells you what your subscription actually bought.</p>
-  <ul class="value-props">
-    <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10h4v10m2 0V4h4v16m2 0v-7h4v7M3 20h18"/></svg><div><h3>Ranked by what happened</h3><p>Six criteria from real work, with the evidence beside each rank.</p></div></li>
-    <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18m-6 5h3"/></svg><div><h3>Priced by what you got</h3><p>Subscription multiple, cost per success, tokens per window.</p></div></li>
-    <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z M8 12l3 3 5-6"/></svg><div><h3>Private by construction</h3><p>Counts, never conversations. <code>nerfd privacy</code> shows the exact record.</p></div></li>
-  </ul>
-  <div class="tools" aria-label="Developer tools">
-    <span><span class="tool-logo"><img src="/assets/logos/anthropic.svg" alt="" width="18" height="18"></span>Claude Code</span>
-    <span><span class="tool-logo"><img src="/assets/logos/openai.svg" alt="" width="18" height="18"></span>Codex</span>
-    <span><span class="tool-logo"><img src="/assets/logos/opencode.svg" alt="" width="18" height="18"></span>OpenCode</span>
-    <span><span class="tool-logo"><img src="/assets/logos/google.svg" alt="" width="18" height="18"></span>Gemini CLI</span>
-    <span><span class="tool-logo"><img src="/assets/logos/moonshotai.svg" alt="" width="18" height="18"></span>Kimi Code</span>
-    <span><span class="tool-logo"><img src="/assets/logos/github.svg" alt="" width="18" height="18"></span>GitHub Copilot CLI</span>
-  </div>
-  <div class="install" id="install">
-    <code class="mono" id="cmd">${esc(install)}</code>
-    <button id="copy" type="button" aria-label="Copy install command"><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="6" y="6" width="9" height="10" rx="2"/><path d="M4 12H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v1"/></svg><span aria-live="polite">Copy</span></button>
-  </div>
-  <p class="fine">Only redacted metrics are sent. <code>nerfd privacy</code> shows exactly what; <code>nerfd share off</code> stops it. <a href="/privacy">Privacy details</a>.</p>
-  <p class="secondary-ctas"><a href="/board">See the board ↗</a><a href="#how">Read the method</a><a href="/privacy">Privacy</a></p>
+  <div class="hero-copy"><p class="eyebrow">Real sessions. Real repos. Ranked by outcome.</p>
+  <h1>Is it you, or did the model get worse?</h1>
+  <p class="lede">${sub}</p>
+  <div class="install" id="install"><code class="mono" id="cmd">${esc(install)}</code><button id="copy" type="button" aria-label="Copy install command"><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="6" y="6" width="9" height="10" rx="2"/><path d="M4 12H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v1"/></svg><span aria-live="polite">Copy</span></button></div>
+  <p class="live-line"><b id="s-sessions">–</b> sessions on record · <b id="s-models">–</b> models · 10 kinds of work · <a href="/export.json">open data</a></p>
+  <p class="secondary-ctas"><a href="/board">See the board</a><a href="/model">One model, over time</a><a href="/privacy">What leaves your machine</a></p></div>
+  <figure class="record-card" aria-label="Illustrative session record. Model, tool, plan, category and counts are sent. Prompt text, paths and code never leave your machine.">
+  <figcaption class="record-caption"><span>session → public record</span><span>EXAMPLE</span></figcaption>
+  <div class="record-lines">${[
+    ['model', 'gpt-5.6-sol'], ['tool', 'Codex'], ['plan', 'ChatGPT Pro'], ['category', 'debugging'], ['prompts', '12'], ['edits', '8'], ['errors', '0'], ['survival', '94%'], ['prompt', '▰▰▰ ▰▰▰▰ ▰▰'], ['paths', '▰▰ / ▰▰▰ / ▰▰'], ['code', '▰▰▰ ▰▰ ▰▰▰▰'],
+  ].map(([key, value], i) => `<div class="record-line${i > 7 ? ' private' : ''}" style="--i:${i}"><span class="record-key">${key}</span><span class="record-value">${value}</span><small>${i > 7 ? 'never leaves' : 'sent'}</small></div>`).join('')}</div>
+  <p class="record-bottom"><strong>Counts, never conversations.</strong> Redacted on your machine.</p></figure>
 </div>
+${PROMISES}
+${terminalDemo(esc(install))}
 
 <section id="how" aria-labelledby="how-heading">
   <p class="eyebrow">From your terminal to the public record</p>
   <h2 id="how-heading">How it works</h2>
   <ol class="how-steps">
-    <li><span class="step-number" aria-hidden="true">01</span><h3>Install once</h3><p>One line hooks into your tools. Nothing to configure.</p></li>
-    <li><span class="step-number" aria-hidden="true">02</span><h3>Work as usual</h3><p>Every session is measured locally: model, plan, tokens, errors, corrections and whether the code survived.</p></li>
+    <li><span class="step-number" aria-hidden="true">01</span><h3>Install once</h3><p>One command hooks into your tools.</p></li>
+    <li><span class="step-number" aria-hidden="true">02</span><h3>Work as usual</h3><p>Your machine counts tokens, errors, corrections and code survival.</p></li>
     <li><span class="step-number" aria-hidden="true">03</span><h3>See your own report</h3><p><code>nerfd report</code>: your ranking, your costs, your windows.</p></li>
-    <li><span class="step-number" aria-hidden="true">04</span><h3>Add to the public record</h3><p>A redacted record per session, ranked weekly with sample sizes and bands.</p></li>
+    <li><span class="step-number" aria-hidden="true">04</span><h3>Add to the public record</h3><p>Share counts per session. Compare weekly, with sample sizes.</p></li>
   </ol>
   <div class="ranking-explainer">
     <div>
       <h3>How the tables rank</h3>
       <dl class="criteria">
-        <div><dt>Quality</dt><dd>Mean rating from the person who did the work.</dd></div>
+        <div><dt>Quality</dt><dd>Your optional rating, from 1 to 5.</dd></div>
         <div><dt>Reliability</dt><dd>Share of sessions with no errors, rate limits, interrupts or model switches.</dd></div>
         <div><dt>Steering <small>lower is better</small></dt><dd>Corrections, re-prompts and pushback per turn.</dd></div>
         <div><dt>Survival</dt><dd>Share of added lines still present an hour later.</dd></div>
@@ -68,63 +62,52 @@ export function landingPage(origin: string): string {
     </figure>
   </div>
 </section>
-<div class="glance-panel"><h2>This week in one look</h2><p class="answer" id="glance-answer" aria-live="polite">Loading this week’s record. Ratings, measured outcomes and sample sizes will explain what can be compared.</p>${STAT_STRIP}</div>
-${READ_GUIDE}
+${TRUST}
 `;
   return readablePublic(`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>nerfd.ai — The public record of AI on real work</title>
-<meta name="description" content="The public record of how AI models actually perform on real work. Across coding tools and providers, ranked weekly, priced honestly.">
+<title>${socialTitle}</title>
+<meta name="description" content="${esc(sub)}">
+<meta property="og:title" content="${socialTitle}">
+<meta property="og:description" content="${esc(sub)}">
+<meta property="og:image" content="${esc(new URL('/assets/og.png', origin).href)}">
+<meta property="og:url" content="${esc(new URL('/', origin).href)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${socialTitle}">
+<meta name="twitter:description" content="${esc(sub)}">
+<meta name="twitter:image" content="${esc(new URL('/assets/og.png', origin).href)}">
 ${FAVICON}
 <style>${SHARED_CSS}
 .wrap{max-width:980px;margin:auto;padding:0 20px}main,section{min-width:0}section,h2{text-align:left}
 nav{display:flex;align-items:center;gap:24px;min-height:76px;border-bottom:1px solid var(--line);font-size:13px;color:var(--mut)}nav .brand{color:var(--fg)}nav .sp{flex:1}
-.hero{padding:66px 0 0}.hero .eyebrow{display:flex;align-items:center;gap:8px;margin:0 0 20px}.hero .eyebrow::before{content:"";width:6px;height:6px;background:var(--ok);border-radius:50%}
-h1{font-size:47px;line-height:1.12;letter-spacing:-1.9px;font-weight:600;max-width:850px;margin:0 0 22px}
-.lede{font-size:17px;line-height:1.7;color:var(--mut);max-width:700px;margin:0 0 25px}
-.tools{display:flex;align-items:center;flex-wrap:wrap;gap:10px 18px;margin:0 0 30px;color:var(--mut);font-size:12px}.tools span{display:inline-flex;align-items:center;gap:7px}.tools img{width:18px;height:18px;object-fit:contain}.tools .tool-logo{display:inline-grid;place-items:center;width:25px;height:25px;background:white;border:1px solid var(--line);border-radius:7px}
 .install{display:flex;align-items:center;gap:8px;max-width:710px;background:var(--soft);border:1px solid var(--line);border-radius:11px;padding:7px;box-shadow:inset 0 1px 3px #00000004}.install code{flex:1;min-width:0;padding:8px 9px;font-size:13px;overflow-wrap:anywhere}.install button{flex:none;font-size:12px;padding:8px 13px;display:flex;align-items:center;gap:6px}.install button svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.4}
-.fine{font-size:12px;max-width:720px;margin:12px 0 0;line-height:1.8}.fine code{font-size:11px;color:var(--fg)}.fine a{text-decoration:underline;text-underline-offset:3px}
-.glance{margin-top:38px}.glance .eyebrow{margin:0 0 10px;display:block}.glance .eyebrow::before{display:none}
 section{padding:45px 0 0}h2{font-size:23px;letter-spacing:-.6px;font-weight:600;margin:0 0 7px}.sub{font-size:14px;margin:0 0 20px;max-width:720px}.section-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px 16px}.section-head .section-number{grid-column:1/-1;margin:0}.section-head a{font-size:12px;color:var(--mut);white-space:nowrap}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}.cols>div{min-width:0;padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:12px}.cols h3{font-size:14px;margin:0 0 12px;font-weight:600}.cols ul{margin:0;padding-left:17px;color:var(--mut);font-size:13px}.cols li{margin:7px 0}
-.cmd{display:block;max-width:100%;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:12px;margin:10px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font-size:12px;color:var(--mut);display:flex;flex-wrap:wrap;gap:12px 22px}
 #limits{min-width:0}#limits .table-wrap{max-width:100%;overflow-x:auto}#limits .limit-key li{min-width:0;overflow-wrap:anywhere}#limits .limit-key .identity{white-space:normal}
 .model-detail{display:block;font-size:10px;margin-top:3px}
 #providers th,#providers td,#friction th,#friction td{padding:10px 12px}
 .landing-rate{display:inline-block;min-width:62px;padding:2px 4px;font-size:11px;background:linear-gradient(to right,var(--line) var(--rate),transparent var(--rate)) left center/100% 4px no-repeat}
-
-.value-props{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;list-style:none;padding:0;margin:30px 0}.value-props li{display:flex;gap:10px;align-items:flex-start}.value-props svg{width:21px;height:21px;flex:none;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}.value-props h3,.how-steps h3{font-size:14px;font-weight:600;margin:0 0 8px}.value-props p,.how-steps p{font-size:13px;line-height:1.7;color:var(--mut);margin:0}.value-props code{font-size:12px}.secondary-ctas{display:flex;flex-wrap:wrap;gap:20px;font-size:12px;margin:18px 0 0;color:var(--mut)}.secondary-ctas a:hover{color:var(--fg)}
 .how-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;list-style:none;padding:0;margin:24px 0 30px}.how-steps li{padding:20px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}.step-number{display:grid;place-items:center;width:30px;height:30px;margin-bottom:24px;border:1px solid var(--line);border-radius:50%;font:12px var(--mono);color:var(--mut)}.ranking-explainer{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:36px;border-top:1px solid var(--line);padding-top:28px}.ranking-explainer h3{font-size:17px;margin:0 0 20px}.criteria{margin:0;font-size:13px}.criteria>div{display:grid;grid-template-columns:120px minmax(0,1fr);gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}.criteria dt{font-weight:600}.criteria dd{margin:0;color:var(--mut);line-height:1.65}.criteria small{display:block;font-size:10px;font-weight:400;color:var(--mut);margin-top:4px}.tier-bands{font-size:12px;color:var(--mut);line-height:1.8;margin-top:18px}.tier-bands p{margin:8px 0}.tier-bands strong{display:block;color:var(--fg);font-weight:500}.record-flow{margin:0;padding:20px 12px;align-self:start;background:var(--panel);border:1px solid var(--line);border-radius:12px}.record-flow svg{display:block;width:100%;max-width:340px;margin:auto;font-family:inherit}.record-flow figcaption{font-size:12px;color:var(--mut);line-height:1.8;padding:0 12px}.record-flow code{color:var(--fg)}
 @media(max-width:800px){.how-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.ranking-explainer{gap:24px}}
-@media(max-width:600px){.section-head{grid-template-columns:minmax(0,1fr)}.value-props,.how-steps,.ranking-explainer{grid-template-columns:1fr}.value-props{gap:20px}.how-steps li{padding:20px}.step-number{margin-bottom:14px}.criteria>div{grid-template-columns:100px minmax(0,1fr)}.ranking-explainer{gap:20px}}
-@media(max-width:480px){nav{flex-wrap:wrap;padding:14px 0;gap:10px 16px}nav .sp{display:none}nav .brand{flex-basis:100%}#providers .section-head,#friction .section-head{flex-wrap:wrap;gap:4px;margin-bottom:10px}}
-@media(max-width:720px){.wrap{padding:0 20px}nav{gap:16px;min-height:66px;font-size:12px}nav .optional{display:none}.hero{padding:40px 0 0}h1{font-size:35px;letter-spacing:-1.2px}.lede{font-size:15px}.tools{gap:10px 14px}.cols{grid-template-columns:1fr}.cols>div{padding:20px}.install{align-items:stretch}.install code{font-size:12px;padding:7px}.install button{padding:8px 10px}.glance{margin-top:30px}section{padding-top:34px}h2{font-size:21px}.section-head{align-items:baseline}.section-head a{font-size:11px}}
+.secondary-ctas{display:flex;flex-wrap:wrap;font-size:12px}.how-steps h3{font-size:14px;margin:0 0 8px}.how-steps p{font-size:13px;color:var(--mut);margin:0}.hero .eyebrow{display:flex;align-items:center;gap:8px}.hero .eyebrow::before{content:"";width:6px;height:6px;border-radius:50%}.lede{color:var(--mut)}h1{font-weight:600;margin:0 0 22px}
+@media(max-width:600px){.how-steps,.ranking-explainer{grid-template-columns:1fr}.step-number{margin-bottom:14px}.criteria>div{grid-template-columns:100px minmax(0,1fr)}.ranking-explainer{gap:20px}}
 </style>
+<style>${LANDING_CSS}</style>
 </head>
 <body>
 <div class="wrap">
-<nav aria-label="Main navigation">
-  <a class="brand" href="/"><span class="app-icon" aria-hidden="true">n</span><span>nerfd<em>.ai</em></span></a>
-  <span class="sp"></span>
-  <a href="/board">Board</a>
-  <a href="/model">Models</a>
-  <a href="#install">Install</a>
-  <a href="#providers">Providers</a>
-  <a href="#limits">Plans</a>
-  <a href="#friction">Friction</a>
-  <a class="optional" href="#how">How it works</a>
-  <a href="/privacy">Privacy</a>
+<nav class="site-nav" aria-label="Main navigation">
+  <a class="brand" href="/"><span class="app-icon" aria-hidden="true">n</span><span>nerfd<em>.ai</em></span></a><span class="sp"></span><a href="/board">Board</a><a href="/model">Models</a><a class="nav-method" href="#how">How it works</a><a class="nav-install" href="#install">Install</a>
 </nav>
 
 <main>
 <!-- landing-intro -->
-
-<section>
+<div class="board-heading"><p class="eyebrow">The live public record</p><h2>See what the sessions say.</h2><p class="answer" id="glance-answer" aria-live="polite">Loading this week’s record. Sample sizes show what you can compare.</p><p class="board-week"><b id="s-week">–</b> sessions this week · <a href="/board">Open the full board ↗</a></p></div>
+${READ_GUIDE}
+<section id="tiers-section">
   <div class="section-head"><h2>Tiers, last four weeks</h2><a href="/board">Full scorecard ↗</a></div>
   <p class="sub">Relative to the best model in the field on each criterion. A tier needs at least ten sessions. Each badge includes its underlying number.</p>
   <div class="tbl" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="tiers"><thead>
@@ -160,61 +143,20 @@ footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font
   <p class="metric-note mut">Lower is better. “–” means unavailable.</p>
 </section>
 
-<section>
-  <h2>What a month actually buys</h2>
+<section id="plans-section">
+  <h2>What your month actually buys</h2>
   <p class="sub">The plan is detected from each tool's own config, never typed in. We count what it delivered: successful sessions, hours, the API-equivalent value of the tokens, and how often they reached a rate limit. Medians across reporter-weeks, with the plan price charged pro-rata.</p>
   <div class="tbl" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="plans"><thead>
     <tr><th>plan</th><th class="n">price</th><th class="n">sessions</th><th class="n">successes</th><th class="n">api-equiv</th><th class="n">multiple</th><th class="n">$ / success</th><th class="n">hit limit</th><th class="n" title="one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks">reporter-weeks</th></tr>
   </thead><tbody><tr><td colspan="9" class="mut">loading</td></tr></tbody></table></div>
 </section>
 
-<section id="method">
-  <h2>How it works</h2>
-  <div class="cols">
-    <div>
-      <h3>Collected automatically, per session</h3>
-      <ul>
-        <li>model, reasoning effort, tool version, plan tier</li>
-        <li>task category (inferred, overridable), task size, repo language and size bucket</li>
-        <li>prompts, turns, tool calls, edits, tests run, errors, rate-limit hits, timeouts</li>
-        <li>interrupts and mid-session model switches</li>
-        <li>token totals and latency percentiles</li>
-        <li>code survival: how much of what the session wrote is still there an hour later</li>
-      </ul>
-    </div>
-    <div>
-      <h3>Never shared</h3>
-      <ul>
-        <li>prompts, code, diffs, file paths, repo names</li>
-        <li>notes you type, your identity, your email</li>
-        <li>anything at all until you run the installer or <span class="mono">nerfd share on</span></li>
-      </ul>
-      <h3 style="margin-top:18px">Optional, two seconds</h3>
-      <span class="cmd mono">/nerfd 4 kept "solid refactor, one retry"</span>
-      <p class="mut" style="margin:0;font-size:14px">Works inside Claude Code and Codex. From a shell: <span class="mono">nerfd rate last 4 kept</span>.</p>
-    </div>
-  </div>
-  <div class="cols" style="margin-top:32px">
-    <div>
-      <h3>Score</h3>
-      <span class="cmd mono">score = 0.55·rating + 0.30·survival + 0.15·clean</span>
-      <p class="mut" style="font-size:14px;margin:0">Missing parts are dropped and weights renormalised. Fewer than three sessions is never scored. The scorecard shows sample sizes and 95% intervals for the good-session rate.</p>
-    </div>
-    <div>
-      <h3>Drift</h3>
-      <p class="mut" style="font-size:14px;margin:0">Each model's current week is compared with its trailing four weeks on rating, clean rate and latency. A flag needs |z| ≥ 2 and five sessions. Effort level and tool version are recorded so a change can be attributed to the harness, not just the weights. This is change detection, not accusation.</p>
-    </div>
-  </div>
-</section>
-
-<section>
-  <h2>Other tools</h2>
-  <p class="sub">Anything that can run a shell command can report. Same schema, same redaction.</p>
-  <span class="cmd mono">nerfd record --tool aider --model gpt-6 --cat debug --duration 840 --rating 4 --kept --tokens-in 120000 --tokens-out 9000</span>
-</section>
+${FOUNDERS_FAQ}
 
 </main>
 <footer>
+  <div class="footer-formula"><code>score = 100 × (0.55 × rating_norm + 0.30 × survival + 0.15 × clean)</code><br>Rating maps 1–5 to 0–1. Missing parts are dropped and weights renormalised. Scores need 3 sessions; public tiers need 10. Good-session rates carry 95% intervals.</div>
+  <a href="https://github.com/jspaterson000/nerfd">GitHub</a>
   <span>open collector, open data, open formula</span>
   <a href="/export.json">raw data</a>
   <a href="/v1/stats">api</a>
@@ -227,6 +169,7 @@ footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font
 <script>
 ${IDENTITY_JS}
 ${WORK_JS}
+${LANDING_JS}
 (() => {
   const finite = v => typeof v === 'number' && Number.isFinite(v);
   const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -364,9 +307,9 @@ async function comparisonData(url) {
   try {
     const m = await (await fetch('/v1/meta')).json();
     window.nerfdAnswers('meta', m);
-    $('#s-sessions').textContent = m.reports.toLocaleString();
-    $('#s-reporters').textContent = (m.reporter_weeks ?? m.reporters).toLocaleString();
-    $('#s-models').textContent = m.models.length;
+    countUp('s-sessions', m.reports);
+    countUp('s-reporters', m.reporter_weeks ?? m.reporters);
+    countUp('s-models', m.models.length);
     const wk = await (await fetch('/v1/stats?by=week&weeks=1')).json();
     window.nerfdAnswers('week', wk);
     $('#s-week').textContent = wk.n.toLocaleString();
