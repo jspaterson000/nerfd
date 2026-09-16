@@ -54,15 +54,26 @@ export function backfill(a: Args): void {
  * record, and save it if anything moved. Only what the ledger derives: the
  * signals and active time. A rating, a kept flag, survival or a category the
  * person set are theirs and are never overwritten.
+ *
+ * The wall counters are re-read too, but only for a session the backfill
+ * itself wrote: those counts came from the transcript in the first place, so
+ * re-reading them is the same operation run again. On a session a hook
+ * recorded live, the hook's counters stay the source of truth.
  */
 function rederive(existing: Session, fresh: Session): boolean {
-  const before = JSON.stringify([existing.metrics.active_s, existing.signal_version, existing.signals]);
+  const derived = existing.source === 'backfill';
+  const before = JSON.stringify([existing.metrics.active_s, existing.metrics.rate_limit_hits, existing.metrics.overloaded, existing.signal_version, existing.signals, existing.limit_windows]);
   if (fresh.metrics.active_s != null) existing.metrics.active_s = fresh.metrics.active_s;
+  if (derived) {
+    existing.metrics.rate_limit_hits = fresh.metrics.rate_limit_hits;
+    existing.metrics.overloaded = fresh.metrics.overloaded;
+  }
   if (fresh.signals) {
     existing.signals = fresh.signals;
     existing.signal_version = fresh.signal_version ?? null;
   }
-  if (JSON.stringify([existing.metrics.active_s, existing.signal_version, existing.signals]) === before) return false;
+  if (fresh.limit_windows?.length) existing.limit_windows = fresh.limit_windows;
+  if (JSON.stringify([existing.metrics.active_s, existing.metrics.rate_limit_hits, existing.metrics.overloaded, existing.signal_version, existing.signals, existing.limit_windows]) === before) return false;
   putSession(existing);
   return true;
 }

@@ -41,6 +41,23 @@ test('normalise maps onto the canonical vocabulary and drops the rest', () => {
   assert.deepEqual(kept.tool_input, { file_path: '/x' });
 });
 
+test('a 529 overload and a 429 rate limit are counted apart', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'nerfd-t-'));
+  const path = join(dir, 'transcript.jsonl');
+  writeFileSync(path, [
+    JSON.stringify({ type: 'user', timestamp: '2026-09-16T10:00:00Z', message: { content: 'hi' } }),
+    // The provider's fleet was busy. Not the subscription wall.
+    JSON.stringify({ type: 'assistant', timestamp: '2026-09-16T10:00:03Z', requestId: 'r1', isApiErrorMessage: true, message: { content: 'API Error: 529 {"type":"overloaded_error","message":"Overloaded"}' } }),
+    // The subscription wall.
+    JSON.stringify({ type: 'assistant', timestamp: '2026-09-16T10:00:07Z', requestId: 'r2', isApiErrorMessage: true, message: { content: 'API Error: 429 {"type":"rate_limit_error","message":"This request would exceed your rate limit"}' } }),
+  ].join('\n'));
+
+  const f = parseClaudeTranscript(path);
+  assert.equal(f.api_errors, 2);
+  assert.equal(f.overloaded, 1);
+  assert.equal(f.rate_limit_hits, 1);
+});
+
 test('the Claude ledger counts tool-argument errors and context-limit hits', () => {
   const dir = mkdtempSync(join(tmpdir(), 'nerfd-t-'));
   const path = join(dir, 'transcript.jsonl');

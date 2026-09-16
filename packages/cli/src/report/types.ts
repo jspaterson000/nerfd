@@ -124,6 +124,55 @@ export interface ReportDrift {
   steering_z: number | null;
 }
 
+/**
+ * One subscription window of your own: what it holds, how full you typically
+ * leave it, and how often you hit the wall. The capacity figures are
+ * estimates from your own sessions - see docs/LIMITS.md - and are null until
+ * a window has moved enough to divide by.
+ */
+export interface ReportLimitWindow {
+  scope: string;                      // five_hour, seven_day, primary, ...
+  window_min: number | null;
+  capacity_total_p50: number | null;      // tokens the window holds, total-token basis
+  capacity_uncached_p50: number | null;   // uncached input + output basis
+  n_windows: number;                      // windows observed, estimated or not
+  usage_median_pct: number | null;        // how full you typically leave it
+  wall_hits: number;                      // windows in which you hit the wall
+  typical_resets_in_min: number | null;   // median minutes to reset at the last reading
+}
+
+export interface ReportLimitPlan {
+  plan_id: string;
+  name: string;
+  usd_month: number | null;
+  tokens_per_dollar_p50: number | null;
+  successes_per_dollar: number | null;
+  wall_hit_share: number;
+  usage_median_pct: number | null;
+  // The public band for the same plan, for the "and everyone else" column.
+  // Null until a later fetch fills it in; the report never calls out on its own.
+  public_band?: { p25: number | null; p50: number | null; p75: number | null } | null;
+}
+
+/**
+ * A scope that was observed but never moved enough to divide by. Kept apart
+ * from `windows` so the page can say "observed, not enough movement to
+ * estimate" rather than print a capacity of zero for an idle window.
+ */
+export interface ReportObservedWindow {
+  scope: string;
+  window_min: number | null;
+  sessions: number;
+  samples: number;
+}
+
+export interface ReportLimits {
+  windows: ReportLimitWindow[];       // scopes with at least one window worth estimating from
+  observed_only: ReportObservedWindow[];
+  plans: ReportLimitPlan[];
+  empty: boolean;                     // no window state on any session in the period
+}
+
 export interface ReportData {
   generated_at: string;
   weeks: number;
@@ -138,6 +187,7 @@ export interface ReportData {
   };
   trouble: { by_model: ReportTroubleModel[]; weekly: ReportWeekTrouble[]; roughest: ReportRoughSession[] };
   drift: ReportDrift[];
+  limits: ReportLimits;
   share: { headline: string; lines: string[]; caption: string };
   empty: boolean;                 // true when there are no finished sessions in the period
 }

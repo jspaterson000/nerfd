@@ -2,7 +2,7 @@ import type { ModelRef } from './modelref.ts';
 import { costUsd } from './pricing.ts';
 import { signalRates, type Signals } from './signals.ts';
 import { driftZ, mean, percentile, wilson } from './stats.ts';
-import type { Category, Kept, Metrics, RepoProfile, Size, Tool } from './types.ts';
+import type { Category, Kept, LimitWindow, Metrics, RepoProfile, Size, Tool } from './types.ts';
 
 // Aggregation shared by the local CLI and the public server, so the number
 // you see for yourself is computed exactly like the number everyone sees.
@@ -30,6 +30,10 @@ export interface Row {
   rating: number | null;
   kept: Kept;
   survival_ratio: number | null;
+  // Subscription window state the tool wrote to disk, where it writes any:
+  // percentages, a window length and the tokens between two readings. See
+  // limits.ts and docs/LIMITS.md. Optional: most tools report nothing.
+  limit_windows?: LimitWindow[] | null;
 }
 
 /**
@@ -53,7 +57,7 @@ export function hoursOf(row: { duration_s: number | null; metrics: Metrics }): n
 }
 
 export type GroupKey =
-  | 'model' | 'category' | 'tool' | 'week' | 'lang' | 'size' | 'effort'
+  | 'model' | 'category' | 'tool' | 'week' | 'lang' | 'size' | 'effort' | 'plan_id'
   // The provider board: same weights, different host, different quantisation.
   | 'provider' | 'quant' | 'family' | 'serving_mode';
 
@@ -68,11 +72,12 @@ export interface Group {
   kept_rate: number | null;                            // explicit kept / (kept+partial+reverted)
   latency_p50_ms: number | null;                       // median of per-session p50s
   error_rate: number;                                  // sessions with >=1 error
-  rate_limit_rate: number;                             // sessions with >=1 rate-limit hit
+  rate_limit_rate: number;                             // sessions with >=1 subscription-wall hit (429 / quota)
+  overloaded_rate: number;                             // sessions with >=1 provider overload (529 / "overloaded"), which is not a wall
   interrupt_rate: number;                              // sessions with >=1 interrupt
   switch_rate: number;                                 // sessions where the user switched model
   tool_call_error_rate: number | null;                 // tool calls that failed to parse or validate, over all tool calls
-  friction_free: number;                               // sessions with none of the above
+  friction_free: number;                               // sessions with none of the above, overload included
   duration_median_s: number | null;
   // Behavioural signals, averaged over the sessions in this group that have
   // them. Each is the mean of a per-session rate, not a pooled ratio: a
@@ -108,6 +113,7 @@ function keyOf(r: Row, by: GroupKey[]): Record<string, string> {
       case 'provider': k[b] = router(r) ? '-' : (r.model_ref?.provider ?? '-'); break;
       case 'family': k[b] = router(r) ? '-' : (r.model_ref?.family ?? '-'); break;
       case 'quant': k[b] = r.model_ref?.quant ?? 'unknown'; break;
+      case 'plan_id': k[b] = r.plan_id ?? '-'; break;
       case 'serving_mode': k[b] = r.model_ref?.serving_mode ?? '-'; break;
       default: k[b] = String(r[b]);
     }
@@ -148,9 +154,13 @@ export function summarise(key: Record<string, string>, list: Row[]): Group {
     latency_p50_ms: percentile(lat, 50),
     error_rate: frac((r) => r.metrics.errors > 0),
     rate_limit_rate: frac((r) => r.metrics.rate_limit_hits > 0),
+    overloaded_rate: frac((r) => (r.metrics.overloaded ?? 0) > 0),
     interrupt_rate: frac((r) => r.metrics.interrupts > 0),
     switch_rate: frac((r) => r.metrics.model_switches > 0),
     tool_call_error_rate: toolCallErrorRate(list),
+    // Overload is deliberately still friction here: a 529 is a turn that
+    // failed, and the person waited for it, even though it says nothing about
+    // their quota. It is `errors` that carries it, so this needs no new term.
     friction_free: frac((r) => r.metrics.errors === 0 && r.metrics.rate_limit_hits === 0 && r.metrics.interrupts === 0 && r.metrics.model_switches === 0),
     duration_median_s: percentile(list.map((r) => r.duration_s), 50),
     ...signalSummary(list),

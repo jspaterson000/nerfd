@@ -2,6 +2,7 @@ import { existsSync, rmSync, statSync } from 'node:fs';
 import { toReport, validateReport, type Tool } from '@nerfd/core';
 import { countSessions, lastSession, listSessions } from '../db.ts';
 import { flag, type Args } from '../args.ts';
+import { countSampleFiles, LIMITS_DIR, SAMPLE_TTL_DAYS } from '../limits/store.ts';
 import { CLIENT_VERSION, CONFIG_PATH, DB_PATH, HOME, LOG_PATH, loadConfig } from '../paths.ts';
 import { effectivePlan, withDetections, WHY_NOT } from '../plandetect/index.ts';
 import { table } from '../table.ts';
@@ -71,7 +72,21 @@ export function privacy(a: Args): void {
     ['local.db', human(size(DB_PATH)), `${plural(counts.total, 'session')}, ${counts.ended} finished, ${counts.rated} rated`],
     ['local.db-wal', human(size(DB_PATH + '-wal')), 'sqlite write-ahead log'],
     ['hook.log', human(size(LOG_PATH)), 'hook failures only'],
+    ['limits/', plural(countSampleFiles(), 'file'), 'subscription window readings, one file per claude code session'],
   ])));
+
+  // (b1) the status-line wrapper. It runs on every redraw of someone's status
+  // line, so what it reads is worth stating in full rather than summarising.
+  p();
+  p('  the claude code status-line wrapper');
+  p(`    ${LIMITS_DIR}/<session id>.jsonl`);
+  p('    claude code hands its status line a JSON blob on stdin. the wrapper reads exactly two');
+  p('    fields of it, session_id and rate_limits, and writes one line per scope per minute:');
+  p('    {ts, scope, used_pct, resets_at}. cwd, model, cost, workspace, transcript_path and');
+  p('    version are never read. it then runs your own status-line command with the same stdin');
+  p('    and prints its output unchanged. source: packages/cli/src/limits/statusline.ts');
+  p(`    the files are read at session end and deleted after ${SAMPLE_TTL_DAYS} days by \`nerfd check\`.`);
+  p('    remove the wrapper and restore your own status line: nerfd init --remove');
 
   const sessions = listSessions({});
   const prompts = sessions.filter((s) => s.first_prompt).length;

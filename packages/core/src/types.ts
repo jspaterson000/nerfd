@@ -41,6 +41,45 @@ export type RepoAge = (typeof REPO_AGE)[number];
 export const PLAN_SOURCES = ['detected', 'declared', 'unknown'] as const;
 export type PlanSource = (typeof PLAN_SOURCES)[number];
 
+// How much of a subscription window a session consumed. The scope is an
+// allowlist, never the tool's own limit id or name: Codex names a
+// model-scoped limit after the model it gates ("codex_bengalfox",
+// "GPT-5.3-Codex-Spark"), which is a product detail about one account, so
+// every id that is not the plan-level one is reported as 'model'.
+export const LIMIT_SCOPES = ['primary', 'secondary', 'five_hour', 'seven_day', 'spend', 'model'] as const;
+export type LimitScope = (typeof LIMIT_SCOPES)[number];
+
+/** Tokens consumed between the first and last sample of one window. */
+export interface LimitTokens {
+  total: number;
+  uncached_in: number;
+  out: number;
+  cached_in: number;
+}
+
+/**
+ * One subscription window as one session observed it. See docs/LIMITS.md;
+ * the shape is fixed because the estimator and the public band are built on
+ * it. There is no string here but `scope`, and no absolute time: reset is an
+ * offset in minutes plus an hour bucket, which groups a reporter's own
+ * sessions into one window without pinning them to a clock.
+ */
+export interface LimitWindow {
+  scope: LimitScope;
+  window_min: number | null;        // 300, 10080, ...
+  used_pct_start: number | null;    // first sample in the session
+  used_pct_end: number | null;      // last sample
+  samples: number;                  // how many readings
+  resets_in_min_end: number | null; // minutes from the last sample to reset
+  reset_bucket: number | null;      // floor(resets_at / 3600)
+  wall_hit: boolean;
+  tokens: LimitTokens;
+}
+
+export function emptyLimitTokens(): LimitTokens {
+  return { total: 0, uncached_in: 0, out: 0, cached_in: 0 };
+}
+
 /** Facts about the repo that affect how hard the task is. No identifying info. */
 export interface RepoProfile {
   lang: string;        // 'ts' | 'py' | 'go' | 'rs' | 'swift' | 'mixed' | 'none' ...
@@ -57,7 +96,11 @@ export interface Metrics {
   files_touched: number;
   tests_run: number;        // test-looking shell commands
   errors: number;           // tool errors + API errors
-  rate_limit_hits: number;  // 429 / overloaded / "rate limit" seen
+  rate_limit_hits: number;  // the subscription wall: 429 / "rate limit" / "usage limit" / quota
+  // The provider ran out of capacity, which is not the same event as running
+  // out of your quota: a 529 "overloaded" says the fleet is busy, a 429 says
+  // you are. Conflating them made a plan look like a wall it never hit.
+  overloaded: number;
   timeouts: number;
   model_switches: number;   // user switched model mid-session (a strong "this was not working" signal)
   tool_call_errors: number; // tool calls whose arguments failed to parse or validate: the metric that differs most between hosts of the same weights
@@ -122,6 +165,11 @@ export interface Session {
   // (and adapters that cannot produce turns) simply have none.
   signals?: Signals | null;
   signal_version?: number | null;   // which version of the detectors produced them
+  // How much of each subscription window this session used, one entry per
+  // window the tool reported. Defaults to `[]`; optional for the same reason
+  // `signals` is - a record written before this module has none - and every
+  // writer sets it, so absent means "this client is older", not "no limits".
+  limit_windows?: LimitWindow[];
   outcome: Outcome;
   survival: Survival;
   line_hashes: string[] | null;      // local only, used by `nerfd check`
@@ -154,6 +202,7 @@ export interface Report {
   metrics: Metrics;
   signals?: Signals | null;         // counts only; see signals.ts
   signal_version?: number | null;
+  limit_windows?: LimitWindow[];    // bounded numbers and one enum; see docs/LIMITS.md
   rating: number | null;
   kept: Kept;
   survival_ratio: number | null;
@@ -163,7 +212,7 @@ export interface Report {
 export function emptyMetrics(): Metrics {
   return {
     prompts: 0, turns: 0, tool_calls: 0, edits: 0, files_touched: 0, tests_run: 0,
-    errors: 0, rate_limit_hits: 0, timeouts: 0, model_switches: 0, interrupts: 0,
+    errors: 0, rate_limit_hits: 0, overloaded: 0, timeouts: 0, model_switches: 0, interrupts: 0,
     tool_call_errors: 0, context_limit_hits: 0, tokens_in: 0, tokens_out: 0,
     tokens_cache_read: 0, latency_p50_ms: null, latency_p95_ms: null, limit_used_pct: null, limit_window_min: null,
     active_s: null,

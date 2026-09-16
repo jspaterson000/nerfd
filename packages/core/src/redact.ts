@@ -119,6 +119,11 @@ export function toReport(s: Session, installId: string, clientVersion: string, e
     // See signals.ts and docs/SIGNALS.md.
     signals: s.signals ?? null,
     signal_version: s.signals ? (s.signal_version ?? SIGNAL_VERSION) : null,
+    // Limit windows pass through untouched, for the same reason signals do:
+    // by construction the only string in one is `scope`, which comes from an
+    // allowlist, and the reset time is already an offset plus an hour bucket.
+    // See docs/LIMITS.md.
+    limit_windows: s.limit_windows ?? [],
     rating: s.outcome.rating,
     kept: s.outcome.kept,
     survival_ratio: s.survival.ratio,

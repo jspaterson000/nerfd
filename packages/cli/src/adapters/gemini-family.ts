@@ -56,7 +56,8 @@ export interface ParseOptions {
 
 // transcript.ts exports the two regexes that carry the open-weight metrics;
 // these two are private to it, so they are restated rather than widened.
-const RATE_LIMIT_RE = /rate[ _-]?limit|429|overloaded|529|resource[ _-]?exhausted|quota|too many requests/i;
+const QUOTA_RE = /rate[ _-]?limit|429|too many requests|usage limit|hit your limit|(?<!context (window |length )?)limit reached|resource[ _-]?exhausted|quota/i;
+const OVERLOADED_RE = /overloaded|529|capacity|at capacity/i;
 const TIMEOUT_RE = /timed? ?out|ETIMEDOUT|deadline exceeded/i;
 // Gemini CLI writes `{"type":"info","content":"Request cancelled."}` when the
 // user hits escape. Qwen writes a cancelled tool status.
@@ -114,7 +115,7 @@ function emit(line: string, fn: (rec: Record<string, unknown>) => void): void {
 
 // ---- one message, reduced ------------------------------------------------
 
-interface Flags { rate: boolean; timeout: boolean; argError: boolean; context: boolean }
+interface Flags { rate: boolean; overloaded: boolean; timeout: boolean; argError: boolean; context: boolean }
 
 interface ToolRec {
   name: string;
@@ -145,12 +146,13 @@ interface Msg {
   tools: ToolRec[];
 }
 
-const noFlags = (): Flags => ({ rate: false, timeout: false, argError: false, context: false });
+const noFlags = (): Flags => ({ rate: false, overloaded: false, timeout: false, argError: false, context: false });
 
 function flagsFor(text: string): Flags {
   const t = text.length > ERROR_TEXT_CAP ? text.slice(0, ERROR_TEXT_CAP) : text;
   return {
-    rate: RATE_LIMIT_RE.test(t),
+    rate: QUOTA_RE.test(t),
+    overloaded: OVERLOADED_RE.test(t),
     timeout: TIMEOUT_RE.test(t),
     argError: TOOL_ARG_ERROR_RE.test(t),
     context: CONTEXT_LIMIT_RE.test(t),
@@ -465,6 +467,7 @@ function aggregate(messages: Msg[], headStart: string | null, headEnd: string | 
 
 function applyFlags(f: LedgerFacts, fl: Flags): void {
   if (fl.rate) f.rate_limit_hits++;
+  if (fl.overloaded) f.overloaded++;
   if (fl.timeout) f.timeouts++;
   if (fl.argError) f.tool_call_errors++;
   if (fl.context) f.context_limit_hits++;

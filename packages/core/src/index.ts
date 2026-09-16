@@ -7,6 +7,7 @@ export * from './signals.ts';
 export * from './redact.ts';
 export * from './validate.ts';
 export * from './aggregate.ts';
+export * from './limits.ts';
 export * from './pricing.ts';
 export * from './tiers.ts';
 export * from './plans.ts';

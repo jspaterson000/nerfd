@@ -1,6 +1,7 @@
 import { listSessions, putSession } from '../db.ts';
 import { survivingCount } from '../git.ts';
 import { flag, type Args } from '../args.ts';
+import { pruneSamples, SAMPLE_TTL_DAYS } from '../limits/store.ts';
 import { loadConfig } from '../paths.ts';
 import { fmtPct, table } from '../table.ts';
 
@@ -14,6 +15,10 @@ export function check(a: Args): void {
   const force = flag(a, 'force');
   const salt = loadConfig().install_id;
   expireLineHashes(now);
+  // Status-line samples are consumed by the ledger at session end; after the
+  // same 30 days nothing will read a leftover again.
+  const swept = pruneSamples(now);
+  if (swept) process.stdout.write(`deleted ${swept} limit sample file${swept === 1 ? '' : 's'} older than ${SAMPLE_TTL_DAYS} days.\n`);
   const candidates = listSessions({ endedOnly: true, limit: 200 }).filter((s) => {
     if (!s.cwd || !s.line_hashes || s.line_hashes.length === 0) return false;
     const endedAgo = now - Date.parse(s.ended_at!);

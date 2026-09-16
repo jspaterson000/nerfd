@@ -58,7 +58,8 @@ export interface GooseFacts extends TranscriptFacts {
 const INTERRUPT_MARK = 'Interrupted by the user to make a correction';
 const TOOL_CRASH_MARK = 'An uncaught error happened during tool use';
 
-const RATE_LIMIT_RE = /rate[ _-]?limit|429|overloaded|529|capacity|too many requests/i;
+const QUOTA_RE = /rate[ _-]?limit|429|too many requests|usage limit|hit your limit|(?<!context (window |length )?)limit reached|quota/i;
+const OVERLOADED_RE = /overloaded|529|capacity|at capacity/i;
 const TIMEOUT_RE = /timed? ?out|ETIMEDOUT|deadline exceeded/i;
 const TOOL_ARG_ERROR_RE = /input.?validation|invalid (tool )?(input|argument|parameter|schema)|does not match the (required )?schema|failed to parse|unexpected token|is not valid json|required (property|parameter)|unrecognized (key|argument)|missing required/i;
 const CONTEXT_LIMIT_RE = /context (window|length|limit)|prompt is too long|exceeds? the (maximum )?context|too many tokens/i;
@@ -118,9 +119,9 @@ export function withGooseDb<T>(fn: (db: DatabaseSync) => T, path: string | null 
 function emptyFacts(): GooseFacts {
   return {
     model: null, tool_version: null, turns: 0, tokens_in: 0, tokens_out: 0, tokens_cache_read: 0,
-    latencies_ms: [], api_errors: 0, rate_limit_hits: 0, timeouts: 0, interrupts: 0,
+    latencies_ms: [], api_errors: 0, rate_limit_hits: 0, overloaded: 0, timeouts: 0, interrupts: 0,
     tool_call_errors: 0, context_limit_hits: 0, first_ts: null, last_ts: null,
-    rate_limit_used_pct: null, rate_limit_window_min: null,
+    rate_limit_used_pct: null, rate_limit_window_min: null, limit_windows: [],
     ledger_cost_usd: null, ledger_cost_source: null, provider_name: null, config_model: null,
   };
 }
@@ -293,7 +294,8 @@ export function gooseSessionFacts(db: DatabaseSync, id: string): GooseFacts | nu
 }
 
 function classify(f: GooseFacts, text: string): void {
-  if (RATE_LIMIT_RE.test(text)) f.rate_limit_hits++;
+  if (QUOTA_RE.test(text)) f.rate_limit_hits++;
+  if (OVERLOADED_RE.test(text)) f.overloaded++;
   if (TIMEOUT_RE.test(text)) f.timeouts++;
   if (CONTEXT_LIMIT_RE.test(text)) f.context_limit_hits++;
 }

@@ -35,6 +35,7 @@ export function backfillSession(
     tokens_cache_read: facts.tokens_cache_read,
     errors: facts.api_errors,
     rate_limit_hits: facts.rate_limit_hits,
+    overloaded: facts.overloaded,
     timeouts: facts.timeouts,
     interrupts: facts.interrupts,
     tool_call_errors: facts.tool_call_errors,

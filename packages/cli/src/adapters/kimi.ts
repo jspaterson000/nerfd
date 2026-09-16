@@ -4,6 +4,7 @@ import { homedir } from 'node:os';
 import { dirname, isAbsolute, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Session, Turn } from '@nerfd/core';
+import { wallOnlyWindow } from '../limits/wall.ts';
 import { backfillSession } from './backfill.ts';
 import { attachSignals, emptyLedger, isCanonicalEvent, type Adapter, type HookInput, type LedgerFacts, type NormalisedEvent } from './types.ts';
 import {
@@ -192,7 +193,8 @@ export function kimiHookInstalled(env: NodeJS.ProcessEnv = process.env): boolean
 // normalise
 // ---------------------------------------------------------------------------
 
-const RATE_LIMIT_RE = /rate[ _-]?limit|429|overloaded|529|capacity|too many requests|quota/i;
+const QUOTA_RE = /rate[ _-]?limit|429|too many requests|usage limit|hit your limit|(?<!context (window |length )?)limit reached|quota/i;
+const OVERLOADED_RE = /overloaded|529|capacity|at capacity/i;
 const TIMEOUT_RE = /timed? ?out|timeout|ETIMEDOUT|deadline exceeded|aborted by timeout/i;
 const TOOL_ARG_RE = /input.?validation|invalid (tool )?(input|argument|parameter|schema)|does not match|failed to parse|unexpected token|is not valid json|required (property|parameter)|unrecognized (key|argument)|missing required|schema/i;
 const CONTEXT_RE = /context (window|length|limit)|prompt is too long|exceeds? the (maximum )?context|too many tokens|compact/i;
@@ -208,7 +210,8 @@ const CONTEXT_RE = /context (window|length|limit)|prompt is too long|exceeds? th
 export function classifyError(raw: unknown): string {
   const text = typeof raw === 'string' ? raw : safeJson(raw);
   const out: string[] = [];
-  if (RATE_LIMIT_RE.test(text)) out.push('rate limit');
+  if (QUOTA_RE.test(text)) out.push('rate limit');
+  if (OVERLOADED_RE.test(text)) out.push('overloaded');
   if (TIMEOUT_RE.test(text)) out.push('timed out');
   if (TOOL_ARG_RE.test(text)) out.push('invalid tool input');
   if (CONTEXT_RE.test(text)) out.push('context limit');
@@ -313,6 +316,7 @@ export const kimiAdapter: Adapter = {
         declared_name: facts.declared_name,
       });
       if (!s) continue;
+      s.limit_windows = facts.limit_windows;
       // Backfilled sessions never pass through `finalise`, so the signals are
       // computed here instead.
       attachSignals(s, kimiTurnsFrom(row.dir));
@@ -643,8 +647,14 @@ export function kimiLedgerFrom(dir: string, env: NodeJS.ProcessEnv = process.env
   let waitingSince: number | null = null;
   const totals: Usage = { input: 0, output: 0, cache_read: 0, cache_write: 0, thinking: 0 };
 
+  // Kimi caches no window state, so the wall is all there is to record: an
+  // error kind of rate_limit or quota_exhausted means the subscription
+  // refused the request. See docs/LIMITS.md.
+  let wallHit = false;
   const note = (kind: string) => {
-    if (/rate limit/.test(kind)) facts.rate_limit_hits++;
+    // Overload is the fleet, not the wall: it never sets wallHit.
+    if (/overloaded/i.test(kind)) facts.overloaded++;
+    if (/rate limit|quota[ _-]?exhausted/i.test(kind)) { facts.rate_limit_hits++; wallHit = true; }
     if (/timed out/.test(kind)) facts.timeouts++;
     if (/context limit/.test(kind)) facts.context_limit_hits++;
   };
@@ -750,6 +760,10 @@ export function kimiLedgerFrom(dir: string, env: NodeJS.ProcessEnv = process.env
   facts.tokens_in = totals.input + totals.cache_write;
   facts.tokens_out = totals.output;
   facts.tokens_cache_read = totals.cache_read;
+  if (wallHit) {
+    facts.limit_windows = [wallOnlyWindow('primary')];
+    facts.rate_limit_hits = Math.max(facts.rate_limit_hits, 1);
+  }
 
   const cfg = readKimiConfig(env);
   const model = resolveKimiModel(cfg, modelAlias ?? wireModel);
@@ -787,6 +801,7 @@ function scanUnknownWire(records: Array<Record<string, unknown>>, facts: KimiLed
       facts.api_errors++;
       const kind = classifyError(r.error ?? type);
       if (/rate limit/.test(kind)) facts.rate_limit_hits++;
+      if (/overloaded/.test(kind)) facts.overloaded++;
       if (/timed out/.test(kind)) facts.timeouts++;
       if (/context limit/.test(kind)) facts.context_limit_hits++;
     }

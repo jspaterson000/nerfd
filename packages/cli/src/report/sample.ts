@@ -42,6 +42,20 @@ export const SAMPLE: ReportData = {
     roughest: [4, 3, 4, 2, 1, 0].map((index, i) => ({ ended_at: ['2026-09-12T16:42:00Z', '2026-09-10T09:15:00Z', '2026-09-08T14:30:00Z', '2026-09-03T11:20:00Z', '2026-08-28T17:05:00Z', '2026-08-21T10:40:00Z'][i]!, tool: index === 1 ? 'Codex' : index === 2 || index === 3 ? 'OpenCode' : 'Claude Code', label: models[index]!.label, logo: models[index]!.logo, category: categories[i % categories.length]!, duration_s: [5520, 4380, 3660, 2940, 4200, 3180][i]!, errors: [5, 4, 4, 3, 3, 2][i]!, rate_limits: [2, 0, 1, 2, 1, 2][i]!, interrupts: [4, 3, 2, 2, 1, 1][i]!, corrections: [8, 6, 5, 3, 4, 2][i]!, reprompts: [5, 4, 4, 3, 2, 2][i]!, rating: [1, 2, 2, 2, 3, 3][i]! })),
   },
   drift: models.map((m, i) => ({ label: m.label, logo: m.logo, weekly: weeks.map((week, w) => ({ week, n: [[6, 7, 7, 8], [5, 6, 6, 7], [3, 3, 3, 3], [2, 3, 3, 2], [1, 1, 3, 5]][i]![w]!, score: [[86, 87, 89, 90], [80, 82, 79, 83], [72, 76, 73, 75], [null, 68, 67, null], [79, 71, 56, 39]][i]![w]! })), flag: i === 4 ? 'alert' : i === 3 ? 'n/a' : 'none', rating_z: i === 4 ? -2.7 : i === 3 ? null : .3, friction_z: i === 4 ? 2.4 : i === 3 ? null : -.2, steering_z: i === 4 ? 2.8 : i === 3 ? null : .1 })),
+  limits: {
+    windows: [
+      { scope: 'five_hour', window_min: 300, capacity_total_p50: 1_180_000, capacity_uncached_p50: 540_000, n_windows: 26, usage_median_pct: 62, wall_hits: 0, typical_resets_in_min: 95 },
+      { scope: 'seven_day', window_min: 10_080, capacity_total_p50: 19_400_000, capacity_uncached_p50: 8_900_000, n_windows: 4, usage_median_pct: 71, wall_hits: 1, typical_resets_in_min: 2_640 },
+    ],
+    observed_only: [
+      { scope: 'primary', window_min: 300, sessions: 3, samples: 11 },
+    ],
+    plans: [
+      { plan_id: 'claude-max-5x', name: 'Claude Max 5×', usd_month: 100, tokens_per_dollar_p50: 1_722_800, successes_per_dollar: .315, wall_hit_share: 0, usage_median_pct: 62, public_band: { p25: 1_410_000, p50: 1_690_000, p75: 2_010_000 } },
+      { plan_id: 'chatgpt-plus', name: 'ChatGPT Plus', usd_month: 20, tokens_per_dollar_p50: 4_214_881, successes_per_dollar: .977, wall_hit_share: .25, usage_median_pct: 71, public_band: null },
+    ],
+    empty: false,
+  },
   share: { headline: 'A month of AI. Measured.', lines: ['84 sessions · 62.4 hours · 75% successful (n=84)', 'Claude Opus leads: 88 / 100 points (n=28)', 'Claude Max: 3.4× API-equivalent value (n=38)', '34 errors · 12 rate limits across 84 sessions'], caption: 'My AI usage, measured locally with nerfd: 84 sessions, 75% successful, and 3.4× API-equivalent value from Claude Max. Personal results, not a universal benchmark. Compare on nerfd.ai.' },
   empty: false,
 };

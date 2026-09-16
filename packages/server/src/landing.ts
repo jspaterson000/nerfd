@@ -26,6 +26,7 @@ section{padding:45px 0 0}h2{font-size:23px;letter-spacing:-.6px;font-weight:600;
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}.cols>div{min-width:0;padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:12px}.cols h3{font-size:14px;margin:0 0 12px;font-weight:600}.cols ul{margin:0;padding-left:17px;color:var(--mut);font-size:13px}.cols li{margin:7px 0}
 .cmd{display:block;max-width:100%;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:12px;margin:10px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font-size:12px;color:var(--mut);display:flex;flex-wrap:wrap;gap:12px 22px}
+#limits{min-width:0}#limits .table-wrap{max-width:100%;overflow-x:auto}#limits .limit-key li{min-width:0;overflow-wrap:anywhere}#limits .limit-key .identity{white-space:normal}
 .model-detail{display:block;font-size:10px;margin-top:3px}
 #providers th,#providers td,#friction th,#friction td{padding:10px 12px}
 .landing-rate{display:inline-block;min-width:62px;padding:2px 4px;font-size:11px;background:linear-gradient(to right,var(--line) var(--rate),transparent var(--rate)) left center/100% 4px no-repeat}
@@ -41,6 +42,7 @@ footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font
   <a href="/board">Board</a>
   <a href="#install">Install</a>
   <a href="#providers">Providers</a>
+  <a href="#limits">Plans</a>
   <a href="#friction">Friction</a>
   <a class="optional" href="#method">Method</a>
   <a href="/privacy">Privacy</a>
@@ -81,6 +83,13 @@ footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font
   <div id="provider-families" aria-live="polite"><p class="empty">No provider data yet. Open-model sessions from OpenCode, Goose, Kimi Code, Crush and Aider populate this board.</p></div>
 </section>
 
+<section id="limits" aria-labelledby="limits-heading">
+  <h2 id="limits-heading">What a plan actually gives you</h2>
+  <p class="sub">Measured from real sessions: how many tokens a window holds, how much people use, how often they hit the wall, and what that costs per dollar. Bands, not points; every estimate carries its n.</p>
+  <p class="metric-note mut">Last eight weeks · USD · ranked by median tokens per dollar</p>
+  <div id="limits-content" aria-live="polite"><p class="empty">No window data yet. Codex sessions and Claude Code with the status-line sampler populate this.</p></div>
+</section>
+
 <section id="friction" aria-labelledby="friction-heading">
   <div class="section-head"><h2 id="friction-heading">How hard people had to push</h2><a href="/board">Full friction board ↗</a></div>
   <p class="sub">Counts derived on your machine from how the conversation went: corrections, re-prompts, pushback, frustration, clarifying questions. <a href="/privacy">No text ever leaves the machine.</a></p>
@@ -92,7 +101,7 @@ footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font
 
 <section>
   <h2>What a month actually buys</h2>
-  <p class="sub">Reporters tell us their plan. We count what they got: successful sessions, hours, the API-equivalent value of the tokens, and how often they reached a rate limit. Medians across reporter-months.</p>
+  <p class="sub">The plan is detected from each tool's own config, never typed in. We count what it delivered: successful sessions, hours, the API-equivalent value of the tokens, and how often they reached a rate limit. Medians across reporter-weeks, with the plan price charged pro-rata.</p>
   <div class="tbl" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="plans"><thead>
     <tr><th>plan</th><th class="n">price</th><th class="n">sessions</th><th class="n">successes</th><th class="n">api-equiv</th><th class="n">multiple</th><th class="n">$ / success</th><th class="n">hit limit</th><th class="n">n</th></tr>
   </thead><tbody><tr><td colspan="9" class="mut">loading</td></tr></tbody></table></div>
@@ -156,6 +165,77 @@ footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font
 
 <script>
 ${IDENTITY_JS}
+(() => {
+  const finite = v => typeof v === 'number' && Number.isFinite(v);
+  const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const count = v => finite(v) ? Math.round(v).toLocaleString('en-US') : '–';
+  const decimal = v => finite(v) ? v.toLocaleString('en-US', {maximumSignificantDigits:3}) : '–';
+  const tokens = v => {
+    if (!finite(v)) return '–';
+    const unit = v >= 1e9 ? [1e9,'B'] : v >= 1e6 ? [1e6,'M'] : v >= 1e3 ? [1e3,'K'] : [1,''];
+    return Number((v / unit[0]).toFixed(1)) + unit[1];
+  };
+  const money = v => finite(v) ? '$' + (v < 10 ? v.toFixed(2) : Math.round(v)) : '–';
+  const percent = v => finite(v) ? Math.round(v) + '%' : '–';
+  const band = b => b && finite(b.p25) && finite(b.p75) ? tokens(b.p25) + '–' + tokens(b.p75) : '–';
+  const windowName = (r, per = false) => {
+    const minutes = r.window_min;
+    const label = minutes === 300 ? '5 h' : minutes === 10080 ? '7 d' : finite(minutes) && minutes > 0 ? (minutes % 1440 === 0 ? minutes / 1440 + ' d' : minutes % 60 === 0 ? minutes / 60 + ' h' : minutes + ' min') : r.scope === 'spend' ? 'spend' : 'unknown window';
+    return per ? (minutes === 300 ? 'per 5h' : minutes === 10080 ? 'per week' : 'per ' + label) : label;
+  };
+  const empty = '<p class="empty">No window data yet. Codex sessions and Claude Code with the status-line sampler populate this.</p>';
+  const table = (title, headers, rows) => '<h3>' + title + '</h3><div class="table-wrap" tabindex="0" role="region" aria-label="' + title + ', scroll to compare"><table><thead><tr>' + headers.map(h => '<th scope="col">' + h + '</th>').join('') + '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>';
+  const row = values => '<tr>' + values.map(v => '<td>' + v + '</td>').join('') + '</tr>';
+  const usage = v => finite(v) ? '<span class="limit-usage"><i aria-hidden="true" style="width:' + Math.max(0, Math.min(100, v)) + '%"></i></span><span class="mono">' + percent(v) + '</span>' : '–';
+  const wall = v => '<span class="limit-wall' + (finite(v) && v > .3 ? ' high' : '') + '">' + percent(finite(v) ? v * 100 : null) + '</span>';
+  const planIdentity = p => {
+    const key = ({'claude-code':'anthropic',codex:'openai',opencode:'opencode',kimi:'moonshotai',gemini:'google'})[p.tool];
+    return '<span class="identity"><span class="logo">' + (key ? '<img src="/assets/logos/' + key + '.svg" alt="" width="18" height="18" onerror="this.hidden=true;this.nextElementSibling.hidden=false">' : '') + '<span class="logo-fallback"' + (key ? ' hidden' : '') + '>·</span></span><span>' + safe(p.name || p.plan_id || 'Unknown plan') + '</span></span>';
+  };
+  function scatter(plans) {
+    const points = plans.filter(p => finite(p.successes_per_dollar) && p.successes_per_dollar >= 0 && finite(p.quality));
+    if (!points.length) return '<p class="empty">The quality comparison appears when successes per dollar and quality are both measured.</p>';
+    const max = Math.max(.01, ...points.map(p => p.successes_per_dollar)) * 1.15;
+    const maxN = Math.max(1, ...points.map(p => finite(p.n) ? p.n : 0));
+    const dots = points.map((p, i) => {
+      const x = 58 + p.successes_per_dollar / max * 574;
+      const y = 212 - Math.max(0, Math.min(100, p.quality)) * 1.8;
+      const r = 4 + 10 * Math.sqrt(Math.max(0, finite(p.n) ? p.n : 0) / maxN);
+      return '<g><title>' + safe(p.name || p.plan_id) + ': ' + decimal(p.successes_per_dollar) + ' successes / dollar; quality ' + count(p.quality) + '; n=' + count(p.n) + ' sessions</title><circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="var(--mut)" fill-opacity=".22" stroke="var(--fg)"/><text x="' + x + '" y="' + (y + 3) + '" text-anchor="middle" font-size="9" fill="var(--fg)">' + (i + 1) + '</text></g>';
+    }).join('');
+    return '<figure class="limit-scatter"><svg viewBox="0 0 680 268" role="img" aria-label="Plan quality versus successful sessions per dollar. Dot area increases with session count; numbered labels identify plans below."><text x="58" y="16">Quality / 100</text>' + [0,50,100].map(q => '<path d="M58 ' + (212-q*1.8) + 'H632" stroke="var(--line)"/><text x="47" y="' + (216-q*1.8) + '" text-anchor="end">' + q + '</text>').join('') + '<path d="M58 32V212" stroke="var(--line)"/>' + [0,.5,1].map(t => '<text x="' + (58+t*574) + '" y="233" text-anchor="middle">' + decimal(t*max) + '</text>').join('') + dots + '<text x="345" y="259" text-anchor="middle">Successful sessions / dollar</text></svg><figcaption>Generosity only counts when the tokens were worth having. Dot size reflects n sessions.</figcaption><ol class="limit-key">' + points.map(p => '<li>' + planIdentity(p) + ' <span class="mut">n=' + count(p.n) + '</span></li>').join('') + '</ol></figure>';
+  }
+  function render(data) {
+    const plans = (Array.isArray(data?.plans) ? data.plans : []).filter(p => p && typeof p === 'object').slice().sort((a,b) => (finite(b.tokens_per_dollar?.p50) ? b.tokens_per_dollar.p50 : -1) - (finite(a.tokens_per_dollar?.p50) ? a.tokens_per_dollar.p50 : -1));
+    const windows = (Array.isArray(data?.windows) ? data.windows : []).filter(w => w && typeof w === 'object');
+    if (!plans.length && !windows.length) return empty;
+    const scale = Math.max(1, ...plans.flatMap(p => [p.tokens_per_dollar?.p25, p.tokens_per_dollar?.p50, p.tokens_per_dollar?.p75].filter(finite)));
+    const position = v => Math.max(0, Math.min(100, v / scale * 100));
+    const bars = p => {
+      const b = p.tokens_per_dollar;
+      if (!b || !finite(b.p25) || !finite(b.p75)) return '<span class="mut">Band unavailable</span>';
+      return '<span class="limit-band" role="img" aria-label="Tokens per dollar: p25 ' + tokens(b.p25) + ', median ' + tokens(b.p50) + ', p75 ' + tokens(b.p75) + '"><i style="left:' + position(b.p25) + '%;width:' + Math.max(0, position(b.p75)-position(b.p25)) + '%"></i>' + (finite(b.p50) ? '<b style="left:' + position(b.p50) + '%"></b>' : '') + '</span><span class="mono">' + band(b) + '</span><small class="limit-detail">p50 ' + tokens(b.p50) + ' · ' + windowName(p, true) + '</small>';
+    };
+    const ranked = plans.length ? table('Plans · tokens per dollar', ['Rank / plan','USD / month','Tokens / dollar · p25–p75','Usage median','Wall-hit share','Successes / dollar','Quality','Evidence'], plans.map((p,i) => {
+      const tier = !finite(p.quality) ? 'dash' : p.quality >= 80 ? 'S' : p.quality >= 65 ? 'A' : p.quality >= 50 ? 'B' : 'C';
+      return row(['<span class="mut">' + (i+1) + '.</span> ' + planIdentity(p), money(p.usd_month), bars(p), usage(p.usage_median_pct), wall(p.wall_hit_share), decimal(p.successes_per_dollar), '<span class="tier ' + tier + '">' + (tier === 'dash' ? '–' : tier) + '</span>' + count(p.quality), '<span class="mono">n=' + count(p.n) + '</span><small class="limit-detail">' + count(p.n_windows) + ' windows · ' + count(p.reporter_weeks) + ' reporter-weeks</small>']);
+    })) : empty;
+    const capacity = windows.length ? table('Capacity by window · estimates', ['Plan','Window / scope','Total tokens · p25–p75','Uncached + output · p25–p75','Usage median','Wall hits','n windows','n reporters'], windows.map(w => {
+      const p = plans.find(p => p.plan_id === w.plan_id);
+      return row([safe(p?.name || w.plan_id || 'Unknown plan'), windowName(w) + '<small class="limit-detail">' + safe(w.scope || 'unknown') + '</small>', band(w.capacity_total), band(w.capacity_uncached), usage(w.usage_median_pct), wall(w.wall_hit_share), count(w.n_windows), count(w.n_reporters)]);
+    })) : empty;
+    return ranked + '<p class="metric-note mut">Bands are p25–p75, with the median marked on one shared scale. Tokens per dollar extrapolates the selected window to a month. Wall-hit share counts reporter-weeks with a hit; successes exclude wall and context-limit hits. Quality: S ≥ 80 · A ≥ 65 · B ≥ 50 · C &lt; 50.</p>' + capacity + '<p class="metric-note mut">Capacity is estimated, including cached input in total tokens. Uncached is input plus output. Usage and wall hits in this table describe the qualifying windows only; n counts those windows and reporters.</p><h3>Generosity and quality</h3>' + scatter(plans);
+  }
+  let request = 0;
+  async function loadLimits() {
+    const current = ++request;
+    let data = null;
+    try { const response = await fetch('/v1/limits?weeks=8'); if (response.ok) data = await response.json(); } catch {}
+    if (current === request) document.getElementById('limits-content').innerHTML = render(data);
+  }
+  loadLimits();
+  document.getElementById('reload')?.addEventListener('click', loadLimits);
+})();
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const usd = (v) => v == null ? '–' : v < 10 ? '$' + v.toFixed(2) : '$' + Math.round(v);

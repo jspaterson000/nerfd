@@ -1,7 +1,8 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { percentile, type Turn } from '@nerfd/core';
+import { percentile, type LimitWindow, type Turn } from '@nerfd/core';
+import { CodexLimits } from './limits/codex.ts';
 
 // Transcript formats are internal to each tool and can change without
 // notice. Everything here is best-effort: any failure yields nulls, never a
@@ -16,7 +17,8 @@ export interface TranscriptFacts {
   tokens_cache_read: number;
   latencies_ms: number[];
   api_errors: number;
-  rate_limit_hits: number;
+  rate_limit_hits: number;   // the subscription wall
+  overloaded: number;        // the provider's fleet was busy: 529 / "overloaded" / "at capacity"
   timeouts: number;
   interrupts: number;
   tool_call_errors: number;   // the model emitted a tool call that would not parse or validate
@@ -25,23 +27,38 @@ export interface TranscriptFacts {
   last_ts: string | null;
   rate_limit_used_pct: number | null; // codex reports this directly
   rate_limit_window_min: number | null;
+  // How much of each subscription window the session consumed. Empty for
+  // every tool that does not write window state to disk. See docs/LIMITS.md.
+  limit_windows: LimitWindow[];
 }
 
 function empty(): TranscriptFacts {
   return {
     model: null, tool_version: null, turns: 0, tokens_in: 0, tokens_out: 0, tokens_cache_read: 0,
-    latencies_ms: [], api_errors: 0, rate_limit_hits: 0, timeouts: 0, interrupts: 0,
+    latencies_ms: [], api_errors: 0, rate_limit_hits: 0, overloaded: 0, timeouts: 0, interrupts: 0,
     tool_call_errors: 0, context_limit_hits: 0, first_ts: null, last_ts: null,
-    rate_limit_used_pct: null, rate_limit_window_min: null,
+    rate_limit_used_pct: null, rate_limit_window_min: null, limit_windows: [],
   };
 }
 
-const RATE_LIMIT_RE = /rate[ _-]?limit|429|overloaded|529|capacity|too many requests/i;
+// Two different failures that used to share one counter. A quota error means
+// the subscription window is spent and only time fixes it; an overload means
+// the provider's fleet is busy and the next retry may work. Only the first is
+// a wall, so only the first may reach `rate_limit_hits`. The lookbehind on
+// "limit reached" keeps "context window limit reached" out of the quota
+// counter: that is the context wall, and CONTEXT_LIMIT_RE already has it.
+export const QUOTA_RE = /rate[ _-]?limit|429|too many requests|usage limit|hit your limit|(?<!context (window |length )?)limit reached|quota/i;
+export const OVERLOADED_RE = /overloaded|529|capacity|at capacity/i;
 const TIMEOUT_RE = /timed? ?out|ETIMEDOUT|deadline exceeded/i;
 // The model's own output was malformed, as opposed to the tool failing. This
 // is the number that differs most between hosts serving the same weights.
 export const TOOL_ARG_ERROR_RE = /input.?validation|invalid (tool )?(input|argument|parameter|schema)|does not match the (required )?schema|failed to parse|unexpected token|is not valid json|required (property|parameter)|unrecognized (key|argument)|missing required/i;
 export const CONTEXT_LIMIT_RE = /context (window|length|limit)|prompt is too long|exceeds? the (maximum )?context|too many tokens|max_tokens.*exceed|compact(ing|ed)? (the )?conversation/i;
+
+/** Parsed JSONL, skipping any line that is not whole JSON. */
+export function readJsonLines(path: string): unknown[] {
+  return readLines(path);
+}
 
 function readLines(path: string): unknown[] {
   if (!existsSync(path)) return [];
@@ -75,8 +92,14 @@ export function parseClaudeTranscript(path: string): TranscriptFacts {
         for (const c of content) {
           if (c?.type === 'text' && typeof c.text === 'string' && c.text.includes('[Request interrupted by user')) f.interrupts++;
           if (c?.type === 'tool_result' && c.is_error) {
+            // A failed tool result is the tool's own output: a compiler, a
+            // grep, a shell command. It quotes source code, so scanning it for
+            // "429" or "quota" counts the file under edit as a subscription
+            // wall - which is exactly how a plan with no usage-limit error in
+            // any transcript came to report a 71% wall-hit share. The
+            // provider's own failures arrive on an `isApiErrorMessage` line
+            // below, and only those may reach the wall counters.
             const text = typeof c.content === 'string' ? c.content : JSON.stringify(c.content ?? '');
-            if (RATE_LIMIT_RE.test(text)) f.rate_limit_hits++;
             if (TIMEOUT_RE.test(text)) f.timeouts++;
             if (TOOL_ARG_ERROR_RE.test(text)) f.tool_call_errors++;
             if (CONTEXT_LIMIT_RE.test(text)) f.context_limit_hits++;
@@ -92,7 +115,8 @@ export function parseClaudeTranscript(path: string): TranscriptFacts {
       if (l.isApiErrorMessage) {
         f.api_errors++;
         const text = JSON.stringify(m.content ?? '');
-        if (RATE_LIMIT_RE.test(text)) f.rate_limit_hits++;
+        if (QUOTA_RE.test(text)) f.rate_limit_hits++;
+        if (OVERLOADED_RE.test(text)) f.overloaded++;
         if (TIMEOUT_RE.test(text)) f.timeouts++;
         if (CONTEXT_LIMIT_RE.test(text)) f.context_limit_hits++;
       }
@@ -151,6 +175,7 @@ export function parseCodexRollout(path: string): TranscriptFacts {
   const lines = readLines(path) as Array<Record<string, any>>;
   let waitingSince: number | null = null;
   let lastTotal: Record<string, number> | null = null;
+  const limits = new CodexLimits();
 
   for (const l of lines) {
     const ts = typeof l.timestamp === 'string' ? l.timestamp : null;
@@ -169,6 +194,7 @@ export function parseCodexRollout(path: string): TranscriptFacts {
       if (p.type === 'token_count') {
         const t = p.info?.total_token_usage;
         if (t) lastTotal = t;
+        limits.add(p, ts);
         const used = p.rate_limits?.primary?.used_percent;
         if (typeof used === 'number') f.rate_limit_used_pct = Math.max(f.rate_limit_used_pct ?? 0, used);
         const win = p.rate_limits?.primary?.window_minutes;
@@ -178,7 +204,8 @@ export function parseCodexRollout(path: string): TranscriptFacts {
       } else if (typeof p.type === 'string' && /error/i.test(p.type)) {
         f.api_errors++;
         const text = JSON.stringify(p);
-        if (RATE_LIMIT_RE.test(text)) f.rate_limit_hits++;
+        if (QUOTA_RE.test(text)) f.rate_limit_hits++;
+        if (OVERLOADED_RE.test(text)) f.overloaded++;
         if (TIMEOUT_RE.test(text)) f.timeouts++;
         if (TOOL_ARG_ERROR_RE.test(text)) f.tool_call_errors++;
         if (CONTEXT_LIMIT_RE.test(text)) f.context_limit_hits++;
@@ -208,6 +235,10 @@ export function parseCodexRollout(path: string): TranscriptFacts {
     f.tokens_out = Number(lastTotal.output_tokens ?? 0);
     f.tokens_cache_read = Number(lastTotal.cached_input_tokens ?? 0);
   }
+  f.limit_windows = limits.windows();
+  // The wall is reported by the limit payload itself, which is more reliable
+  // than matching error text, so it counts even when nothing errored.
+  if (limits.wall) f.rate_limit_hits = Math.max(f.rate_limit_hits, 1);
   return f;
 }
 

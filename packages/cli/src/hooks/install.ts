@@ -2,6 +2,9 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withStatusline } from '../limits/statusline.ts';
+import { loadConfig, saveConfig } from '../paths.ts';
+import { detectPlan } from '../plandetect/index.ts';
 
 // Installs our hooks into the host tools' config, merging with whatever is
 // already there. We add one entry per event, tagged so we can find and
@@ -60,6 +63,89 @@ export function installClaude(remove = false): string {
   settings.hooks = merge((settings.hooks as HooksMap) ?? {}, 'claude', CLAUDE_EVENTS, remove);
   writeJsonWithBackup(path, settings);
   installClaudeCommand(remove);
+  return path;
+}
+
+// ---------------------------------------------------------------------------
+// The status-line wrapper
+//
+// Claude Code's transcripts carry no window state; the status JSON is the only
+// place it appears, so nerfd wraps whatever status line the person already
+// has. Wrapping, not replacing: the original command is saved to config.json,
+// run on every redraw with the same stdin, and its output is passed through
+// untouched. `nerfd init --remove` puts it back exactly as it was.
+//
+// Where there is no status line at all, one is installed only for a plan that
+// actually has windows to report - Pro or Max - and the person is told, on one
+// line, that it happened.
+// ---------------------------------------------------------------------------
+
+const STATUSLINE_COMMAND = `${process.execPath} ${CLI_PATH} statusline`;
+
+/** Set when the wrapper was installed where there was no status line before. */
+export let lastStatuslineNote: string | null = null;
+
+function isOurStatusLine(s: unknown): boolean {
+  return !!s && typeof s === 'object'
+    && typeof (s as { command?: unknown }).command === 'string'
+    && (s as { command: string }).command.includes(CLI_PATH)
+    && /\bstatusline\b/.test((s as { command: string }).command);
+}
+
+function claudePlanHasWindows(): boolean {
+  try {
+    // Only Pro and Max report `rate_limits` in the status JSON; an API-billed
+    // or unknown install would sample nothing but still pay for the wrapper.
+    const id = detectPlan('claude-code').plan_id ?? '';
+    return /^claude-(pro|max)\b/.test(id);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Install or remove the status-line wrapper in ~/.claude/settings.json.
+ * Returns the file written, or null when nothing needed doing.
+ */
+export function installClaudeStatusline(remove = false): string | null {
+  lastStatuslineNote = null;
+  const path = join(homedir(), '.claude', 'settings.json');
+  const settings = readJson(path);
+  const current = settings.statusLine as Record<string, unknown> | undefined;
+  const cfg = withStatusline(loadConfig());
+
+  if (remove) {
+    if (!isOurStatusLine(current)) return null;
+    const original = cfg.statusline_original;
+    // Exactly as it was, or gone if there was nothing there before.
+    if (original && typeof original.command === 'string') settings.statusLine = original;
+    else delete settings.statusLine;
+    cfg.statusline_original = null;
+    saveConfig(cfg);
+    writeJsonWithBackup(path, settings);
+    return path;
+  }
+
+  if (isOurStatusLine(current)) return null;          // already wrapped
+
+  if (current && typeof current.command === 'string' && current.command.trim()) {
+    cfg.statusline_original = {
+      type: typeof current.type === 'string' ? current.type : 'command',
+      command: current.command,
+      ...(typeof current.padding === 'number' ? { padding: current.padding } : {}),
+    };
+    saveConfig(cfg);
+    settings.statusLine = { ...current, type: 'command', command: STATUSLINE_COMMAND };
+    writeJsonWithBackup(path, settings);
+    return path;
+  }
+
+  if (!claudePlanHasWindows()) return null;
+  cfg.statusline_original = null;
+  saveConfig(cfg);
+  settings.statusLine = { type: 'command', command: STATUSLINE_COMMAND };
+  writeJsonWithBackup(path, settings);
+  lastStatuslineNote = 'claude-code  status line installed (none was set): a Pro/Max plan reports its limit windows there, and nerfd reads only session_id and rate_limits. remove: nerfd init --remove';
   return path;
 }
 

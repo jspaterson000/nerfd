@@ -77,6 +77,7 @@ async function main(): Promise<void> {
     case 'model-info': case 'model': return (await import('./commands/model.ts')).modelInfo(a);
     case 'privacy': return (await import('./commands/privacy.ts')).privacy(a);
     case 'doctor': return (await import('./commands/doctor.ts')).doctor();
+    case 'statusline': return (await import('./limits/statusline.ts')).statusline();
     case 'dash': {
       const { startServer } = await import('@nerfd/server');
       const { localRows } = await import('./rows.ts');

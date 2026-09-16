@@ -21,7 +21,8 @@ export interface OpencodeLedgerFacts extends LedgerFacts {
 }
 
 const ABORT = 'MessageAbortedError';
-const RATE_LIMIT_RE = /rate.?limit|429|overloaded|529|too many requests/i;
+const QUOTA_RE = /rate.?limit|429|too many requests|usage limit|hit your limit|(?<!context (window |length )?)limit reached|quota/i;
+const OVERLOADED_RE = /overloaded|529|capacity|at capacity/i;
 const TIMEOUT_RE = /timed? ?out|ETIMEDOUT|deadline exceeded/i;
 const CONTEXT_RE = /context (window|length|limit)|prompt is too long|too many tokens|MessageOutputLengthError|maximum context|output length/i;
 // The model emitted a tool call the harness could not use. This is the number
@@ -103,7 +104,8 @@ export function opencodeFacts(s: OcSession): OpencodeLedgerFacts {
     if (m.error) {
       if (m.error.name === ABORT) f.interrupts++;
       else f.api_errors++;
-      if (RATE_LIMIT_RE.test(m.error.text)) f.rate_limit_hits++;
+      if (QUOTA_RE.test(m.error.text)) f.rate_limit_hits++;
+      if (OVERLOADED_RE.test(m.error.text)) f.overloaded++;
       if (TIMEOUT_RE.test(m.error.text)) f.timeouts++;
       if (CONTEXT_RE.test(m.error.text)) f.context_limit_hits++;
     }
@@ -123,7 +125,8 @@ export function opencodeFacts(s: OcSession): OpencodeLedgerFacts {
         const text = p.error ?? '';
         if (!p.interrupted) f.api_errors++;
         if (TOOL_ARG_ERROR_RE.test(text)) f.tool_call_errors++;
-        if (RATE_LIMIT_RE.test(text)) f.rate_limit_hits++;
+        if (QUOTA_RE.test(text)) f.rate_limit_hits++;
+        if (OVERLOADED_RE.test(text)) f.overloaded++;
         if (TIMEOUT_RE.test(text)) f.timeouts++;
         if (CONTEXT_RE.test(text)) f.context_limit_hits++;
       }

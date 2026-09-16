@@ -115,9 +115,9 @@ export function attachSignals(s: Session, turns: Turn[], onError?: (name: string
 export function emptyLedger(): LedgerFacts {
   return {
     model: null, tool_version: null, turns: 0, tokens_in: 0, tokens_out: 0, tokens_cache_read: 0,
-    latencies_ms: [], api_errors: 0, rate_limit_hits: 0, timeouts: 0, interrupts: 0,
+    latencies_ms: [], api_errors: 0, rate_limit_hits: 0, overloaded: 0, timeouts: 0, interrupts: 0,
     tool_call_errors: 0, context_limit_hits: 0, first_ts: null, last_ts: null,
-    rate_limit_used_pct: null, rate_limit_window_min: null,
+    rate_limit_used_pct: null, rate_limit_window_min: null, limit_windows: [],
     raw_model: null, raw_provider: null, base_url: null, declared_name: null,
   };
 }

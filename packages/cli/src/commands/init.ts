@@ -1,5 +1,6 @@
 import { parsePlan } from '@nerfd/core';
 import { ADAPTERS } from '../adapters/registry.ts';
+import { lastStatuslineNote } from '../hooks/install.ts';
 import { openDb } from '../db.ts';
 import { flag, str, type Args } from '../args.ts';
 import { CONFIG_PATH, DB_PATH, loadConfig, saveConfig } from '../paths.ts';
@@ -46,6 +47,9 @@ export function init(a: Args): void {
     let where: string[];
     try { where = adapter.install(remove); } catch (e) { lines.push(`${adapter.id.padEnd(12)} failed: ${(e as Error).message}`); continue; }
     lines.push(`${adapter.id.padEnd(12)} ${remove ? 'removed from' : 'hooked via'} ${where.join(', ')}  (+ /nerfd command)`);
+    // Claude Code's window state only exists in the status line, so when one
+    // was installed where there was none, say so rather than do it quietly.
+    if (lastStatuslineNote) lines.push(`         ${lastStatuslineNote}`);
   }
   if (targets.length === 0) lines.push('hooks    none installed (no supported tool found). other tools: `nerfd record --tool <name> ...`');
   const plans = Object.entries(cfg.plans).map(([t, p]) => `${t}=${p!.name}`).join(', ');

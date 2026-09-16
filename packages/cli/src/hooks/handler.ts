@@ -12,6 +12,7 @@ import { addedLineHashes, repoProfile } from '../git.ts';
 import { loadDeclarations } from '../models.ts';
 import { loadConfig, log, saveConfig, type Config } from '../paths.ts';
 import { planStamp, refreshDetectionsIfStale } from '../plandetect/index.ts';
+import { noteWallHit } from '../limits/store.ts';
 import { publishSession } from '../publish.ts';
 import { latencyPercentiles } from '../transcript.ts';
 
@@ -24,7 +25,10 @@ export type { HookInput } from '../adapters/types.ts';
 
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit', 'apply_patch', 'edit', 'write', 'str_replace_editor', 'create_file']);
 const TEST_CMD_RE = /\b(pytest|jest|vitest|mocha|rspec|phpunit|cargo test|go test|swift test|xcodebuild test|npm test|pnpm test|yarn test|bun test|node --test|mix test|dotnet test|gradle test|mvn test|make test|tox|nose2)\b/;
-const RATE_LIMIT_RE = /rate[ _-]?limit|429|overloaded|529|too many requests/i;
+// Quota is the subscription wall; overload is the provider's fleet being
+// busy. Same worded tokens the adapters emit, so both keep matching.
+const QUOTA_RE = /rate[ _-]?limit|429|too many requests|usage limit|hit your limit|(?<!context (window |length )?)limit reached|quota/i;
+const OVERLOADED_RE = /overloaded|529|capacity|at capacity/i;
 const TIMEOUT_RE = /timed? ?out|ETIMEDOUT/i;
 const TOOL_ARG_ERROR_RE = /input.?validation|invalid (tool )?(input|argument|parameter|schema)|does not match the (required )?schema|failed to parse|unexpected token|is not valid json|required (property|parameter)|unrecognized (key|argument)|missing required/i;
 const CONTEXT_LIMIT_RE = /context (window|length|limit)|prompt is too long|exceeds? the (maximum )?context|too many tokens/i;
@@ -73,6 +77,7 @@ function newSession(tool: Tool, input: HookInput, cfg: Config): Session {
     size: 's',
     first_prompt: null,
     metrics: emptyMetrics(),
+    limit_windows: [],
     outcome: emptyOutcome(),
     survival: emptySurvival(),
     line_hashes: null,
@@ -191,7 +196,8 @@ function apply(s: Session, event: NormalisedEvent): void {
     case 'PostToolUseFailure': {
       s.metrics.errors++;
       const text = JSON.stringify(event.error ?? event.tool_response ?? '');
-      if (RATE_LIMIT_RE.test(text)) s.metrics.rate_limit_hits++;
+      if (QUOTA_RE.test(text)) s.metrics.rate_limit_hits++;
+      if (OVERLOADED_RE.test(text)) s.metrics.overloaded++;
       if (TIMEOUT_RE.test(text)) s.metrics.timeouts++;
       if (TOOL_ARG_ERROR_RE.test(text)) s.metrics.tool_call_errors++;
       if (CONTEXT_LIMIT_RE.test(text)) s.metrics.context_limit_hits++;
@@ -212,7 +218,16 @@ function apply(s: Session, event: NormalisedEvent): void {
       // capacity signal we get without touching a transcript.
       s.metrics.errors++;
       const kind = String(event.error_type ?? '') + ' ' + JSON.stringify(event.error ?? '');
-      if (RATE_LIMIT_RE.test(kind)) s.metrics.rate_limit_hits++;
+      // A 529 is not the wall: the fleet was busy, the quota was not spent.
+      if (OVERLOADED_RE.test(kind)) s.metrics.overloaded++;
+      if (QUOTA_RE.test(kind)) {
+        s.metrics.rate_limit_hits++;
+        // The wall, as Claude Code saw it. Noted beside the status-line
+        // samples so the ledger can stamp it onto the window at session end,
+        // in a later process than this one. Every other tool reports the wall
+        // in its own transcript, which the ledger reads directly.
+        if (s.tool === 'claude-code') noteWallHit(s.id);
+      }
       if (TIMEOUT_RE.test(kind)) s.metrics.timeouts++;
       if (CONTEXT_LIMIT_RE.test(kind)) s.metrics.context_limit_hits++;
       break;
@@ -280,6 +295,10 @@ function mergeLedger(s: Session, facts: LedgerFacts): void {
   s.metrics.context_limit_hits = Math.max(s.metrics.context_limit_hits, facts.context_limit_hits);
   if (facts.rate_limit_used_pct != null) s.metrics.limit_used_pct = facts.rate_limit_used_pct;
   if (facts.rate_limit_window_min != null) s.metrics.limit_window_min = facts.rate_limit_window_min;
+  // How much of each subscription window this session consumed. The ledger
+  // is the only source: a window is per-account state, not per-event.
+  if (facts.limit_windows.length) s.limit_windows = facts.limit_windows;
+  if (s.limit_windows?.some((w) => w.wall_hit)) s.metrics.rate_limit_hits = Math.max(s.metrics.rate_limit_hits, 1);
   const lat = latencyPercentiles(facts.latencies_ms);
   s.metrics.latency_p50_ms = lat.p50;
   s.metrics.latency_p95_ms = lat.p95;

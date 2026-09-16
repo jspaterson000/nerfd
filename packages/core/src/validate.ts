@@ -1,5 +1,5 @@
 import { SERVING_MODES } from './modelref.ts';
-import { CATEGORIES, KEPT, PLAN_SOURCES, REPO_AGE, SIZES, TOOLS, type Report } from './types.ts';
+import { CATEGORIES, KEPT, LIMIT_SCOPES, PLAN_SOURCES, REPO_AGE, SIZES, TOOLS, type Report } from './types.ts';
 
 // A hand-written validator keeps the server dependency-free and makes the
 // accepted shape explicit. Returns an error string or null.
@@ -58,13 +58,70 @@ export function validateReport(x: unknown): string | null {
     if (v != null && (typeof v !== 'number' || v < 0 || v > 1e9)) return `metrics.${k} invalid`;
   }
 
+  // Provider overload, split out of rate_limit_hits. A client that predates
+  // the split sends nothing here and its rate_limit_hits still validates.
+  if (m.overloaded != null && (typeof m.overloaded !== 'number' || m.overloaded < 0 || m.overloaded > 1e6)) return 'metrics.overloaded invalid';
+
   // Signals arrived after the first clients; a record without them is valid.
   const sig = validateSignals(r.signals);
   if (sig) return sig;
   const ver = num('signal_version', 0, 1e6, true);
   if (ver) return ver;
 
+  // Limit windows arrived later still; a client that predates them sends none.
+  const lim = validateLimitWindows(r.limit_windows);
+  if (lim) return lim;
+
   return validateModelRef(r.model_ref);
+}
+
+// A session sees a handful of windows: Codex reports at most two per limit id
+// and Claude Code three. Anything past this is not a subscription, it is a
+// payload.
+const MAX_LIMIT_WINDOWS = 64;
+
+/**
+ * Limit windows are published raw, so the same rule as `signals` applies: the
+ * only string allowed anywhere inside one is `scope`, and it must come from
+ * the enum. Percentages go to 1000 because a spend limit can legitimately
+ * exceed its cap; everything else is a count, a duration or a bucket index.
+ */
+export function validateLimitWindows(x: unknown): string | null {
+  if (x == null) return null;
+  if (!Array.isArray(x)) return 'limit_windows invalid';
+  if (x.length > MAX_LIMIT_WINDOWS) return 'limit_windows too many';
+  for (const w of x) {
+    if (!w || typeof w !== 'object' || Array.isArray(w)) return 'limit_windows entry invalid';
+    const e = w as Record<string, unknown>;
+    for (const [k, v] of Object.entries(e)) {
+      if (k !== 'scope' && typeof v === 'string') return `limit_windows.${k} must not be a string`;
+    }
+    if (!LIMIT_SCOPES.includes(e.scope as never)) return `limit_windows.scope must be one of ${LIMIT_SCOPES.join(',')}`;
+    if (typeof e.wall_hit !== 'boolean') return 'limit_windows.wall_hit invalid';
+    const n = (k: string, lo: number, hi: number, nullable: boolean, int = false) => {
+      const v = e[k];
+      if (v == null) return nullable ? null : `limit_windows.${k} invalid`;
+      if (typeof v !== 'number' || !Number.isFinite(v) || v < lo || v > hi) return `limit_windows.${k} invalid`;
+      return int && !Number.isInteger(v) ? `limit_windows.${k} invalid` : null;
+    };
+    const checks = [
+      n('samples', 0, 1e6, false),
+      n('used_pct_start', 0, 1000, true),
+      n('used_pct_end', 0, 1000, true),
+      n('window_min', 1, 1e6, true),
+      n('resets_in_min_end', 0, 1e6, true),
+      n('reset_bucket', 0, 1e12, true, true),
+    ];
+    for (const c of checks) if (c) return c;
+
+    const t = e.tokens as Record<string, unknown> | undefined;
+    if (!t || typeof t !== 'object' || Array.isArray(t)) return 'limit_windows.tokens invalid';
+    for (const k of ['total', 'uncached_in', 'out', 'cached_in']) {
+      const v = t[k];
+      if (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || v > 1e12) return `limit_windows.tokens.${k} invalid`;
+    }
+  }
+  return null;
 }
 
 // Every count in `Signals`, and every field that may be null instead of a

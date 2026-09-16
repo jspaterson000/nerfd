@@ -24,6 +24,90 @@ function identity(label, provider) {
 }
 `;
 
+
+// The landing page and board intentionally use identical scales and definitions.
+export const LIMITS_SECTION = `
+<section id="limits" aria-labelledby="limits-heading">
+  <h2 id="limits-heading">What a plan actually gives you</h2>
+  <p class="sub">Measured from real sessions: how many tokens a window holds, how much people use, how often they hit the wall, and what that costs per dollar. Bands, not points; every estimate carries its n.</p>
+  <p class="metric-note mut">Last eight weeks · USD · ranked by median tokens per dollar</p>
+  <div id="limits-content" aria-live="polite"><p class="empty">No window data yet. Codex sessions and Claude Code with the status-line sampler populate this.</p></div>
+</section>`;
+
+export const LIMITS_JS = `
+(() => {
+  const finite = v => typeof v === 'number' && Number.isFinite(v);
+  const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const count = v => finite(v) ? Math.round(v).toLocaleString('en-US') : '–';
+  const decimal = v => finite(v) ? v.toLocaleString('en-US', {maximumSignificantDigits:3}) : '–';
+  const tokens = v => {
+    if (!finite(v)) return '–';
+    const unit = v >= 1e9 ? [1e9,'B'] : v >= 1e6 ? [1e6,'M'] : v >= 1e3 ? [1e3,'K'] : [1,''];
+    return Number((v / unit[0]).toFixed(1)) + unit[1];
+  };
+  const money = v => finite(v) ? '$' + (v < 10 ? v.toFixed(2) : Math.round(v)) : '–';
+  const percent = v => finite(v) ? Math.round(v) + '%' : '–';
+  const band = b => b && finite(b.p25) && finite(b.p75) ? tokens(b.p25) + '–' + tokens(b.p75) : '–';
+  const windowName = (r, per = false) => {
+    const minutes = r.window_min;
+    const label = minutes === 300 ? '5 h' : minutes === 10080 ? '7 d' : finite(minutes) && minutes > 0 ? (minutes % 1440 === 0 ? minutes / 1440 + ' d' : minutes % 60 === 0 ? minutes / 60 + ' h' : minutes + ' min') : r.scope === 'spend' ? 'spend' : 'unknown window';
+    return per ? (minutes === 300 ? 'per 5h' : minutes === 10080 ? 'per week' : 'per ' + label) : label;
+  };
+  const empty = '<p class="empty">No window data yet. Codex sessions and Claude Code with the status-line sampler populate this.</p>';
+  const table = (title, headers, rows) => '<h3>' + title + '</h3><div class="table-wrap" tabindex="0" role="region" aria-label="' + title + ', scroll to compare"><table><thead><tr>' + headers.map(h => '<th scope="col">' + h + '</th>').join('') + '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>';
+  const row = values => '<tr>' + values.map(v => '<td>' + v + '</td>').join('') + '</tr>';
+  const usage = v => finite(v) ? '<span class="limit-usage"><i aria-hidden="true" style="width:' + Math.max(0, Math.min(100, v)) + '%"></i></span><span class="mono">' + percent(v) + '</span>' : '–';
+  const wall = v => '<span class="limit-wall' + (finite(v) && v > .3 ? ' high' : '') + '">' + percent(finite(v) ? v * 100 : null) + '</span>';
+  const planIdentity = p => {
+    const key = ({'claude-code':'anthropic',codex:'openai',opencode:'opencode',kimi:'moonshotai',gemini:'google'})[p.tool];
+    return '<span class="identity"><span class="logo">' + (key ? '<img src="/assets/logos/' + key + '.svg" alt="" width="18" height="18" onerror="this.hidden=true;this.nextElementSibling.hidden=false">' : '') + '<span class="logo-fallback"' + (key ? ' hidden' : '') + '>·</span></span><span>' + safe(p.name || p.plan_id || 'Unknown plan') + '</span></span>';
+  };
+  function scatter(plans) {
+    const points = plans.filter(p => finite(p.successes_per_dollar) && p.successes_per_dollar >= 0 && finite(p.quality));
+    if (!points.length) return '<p class="empty">The quality comparison appears when successes per dollar and quality are both measured.</p>';
+    const max = Math.max(.01, ...points.map(p => p.successes_per_dollar)) * 1.15;
+    const maxN = Math.max(1, ...points.map(p => finite(p.n) ? p.n : 0));
+    const dots = points.map((p, i) => {
+      const x = 58 + p.successes_per_dollar / max * 574;
+      const y = 212 - Math.max(0, Math.min(100, p.quality)) * 1.8;
+      const r = 4 + 10 * Math.sqrt(Math.max(0, finite(p.n) ? p.n : 0) / maxN);
+      return '<g><title>' + safe(p.name || p.plan_id) + ': ' + decimal(p.successes_per_dollar) + ' successes / dollar; quality ' + count(p.quality) + '; n=' + count(p.n) + ' sessions</title><circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="var(--mut)" fill-opacity=".22" stroke="var(--fg)"/><text x="' + x + '" y="' + (y + 3) + '" text-anchor="middle" font-size="9" fill="var(--fg)">' + (i + 1) + '</text></g>';
+    }).join('');
+    return '<figure class="limit-scatter"><svg viewBox="0 0 680 268" role="img" aria-label="Plan quality versus successful sessions per dollar. Dot area increases with session count; numbered labels identify plans below."><text x="58" y="16">Quality / 100</text>' + [0,50,100].map(q => '<path d="M58 ' + (212-q*1.8) + 'H632" stroke="var(--line)"/><text x="47" y="' + (216-q*1.8) + '" text-anchor="end">' + q + '</text>').join('') + '<path d="M58 32V212" stroke="var(--line)"/>' + [0,.5,1].map(t => '<text x="' + (58+t*574) + '" y="233" text-anchor="middle">' + decimal(t*max) + '</text>').join('') + dots + '<text x="345" y="259" text-anchor="middle">Successful sessions / dollar</text></svg><figcaption>Generosity only counts when the tokens were worth having. Dot size reflects n sessions.</figcaption><ol class="limit-key">' + points.map(p => '<li>' + planIdentity(p) + ' <span class="mut">n=' + count(p.n) + '</span></li>').join('') + '</ol></figure>';
+  }
+  function render(data) {
+    const plans = (Array.isArray(data?.plans) ? data.plans : []).filter(p => p && typeof p === 'object').slice().sort((a,b) => (finite(b.tokens_per_dollar?.p50) ? b.tokens_per_dollar.p50 : -1) - (finite(a.tokens_per_dollar?.p50) ? a.tokens_per_dollar.p50 : -1));
+    const windows = (Array.isArray(data?.windows) ? data.windows : []).filter(w => w && typeof w === 'object');
+    if (!plans.length && !windows.length) return empty;
+    const scale = Math.max(1, ...plans.flatMap(p => [p.tokens_per_dollar?.p25, p.tokens_per_dollar?.p50, p.tokens_per_dollar?.p75].filter(finite)));
+    const position = v => Math.max(0, Math.min(100, v / scale * 100));
+    const bars = p => {
+      const b = p.tokens_per_dollar;
+      if (!b || !finite(b.p25) || !finite(b.p75)) return '<span class="mut">Band unavailable</span>';
+      return '<span class="limit-band" role="img" aria-label="Tokens per dollar: p25 ' + tokens(b.p25) + ', median ' + tokens(b.p50) + ', p75 ' + tokens(b.p75) + '"><i style="left:' + position(b.p25) + '%;width:' + Math.max(0, position(b.p75)-position(b.p25)) + '%"></i>' + (finite(b.p50) ? '<b style="left:' + position(b.p50) + '%"></b>' : '') + '</span><span class="mono">' + band(b) + '</span><small class="limit-detail">p50 ' + tokens(b.p50) + ' · ' + windowName(p, true) + '</small>';
+    };
+    const ranked = plans.length ? table('Plans · tokens per dollar', ['Rank / plan','USD / month','Tokens / dollar · p25–p75','Usage median','Wall-hit share','Successes / dollar','Quality','Evidence'], plans.map((p,i) => {
+      const tier = !finite(p.quality) ? 'dash' : p.quality >= 80 ? 'S' : p.quality >= 65 ? 'A' : p.quality >= 50 ? 'B' : 'C';
+      return row(['<span class="mut">' + (i+1) + '.</span> ' + planIdentity(p), money(p.usd_month), bars(p), usage(p.usage_median_pct), wall(p.wall_hit_share), decimal(p.successes_per_dollar), '<span class="tier ' + tier + '">' + (tier === 'dash' ? '–' : tier) + '</span>' + count(p.quality), '<span class="mono">n=' + count(p.n) + '</span><small class="limit-detail">' + count(p.n_windows) + ' windows · ' + count(p.reporter_weeks) + ' reporter-weeks</small>']);
+    })) : empty;
+    const capacity = windows.length ? table('Capacity by window · estimates', ['Plan','Window / scope','Total tokens · p25–p75','Uncached + output · p25–p75','Usage median','Wall hits','n windows','n reporters'], windows.map(w => {
+      const p = plans.find(p => p.plan_id === w.plan_id);
+      return row([safe(p?.name || w.plan_id || 'Unknown plan'), windowName(w) + '<small class="limit-detail">' + safe(w.scope || 'unknown') + '</small>', band(w.capacity_total), band(w.capacity_uncached), usage(w.usage_median_pct), wall(w.wall_hit_share), count(w.n_windows), count(w.n_reporters)]);
+    })) : empty;
+    return ranked + '<p class="metric-note mut">Bands are p25–p75, with the median marked on one shared scale. Tokens per dollar extrapolates the selected window to a month. Wall-hit share counts reporter-weeks with a hit; successes exclude wall and context-limit hits. Quality: S ≥ 80 · A ≥ 65 · B ≥ 50 · C &lt; 50.</p>' + capacity + '<p class="metric-note mut">Capacity is estimated, including cached input in total tokens. Uncached is input plus output. Usage and wall hits in this table describe the qualifying windows only; n counts those windows and reporters.</p><h3>Generosity and quality</h3>' + scatter(plans);
+  }
+  let request = 0;
+  async function loadLimits() {
+    const current = ++request;
+    let data = null;
+    try { const response = await fetch('/v1/limits?weeks=8'); if (response.ok) data = await response.json(); } catch {}
+    if (current === request) document.getElementById('limits-content').innerHTML = render(data);
+  }
+  loadLimits();
+  document.getElementById('reload')?.addEventListener('click', loadLimits);
+})();
+`;
+
 export const SHARED_CSS = `
 :root{color-scheme:light dark;--bg:#fbfbfc;--fg:#242528;--mut:#686a70;--line:#e2e3e6;--soft:#f0f1f3;--panel:#fff;--hover:#f6f7f9;--warn:#946000;--bad:#bb3945;--ok:#357452;--mono:"SF Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 @media(prefers-color-scheme:dark){:root{--bg:#202124;--fg:#ededf0;--mut:#a2a4ac;--line:#3b3c41;--soft:#292a2e;--panel:#27282c;--hover:#303136;--warn:#e2b46b;--bad:#f48b93;--ok:#8ac7a4}}
@@ -67,6 +151,7 @@ main,section{min-width:0;max-width:100%}
 .metric-note{font-size:12px;line-height:1.65;margin:12px 0 0;max-width:940px}.metric-note a,.sub a{text-decoration:underline;text-underline-offset:3px}
 .empty{padding:20px;color:var(--mut);white-space:normal}
 #friction>.eyebrow{margin:24px 0 6px}#friction h2{margin-top:0}.family-card h3 .identity{min-width:0;overflow-wrap:anywhere}.family-card h3 .identity>span:last-child{min-width:0}
+#limits h3{font-size:13px;font-weight:600;margin:24px 0 10px}#limits .sub{max-width:780px}.limit-detail{display:block;font-size:10px;color:var(--mut);margin-top:4px}.limit-band{display:block;position:relative;width:170px;height:12px;margin:3px 0 7px;background:var(--soft);border-radius:3px}.limit-band i{position:absolute;top:3px;height:6px;background:var(--mut);opacity:.45;border-radius:2px}.limit-band b{position:absolute;top:0;width:2px;height:12px;background:var(--fg);transform:translateX(-1px)}.limit-usage{display:inline-block;width:36px;height:4px;background:var(--soft);margin-right:7px;vertical-align:middle;border-radius:2px;overflow:hidden}.limit-usage i{display:block;height:100%;background:var(--mut)}.limit-wall{padding:3px 5px;border-radius:4px}.limit-wall.high{color:var(--bad);background:color-mix(in srgb,var(--bad) 9%,transparent)}.limit-scatter{max-width:680px;margin:0}.limit-scatter svg{display:block;width:100%;height:auto;font:11px var(--mono);fill:var(--mut)}.limit-scatter figcaption{font-size:12px;color:var(--mut)}.limit-key{display:flex;flex-wrap:wrap;gap:8px 30px;padding-left:24px;font-size:11px}.limit-key li{padding-left:2px}.limit-key .logo{width:22px;height:22px}.limit-key .logo img{width:15px;height:15px}
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
 @media(max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat{padding:16px 18px}.stat:nth-child(2){border-right:0}.stat:nth-child(-n+2){border-bottom:1px solid var(--line)}.stat b{font-size:24px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -102,6 +187,7 @@ export const COMPARISON_SECTIONS = `
   <div id="provider-families" aria-live="polite"><p class="empty">Loading provider comparisons…</p></div>
   <p class="metric-note mut">At least ten sessions per row. Quality is the mean rating out of five; reliability is the share of clean sessions. OpenRouter identifies the router when the underlying host is unknown. Local and modified weights remain separate.</p>
 </section>
+${LIMITS_SECTION}
 <section id="friction" aria-labelledby="friction-heading">
   <p class="eyebrow">Friction · last eight weeks</p>
   <div class="section-head"><h2 id="friction-heading">How hard people had to push</h2><a href="/board#friction">Full signals ↗</a></div>
@@ -179,6 +265,7 @@ async function loadComparisons(category = '', preview = false) {
 export const BOARD_JS = `
 ${IDENTITY_JS}
 ${COMPARISON_JS}
+${LIMITS_JS}
 const $ = (s) => document.querySelector(s);
 const fmt = {
   pct: (v) => v == null ? '-' : Math.round(v * 100) + '%',
@@ -223,7 +310,7 @@ async function loadTiers() {
 async function loadStats() {
   const r = await (await fetch('/v1/stats?' + qs())).json();
   const by = r.by;
-  const head = [...by, 'n', 'score', '', 'rating', 'good [95%]', 'rated', 'surv', 'clean', 'steer', 'tool err', 'p50', 'rate-lim', 'interr', 'switch', '$/sess', '$/success', 'waste', 'dur'];
+  const head = [...by, 'n', 'score', '', 'rating', 'good [95%]', 'rated', 'surv', 'clean', 'steer', 'tool err', 'p50', 'rate-lim', 'overload', 'interr', 'switch', '$/sess', '$/success', 'waste', 'dur'];
   $('#score thead').innerHTML = '<tr>' + head.map((h, i) => '<th class="' + (i >= by.length ? 'n' : '') + '">' + esc(h) + '</th>').join('') + '</tr>';
   $('#score tbody').innerHTML = r.groups.map((g) => '<tr>' +
     by.map((b) => '<td>' + (b === 'model' || b === 'family' ? identity(g.key[b], g.provider ?? g.key.provider) : b === 'provider' || b === 'tool' ? identity(g.key[b]) : esc(g.key[b])) + '</td>').join('') +
@@ -239,6 +326,7 @@ async function loadStats() {
     '<td class="n tool-error">' + rateBar(g.tool_call_error_rate) + '</td>' +
     '<td class="n">' + fmt.ms(g.latency_p50_ms) + '</td>' +
     '<td class="n">' + fmt.pct(g.rate_limit_rate) + '</td>' +
+    '<td class="n">' + fmt.pct(g.overloaded_rate) + '</td>' +
     '<td class="n">' + fmt.pct(g.interrupt_rate) + '</td>' +
     '<td class="n">' + fmt.pct(g.switch_rate) + '</td>' +
     '<td class="n">' + fmt.usd(g.cost_mean) + '</td>' +
@@ -321,6 +409,7 @@ ${STAT_STRIP}
     <option value="model,tool">model x tool</option>
     <option value="family">family</option>
     <option value="provider">provider</option>
+    <option value="plan_id">plan</option>
     <option value="family,provider">family × provider</option>
     <option value="family,provider,quant">family × provider × quant</option>
     <option value="serving_mode">serving mode</option>
@@ -348,7 +437,7 @@ ${COMPARISON_SECTIONS}
 <div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="plans"><thead>
 <tr><th>tool</th><th>plan</th><th class="n">price</th><th class="n">reporters</th><th class="n">months</th><th class="n">sessions</th><th class="n">successes</th><th class="n">hours</th><th class="n">api-equiv</th><th class="n">multiple</th><th class="n">$/success</th><th class="n">hit limit</th></tr>
 </thead><tbody></tbody></table></div>
-<p class="mut">medians across reporter-months. api-equiv = what the same tokens would cost at API list price. multiple = api-equiv / plan price. $/success = plan price / successful sessions that month. hit limit = share of reporter-months with at least one rate-limit hit.</p>
+<p class="mut">medians across reporter-weeks, plan price pro-rata. api-equiv = what the same tokens would cost at API list price. multiple = api-equiv / plan price. $/success = plan price / successful sessions that month. hit limit = share of reporter-weeks with at least one rate-limit hit.</p>
 
 <h2>Weekly drift</h2>
 <div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="drift"><thead>

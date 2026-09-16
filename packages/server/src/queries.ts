@@ -1,5 +1,6 @@
 import {
-  aggregate, drift, familyTable, planSummaries, steeringRate, tierModels, weekly,
+  aggregate, drift, estimateCapacity, familyTable, planGenerosity, planSummaries, reconstructWindows,
+  steeringRate, tierModels, weekly,
   type Group, type GroupKey, type Row,
 } from '@nerfd/core';
 
@@ -40,6 +41,20 @@ export function queryData(url: URL, source: (weeks: number) => Row[], readOnly: 
       if (p === '/v1/plans') {
         const weeks = clamp(Number(url.searchParams.get('weeks') ?? 12), 1, 52);
         return result({ weeks, plans: planSummaries(source(weeks)) });
+      }
+
+      // What a subscription actually gives you: the measured capacity band
+      // per window, and the plans ranked by tokens per dollar. Estimates, and
+      // labelled as such - see docs/LIMITS.md for how the band is built.
+      if (p === '/v1/limits') {
+        const weeks = clamp(Number(url.searchParams.get('weeks') ?? 8), 1, 52);
+        const rows = source(weeks);
+        return result({
+          weeks,
+          n: rows.length,
+          plans: planGenerosity(rows, planSummaries(rows)),
+          windows: estimateCapacity(reconstructWindows(rows)),
+        });
       }
 
       if (p === '/v1/drift') {
@@ -141,6 +156,10 @@ export function queryData(url: URL, source: (weeks: number) => Row[], readOnly: 
           // is in the open dataset and not only on the site.
           by_family_provider_quant_week: aggregate(rows, ['family', 'provider', 'quant', 'week']),
           plans: planSummaries(rows),
+          limits: {
+            plans: planGenerosity(rows, planSummaries(rows)),
+            windows: estimateCapacity(reconstructWindows(rows)),
+          },
         });
       }
 

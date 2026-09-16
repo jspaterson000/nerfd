@@ -6,8 +6,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  SIGNAL_VERSION, emptyMetrics, emptySignals, emptySurvival, resolveModelRef,
-  type Category, type Kept, type Metrics, type Session, type Signals, type Tool,
+  SIGNAL_VERSION, emptyLimitTokens, emptyMetrics, emptySignals, emptySurvival, resolveModelRef,
+  type Category, type Kept, type LimitWindow, type Metrics, type Row, type Session, type Signals, type Tool,
 } from '@nerfd/core';
 
 // A whole month of synthetic work in its own NERFD_HOME: three model
@@ -41,7 +41,7 @@ writeFileSync(join(HOME, 'config.json'), JSON.stringify({
 }, null, 2) + '\n', { mode: 0o600 });
 
 const { listSessions, putSession } = await import('../src/db.ts');
-const { buildReportData, labelFor, logoFor } = await import('../src/report/data.ts');
+const { buildLimits, buildReportData, labelFor, logoFor } = await import('../src/report/data.ts');
 const { renderFallback } = await import('../src/report/fallback.ts');
 const { renderReport } = await import('../src/report/html.ts');
 
@@ -403,4 +403,50 @@ test('a version that refines the family name replaces it rather than following i
   const astra = resolveModelRef('gpt-6-astra', 'openai', {});
   assert.equal(labelFor('gpt-6-astra', astra), 'gpt-6-astra');      // a name, not a number: appended
   assert.equal(LABELS.opus, 'claude-opus-5');
+});
+
+// ---------------------------------------------------------------------------
+
+/** A row carrying nothing but the window state `buildLimits` reads. */
+function windowRow(id: string, endedAt: string, windows: LimitWindow[]): Row {
+  return {
+    reporter: id, tool: 'claude-code', model: 'claude-opus-5', effort: null,
+    plan_id: 'claude-max-20x', plan_usd_month: 200, week: '2026-W38', ended_at: endedAt,
+    category: 'code', size: 'm', repo: { lang: 'ts', size: 'm', age: 'established' },
+    duration_s: 1800, metrics: emptyMetrics(), rating: null, kept: 'unknown',
+    survival_ratio: null, limit_windows: windows,
+  };
+}
+
+function limitWindow(scope: LimitWindow['scope'], windowMin: number, start: number, end: number): LimitWindow {
+  return {
+    scope, window_min: windowMin, used_pct_start: start, used_pct_end: end, samples: 4,
+    resets_in_min_end: 60, reset_bucket: 497100, wall_hit: false,
+    tokens: { ...emptyLimitTokens(), total: 100_000, uncached_in: 40_000, out: 10_000, cached_in: 50_000 },
+  };
+}
+
+test('a window group that barely moved is observed, not estimated at zero', () => {
+  // five_hour moves 40 points across two windows: enough to divide by.
+  // seven_day moves 2 points: real sessions, no measurable movement.
+  // Both scopes are watched over the same 4.5 hours of a 5-hour window, so
+  // coverage is identical and only the movement decides.
+  const rows: Row[] = [
+    windowRow('me', '2026-09-14T10:00:00Z', [limitWindow('five_hour', 300, 10, 30), limitWindow('model', 300, 30, 31)]),
+    windowRow('me', '2026-09-14T14:00:00Z', [limitWindow('five_hour', 300, 30, 50), limitWindow('model', 300, 31, 32)]),
+  ];
+  const limits = buildLimits(rows);
+
+  const scopes = limits.windows.map((w) => w.scope);
+  assert.deepEqual(scopes, ['five_hour']);
+  assert.ok(limits.windows[0]!.capacity_total_p50! > 0);
+
+  // The idle scope is reported, with its counts, and never as a capacity.
+  assert.deepEqual(limits.observed_only, [{ scope: 'model', window_min: 300, sessions: 2, samples: 8 }]);
+  assert.equal(limits.empty, false);
+
+  // And it renders as a sentence rather than a row of dashes.
+  const html = renderReport({ ...data, limits }, { logos: {} });
+  assert.ok(html.includes('too little movement to estimate'));
+  assert.ok(html.includes('model'));
 });

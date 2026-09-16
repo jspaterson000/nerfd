@@ -250,11 +250,15 @@ The tempting last resort is to infer the tier from the limit windows and how
 often the wall is hit. nerfd does not do this, and the reason should be on the
 record rather than discovered later:
 
-- **The windows are constants, not tier signals.** Claude exposes a 5-hour and a
-  7-day window; Codex reports `window_minutes` of 300 and 10080 (occasionally
-  299). These are protocol constants, identical on Plus and Pro, on Max 5x and
-  Max 20x. Only the quota *size* behind them differs, and the size is never
-  reported — only `used_percent` against it.
+- **The windows are not tier signals.** Claude exposes a 5-hour and a 7-day
+  window. Codex reports windows per limit id, and they are not constant: on a
+  real Pro account (Sep 2026) the plan-level `codex` limit carried a single
+  10080-minute window with no secondary, while a model-scoped limit id carried
+  300 + 10080. Window layout must be read per limit id, never assumed, and it
+  still says nothing about the tier: only the quota *size* behind a window
+  differs, and the size is never reported, only `used_percent` against it.
+  (nerfd now estimates that size from token deltas, see LIMITS.md, but as a
+  measurement of generosity, not as a way to identify the plan.)
 - **Usage is a property of the person, not the plan.** A heavy Max 5x user and a
   light Max 20x user produce the same rate-limit-hit counts. Inverting from
   "hits the wall twice a week" to a tier requires knowing the workload, which is

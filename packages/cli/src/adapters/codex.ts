@@ -71,6 +71,7 @@ export const codexAdapter: Adapter = {
         declared_name: null,
       });
       if (!s) continue;
+      s.limit_windows = facts.limit_windows;
       attachSignals(s, codexTurns(f.path));
       out.push(s);
     }

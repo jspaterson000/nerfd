@@ -1,15 +1,18 @@
 import {
-  CATEGORIES, aggregate, costUsd, drift, economics, hostedEquivalentUsd, hoursOf, isSuccess,
-  planById, reporterWeeks, steeringRate, weekly,
-  type Category, type Group, type ModelRef, type Row, type Session, type Tool,
+  CATEGORIES, aggregate, costUsd, drift, economics, estimateCapacity, hostedEquivalentUsd, hoursOf,
+  isSuccess, percentile, planById, planGenerosity, planSummaries, reconstructWindows, reporterWeeks, usable,
+  steeringRate, weekly,
+  type CapacityEstimate, type Category, type Group, type ModelRef, type Row, type Session, type Tool,
+  type WindowObs,
 } from '@nerfd/core';
 import { listSessions } from '../db.ts';
 import { loadConfig } from '../paths.ts';
 import { effectivePlan } from '../plandetect/index.ts';
 import { localRows } from '../rows.ts';
 import type {
-  Logo, PlanSourceLabel, ReportData, ReportDrift, ReportMatrixCell, ReportModelEconomics, ReportPlan,
-  ReportPlanEconomics, ReportRankedModel, ReportRoughSession, ReportTroubleModel, ReportWeekTrouble,
+  Logo, PlanSourceLabel, ReportData, ReportDrift, ReportLimitWindow, ReportLimits, ReportMatrixCell, ReportObservedWindow,
+  ReportModelEconomics, ReportPlan, ReportPlanEconomics, ReportRankedModel, ReportRoughSession,
+  ReportTroubleModel, ReportWeekTrouble,
 } from './types.ts';
 
 // Builds the whole report from the local database and nothing else. Every
@@ -198,6 +201,7 @@ export function buildReportData(opts: ReportOpts): ReportData {
       ranking: { models: [], matrix: { categories: [], models: [], cells: [] }, which: [] },
       trouble: { by_model: [], weekly: [], roughest: [] },
       drift: [],
+      limits: { windows: [], observed_only: [], plans: [], empty: true },
       share: {
         headline: 'No AI sessions on record yet',
         lines: ['nerfd is installed and watching; the first finished session lands here.'],
@@ -224,6 +228,7 @@ export function buildReportData(opts: ReportOpts): ReportData {
       roughest: roughestSessions(fromIso, toIso, opts.projects),
     },
     drift: buildDrift(ids),
+    limits: buildLimits(attributed.rows),
     share: buildShare(glance, ranked, planEconomics, rows, weeks),
     empty: false,
   };
@@ -582,6 +587,87 @@ function buildDrift(ids: Identity[]): ReportDrift[] {
     });
   }
   return out.sort((a, b) => b.weekly.length - a.weekly.length || a.label.localeCompare(b.label));
+}
+
+// ---- tokens versus limits -----------------------------------------------
+
+/**
+ * Your own windows, with the same estimator the public band uses. One
+ * difference: the movement threshold is 10 percent rather than 20, because
+ * this is one person's sessions and the alternative to a slightly noisier
+ * number is no number at all. The band beside it still comes from the public
+ * estimator's 20 percent floor, so the two are never conflated.
+ */
+const LOCAL_MIN_DELTA_PCT = 10;
+
+export function buildLimits(rows: Row[]): ReportLimits {
+  const obs = reconstructWindows(rows);
+  const est = estimateCapacity(obs, { minDeltaPct: LOCAL_MIN_DELTA_PCT });
+
+  // Per scope and window length, across whatever plans the period covers.
+  // The counts describe every window seen; the capacity figures describe the
+  // ones that moved enough to divide by, which is why a row can carry five
+  // windows and no estimate.
+  const cells = new Map<string, WindowObs[]>();
+  for (const o of obs) {
+    const key = o.scope + ' | ' + (o.window_min ?? '-');
+    if (!cells.has(key)) cells.set(key, []);
+    cells.get(key)!.push(o);
+  }
+
+  // A cell with no usable window is not a capacity of zero, it is an idle
+  // window: sessions happened, the percentage barely moved, and there is
+  // nothing to divide by. Those are reported separately rather than as a row
+  // of dashes that reads like a measurement.
+  const opts = { minDeltaPct: LOCAL_MIN_DELTA_PCT };
+  const estimable = [...cells.values()].filter((list) => list.some((o) => usable(o, opts)));
+  const idle = [...cells.values()].filter((list) => !list.some((o) => usable(o, opts)));
+
+  const observed_only: ReportObservedWindow[] = idle.map((list) => ({
+    scope: list[0]!.scope,
+    window_min: list[0]!.window_min,
+    sessions: list.reduce((sum, o) => sum + o.sessions, 0),
+    samples: list.reduce((sum, o) => sum + o.samples, 0),
+  })).sort((a, b) => (a.window_min ?? 0) - (b.window_min ?? 0) || a.scope.localeCompare(b.scope));
+
+  const windows: ReportLimitWindow[] = estimable.map((list) => {
+    const f = list[0]!;
+    const e = bestEstimate(est, f.scope, f.window_min);
+    return {
+      scope: f.scope,
+      window_min: f.window_min,
+      capacity_total_p50: round(e?.capacity_total.p50 ?? null, 0),
+      capacity_uncached_p50: round(e?.capacity_uncached.p50 ?? null, 0),
+      n_windows: list.length,
+      usage_median_pct: round(median(list.map((o) => o.usage_end_pct)), 1),
+      wall_hits: list.filter((o) => o.wall_hit).length,
+      typical_resets_in_min: round(median(list.map((o) => o.resets_in_min_end)), 0),
+    };
+  }).sort((a, b) => (a.window_min ?? 0) - (b.window_min ?? 0) || a.scope.localeCompare(b.scope));
+
+  const plans = planGenerosity(rows, planSummaries(rows), { minDeltaPct: LOCAL_MIN_DELTA_PCT }).map((p) => ({
+    plan_id: p.plan_id,
+    name: p.name,
+    usd_month: p.usd_month,
+    tokens_per_dollar_p50: round(p.tokens_per_dollar.p50, 0),
+    successes_per_dollar: round(p.successes_per_dollar, 4),
+    wall_hit_share: round(p.wall_hit_share, 4) ?? 0,
+    usage_median_pct: round(p.usage_median_pct, 1),
+    // Filled by a later fetch of /v1/limits; the report itself never calls out.
+    public_band: null,
+  }));
+
+  return { windows, observed_only, plans, empty: windows.length === 0 && observed_only.length === 0 };
+}
+
+/** Median over the values that exist; the shared `percentile`, with the nulls dropped. */
+const median = (xs: Array<number | null>): number | null => percentile(xs.filter((x): x is number => x != null), 50);
+
+/** The estimate for a scope and window, from whichever plan has the most windows behind it. */
+function bestEstimate(est: CapacityEstimate[], scope: string, windowMin: number | null): CapacityEstimate | null {
+  return [...est]
+    .filter((e) => e.scope === scope && e.window_min === windowMin)
+    .sort((a, b) => b.n_windows - a.n_windows || a.plan_id.localeCompare(b.plan_id))[0] ?? null;
 }
 
 // ---- share card ---------------------------------------------------------

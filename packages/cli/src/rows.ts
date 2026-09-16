@@ -20,6 +20,7 @@ export function sessionToRow(s: Session): Row | null {
     duration_s: s.duration_s ?? 0,
     metrics: s.metrics,
     signals: s.signals ?? null,
+    limit_windows: s.limit_windows ?? null,
     rating: s.outcome.rating,
     kept: s.outcome.kept,
     survival_ratio: s.survival.ratio,
