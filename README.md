@@ -2,16 +2,18 @@
 
 The public record of how AI models actually perform on real work. Captured automatically from Claude Code, Codex, OpenCode, Goose, Gemini CLI, Qwen Code, Kimi Code, Crush, Copilot CLI, Cline and Aider sessions, ranked weekly by outcome, priced by what a good result really costs on your subscription and at API rates — and, because the same open weights are served at different quantisations by different hosts, scored by provider and quantisation as well as by model.
 
-Plan, context, market research, the multi-tool integration plan, the behavioural signals, the plan detector and the privacy statement: [docs/PLAN.md](docs/PLAN.md), [docs/MARKET.md](docs/MARKET.md), [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md), [docs/SIGNALS.md](docs/SIGNALS.md), [docs/PLAN-DETECTION.md](docs/PLAN-DETECTION.md), [docs/PRIVACY.md](docs/PRIVACY.md).
+Live at [nerfd.org](https://nerfd.org): the [board](https://nerfd.org/board), one page per [model](https://nerfd.org/model) with its rank, its standing by kind of work and the week it changed, and the [open data](https://nerfd.org/export.json) (CC BY 4.0). Counts, never conversations; the [privacy page](https://nerfd.org/privacy) shows the exact record. No money from model labs.
+
+Plan, context, market research, the multi-tool integration plan, the behavioural signals, the plan detector, tokens versus limits, the model view, the personal report, the privacy statement and the launch plan: [docs/PLAN.md](docs/PLAN.md), [docs/MARKET.md](docs/MARKET.md), [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md), [docs/SIGNALS.md](docs/SIGNALS.md), [docs/PLAN-DETECTION.md](docs/PLAN-DETECTION.md), [docs/LIMITS.md](docs/LIMITS.md), [docs/MODEL-VIEW.md](docs/MODEL-VIEW.md), [docs/REPORT.md](docs/REPORT.md), [docs/PRIVACY.md](docs/PRIVACY.md), [docs/LAUNCH.md](docs/LAUNCH.md).
 
 ![landing](docs/landing.png)
 
 ## Install (users)
 
 ```
-curl -fsSL https://<your-host>/install.sh | sh                      # sharing on
-curl -fsSL https://<your-host>/install.sh | sh -s -- --no-share     # sharing off
-NERFD_SHARE=off sh -c "$(curl -fsSL https://<your-host>/install.sh)"  # same, for scripted installs
+curl -fsSL https://nerfd.org/install.sh | sh                      # sharing on
+curl -fsSL https://nerfd.org/install.sh | sh -s -- --no-share     # sharing off
+NERFD_SHARE=off sh -c "$(curl -fsSL https://nerfd.org/install.sh)"  # same, for scripted installs
 ```
 
 Needs Node 22.13 or newer. The script downloads the CLI to `~/.nerfd/app`, links `~/.local/bin/nerfd`, installs hooks into every supported tool whose config directory exists, reads your subscription plan off those tools' own config, and turns on autonomous reporting of redacted session records to the host it was downloaded from. It prints exactly what is sent. `nerfd share off` stops it; `nerfd init --remove` takes the hooks out.
@@ -111,3 +113,7 @@ local Worker database. Production verification should check `/health`, `/v1/meta
 This repository uses explicit command-line deployment. There is no Git remote or
 automatic push-to-deploy integration configured yet. Cloudflare storage persists
 across Worker deploys; do not delete the Durable Object namespace during updates.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE).
