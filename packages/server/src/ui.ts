@@ -139,7 +139,7 @@ td.n,th.n{text-align:right}td:not(:first-child){font-variant-numeric:tabular-num
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
 .stat{padding:20px 24px;border-right:1px solid var(--line)}.stat:last-child{border-right:0}.stat b{display:block;font-size:27px;font-weight:500;line-height:1.3;letter-spacing:-1px}.stat span{display:block;font-size:12px;color:var(--mut);margin-top:5px}.stat svg{width:15px;height:15px;vertical-align:-3px;margin-right:6px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 main,section{min-width:0;max-width:100%}
-.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px}.section-head a{font-size:12px;color:var(--mut)}
+.section-head{display:flex;align-items:baseline;justify-content:flex-start;gap:16px}.section-head>:last-child{margin-left:auto}.section-head a{font-size:12px;color:var(--mut)}
 .family-card{margin:16px 0;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
 .family-card h3{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0;padding:16px;font-size:14px;font-weight:600}.family-display{font-size:12px;font-weight:400}
 .family-card .table-wrap{border:0;border-top:1px solid var(--line);border-radius:0}
@@ -238,7 +238,7 @@ function renderProviders(data, preview = false) {
     }
     const labels = ['Hosted / plan', 'Local', 'Modified weights · hosted / plan', 'Modified weights · local'];
     const body = buckets.map((rows, i) => rows.length ? '<tbody><tr class="row-group"><th colspan="10" scope="rowgroup">' + labels[i] + '</th></tr>' + providerRows(rows) + '</tbody>' : '').join('');
-    return '<article class="family-card"><h3>' + identity(f.family) + (f.display && f.display !== f.family ? '<span class="family-display mut">' + esc(f.display) + '</span>' : '') + (f.open_weights ? '<span class="chip">open weights</span>' : '') + '</h3><div class="table-wrap" tabindex="0" role="region" aria-label="' + esc(f.display || f.family) + ' providers, scroll to compare"><table><thead><tr><th>provider</th><th>quant</th><th>serving mode</th><th class="n">n</th><th class="n">score</th><th class="n">quality / 5</th><th class="n">reliability</th><th class="n tool-error">tool-call error</th><th class="n">p50 latency</th><th class="n">$ / success</th></tr></thead>' + body + '</table></div></article>';
+    return '<article class="family-card"><h3>' + identity(f.family) + (f.display && f.display !== f.family ? ' <span class="family-display mut">' + esc(f.display) + '</span>' : '') + (f.open_weights ? '<span class="chip">open weights</span>' : '') + '</h3><div class="table-wrap" tabindex="0" role="region" aria-label="' + esc(f.display || f.family) + ' providers, scroll to compare"><table><thead><tr><th>provider</th><th>quant</th><th>serving mode</th><th class="n">n</th><th class="n">score</th><th class="n">quality / 5</th><th class="n">reliability</th><th class="n tool-error">tool-call error</th><th class="n">p50 latency</th><th class="n">$ / success</th></tr></thead>' + body + '</table></div></article>';
   }).join('') || '<p class="empty">Provider comparisons will appear when a host has ten sessions in this window.</p>';
 }
 let comparisonRequest = 0;

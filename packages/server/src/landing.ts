@@ -1,9 +1,76 @@
 import { esc, FAVICON, SHARED_CSS, IDENTITY_JS, STAT_STRIP, readablePublic } from './ui.ts';
+import { READ_GUIDE } from '../assets/presentation.ts';
 
 // The public front door. Self-contained HTML using the same visual primitives as the board.
 
 export function landingPage(origin: string): string {
   const install = `curl -fsSL ${origin}/install.sh | sh`;
+  // Keep the landing intro outside the shared renderer's legacy hero rewrites.
+  // Its glance matcher consumes nested closing tags and can close the page wrap.
+  const intro = `<div class="hero">
+  <p class="eyebrow">Real sessions. Measurable outcomes.</p>
+  <h1>The public record of how AI models actually perform on real work.</h1>
+  <p class="lede">nerfd captures what happens when developers use Claude Code, Codex, OpenCode, Gemini CLI, Kimi Code and other terminals on real code, then ranks models by outcome, not benchmark: quality, reliability, steering, survival, speed and value. It also tells you what your subscription actually bought.</p>
+  <ul class="value-props">
+    <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10h4v10m2 0V4h4v16m2 0v-7h4v7M3 20h18"/></svg><div><h3>Ranked by what happened</h3><p>Six criteria from real work, with the evidence beside each rank.</p></div></li>
+    <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18m-6 5h3"/></svg><div><h3>Priced by what you got</h3><p>Subscription multiple, cost per success, tokens per window.</p></div></li>
+    <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z M8 12l3 3 5-6"/></svg><div><h3>Private by construction</h3><p>Counts, never conversations. <code>nerfd privacy</code> shows the exact record.</p></div></li>
+  </ul>
+  <div class="tools" aria-label="Developer tools">
+    <span><span class="tool-logo"><img src="/assets/logos/anthropic.svg" alt="" width="18" height="18"></span>Claude Code</span>
+    <span><span class="tool-logo"><img src="/assets/logos/openai.svg" alt="" width="18" height="18"></span>Codex</span>
+    <span><span class="tool-logo"><img src="/assets/logos/opencode.svg" alt="" width="18" height="18"></span>OpenCode</span>
+    <span><span class="tool-logo"><img src="/assets/logos/google.svg" alt="" width="18" height="18"></span>Gemini CLI</span>
+    <span><span class="tool-logo"><img src="/assets/logos/moonshotai.svg" alt="" width="18" height="18"></span>Kimi Code</span>
+    <span><span class="tool-logo"><img src="/assets/logos/github.svg" alt="" width="18" height="18"></span>GitHub Copilot CLI</span>
+  </div>
+  <div class="install" id="install">
+    <code class="mono" id="cmd">${esc(install)}</code>
+    <button id="copy" type="button" aria-label="Copy install command"><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="6" y="6" width="9" height="10" rx="2"/><path d="M4 12H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v1"/></svg><span aria-live="polite">Copy</span></button>
+  </div>
+  <p class="fine">Only redacted metrics are sent. <code>nerfd privacy</code> shows exactly what; <code>nerfd share off</code> stops it. <a href="/privacy">Privacy details</a>.</p>
+  <p class="secondary-ctas"><a href="/board">See the board ↗</a><a href="#how">Read the method</a><a href="/privacy">Privacy</a></p>
+</div>
+
+<section id="how" aria-labelledby="how-heading">
+  <p class="eyebrow">From your terminal to the public record</p>
+  <h2 id="how-heading">How it works</h2>
+  <ol class="how-steps">
+    <li><span class="step-number" aria-hidden="true">01</span><h3>Install once</h3><p>One line hooks into your tools. Nothing to configure.</p></li>
+    <li><span class="step-number" aria-hidden="true">02</span><h3>Work as usual</h3><p>Every session is measured locally: model, plan, tokens, errors, corrections and whether the code survived.</p></li>
+    <li><span class="step-number" aria-hidden="true">03</span><h3>See your own report</h3><p><code>nerfd report</code>: your ranking, your costs, your windows.</p></li>
+    <li><span class="step-number" aria-hidden="true">04</span><h3>Add to the public record</h3><p>A redacted record per session, ranked weekly with sample sizes and bands.</p></li>
+  </ol>
+  <div class="ranking-explainer">
+    <div>
+      <h3>How the tables rank</h3>
+      <dl class="criteria">
+        <div><dt>Quality</dt><dd>Mean rating from the person who did the work.</dd></div>
+        <div><dt>Reliability</dt><dd>Share of sessions with no errors, rate limits, interrupts or model switches.</dd></div>
+        <div><dt>Steering <small>lower is better</small></dt><dd>Corrections, re-prompts and pushback per turn.</dd></div>
+        <div><dt>Survival</dt><dd>Share of added lines still present an hour later.</dd></div>
+        <div><dt>Speed <small>lower is better</small></dt><dd>Median response latency.</dd></div>
+        <div><dt>Value <small>lower is better</small></dt><dd>Cost per successful session.</dd></div>
+      </dl>
+      <div class="tier-bands"><p>Each criterion, relative to the best: <strong>S ≥ 92% · A ≥ 78% · B ≥ 60% · C &lt; 60%</strong></p><p>Overall, from the composite score: <strong>S ≥ 80 · A ≥ 65 · B ≥ 50 · C &lt; 50</strong></p><p>At least ten sessions for a public tier. Every badge shows its underlying number.</p></div>
+    </div>
+    <figure class="record-flow">
+      <svg viewBox="0 0 340 380" role="img" aria-labelledby="flow-title flow-desc">
+        <title id="flow-title">From a session to a weekly ranking</title>
+        <desc id="flow-desc">A session flows into measure locally, redact, public record and ranked weekly. Prompts, code and paths never leave the machine.</desc>
+        <g fill="var(--soft)" stroke="var(--line)"><rect x="18" y="12" width="160" height="44" rx="9"/><rect x="18" y="86" width="160" height="44" rx="9"/><rect x="18" y="160" width="160" height="44" rx="9"/><rect x="18" y="234" width="160" height="44" rx="9"/><rect x="18" y="308" width="160" height="44" rx="9"/></g>
+        <g fill="none" stroke="currentColor" stroke-width="1.4"><path d="M98 56v30m-4-5 4 5 4-5M98 130v30m-4-5 4 5 4-5M98 204v30m-4-5 4 5 4-5M98 278v30m-4-5 4 5 4-5"/><path d="M178 182h20" stroke-dasharray="3 4"/></g>
+        <g fill="currentColor" text-anchor="middle" font-size="13"><text x="98" y="39">A session</text><text x="98" y="113">measure locally</text><text x="98" y="187">redact</text><text x="98" y="261">public record</text><text x="98" y="335">ranked weekly</text></g>
+        <g fill="var(--mut)" font-size="12"><text x="211" y="144">Never leave</text><text x="225" y="170">prompts</text><text x="225" y="194">code</text><text x="225" y="218">paths</text></g>
+        <g fill="none" stroke="var(--mut)" stroke-width="1.2"><path d="m208 162 7 7m-7 0 7-7m-7 24 7 7m-7 0 7-7m-7 24 7 7m-7 0 7-7M223 166h53m-53 24h32m-32 24h36"/></g>
+      </svg>
+      <figcaption>Counts, never conversations.<br><code>nerfd privacy</code> shows the exact record.</figcaption>
+    </figure>
+  </div>
+</section>
+<div class="glance-panel"><h2>This week in one look</h2><p class="answer" id="glance-answer" aria-live="polite">Loading this week’s record. Ratings, measured outcomes and sample sizes will explain what can be compared.</p>${STAT_STRIP}</div>
+${READ_GUIDE}
+`;
   return readablePublic(`<!doctype html>
 <html lang="en">
 <head>
@@ -13,7 +80,7 @@ export function landingPage(origin: string): string {
 <meta name="description" content="The public record of how AI models actually perform on real work. Across coding tools and providers, ranked weekly, priced honestly.">
 ${FAVICON}
 <style>${SHARED_CSS}
-.wrap{max-width:1080px;margin:auto;padding:0 32px}
+.wrap{max-width:980px;margin:auto;padding:0 20px}main,section{min-width:0}section,h2{text-align:left}
 nav{display:flex;align-items:center;gap:24px;min-height:76px;border-bottom:1px solid var(--line);font-size:13px;color:var(--mut)}nav .brand{color:var(--fg)}nav .sp{flex:1}
 .hero{padding:66px 0 0}.hero .eyebrow{display:flex;align-items:center;gap:8px;margin:0 0 20px}.hero .eyebrow::before{content:"";width:6px;height:6px;background:var(--ok);border-radius:50%}
 h1{font-size:47px;line-height:1.12;letter-spacing:-1.9px;font-weight:600;max-width:850px;margin:0 0 22px}
@@ -22,7 +89,7 @@ h1{font-size:47px;line-height:1.12;letter-spacing:-1.9px;font-weight:600;max-wid
 .install{display:flex;align-items:center;gap:8px;max-width:710px;background:var(--soft);border:1px solid var(--line);border-radius:11px;padding:7px;box-shadow:inset 0 1px 3px #00000004}.install code{flex:1;min-width:0;padding:8px 9px;font-size:13px;overflow-wrap:anywhere}.install button{flex:none;font-size:12px;padding:8px 13px;display:flex;align-items:center;gap:6px}.install button svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.4}
 .fine{font-size:12px;max-width:720px;margin:12px 0 0;line-height:1.8}.fine code{font-size:11px;color:var(--fg)}.fine a{text-decoration:underline;text-underline-offset:3px}
 .glance{margin-top:38px}.glance .eyebrow{margin:0 0 10px;display:block}.glance .eyebrow::before{display:none}
-section{padding:45px 0 0}h2{font-size:23px;letter-spacing:-.6px;font-weight:600;margin:0 0 7px}.sub{font-size:14px;margin:0 0 20px;max-width:720px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:16px}.section-head a{font-size:12px;color:var(--mut);white-space:nowrap}
+section{padding:45px 0 0}h2{font-size:23px;letter-spacing:-.6px;font-weight:600;margin:0 0 7px}.sub{font-size:14px;margin:0 0 20px;max-width:720px}.section-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px 16px}.section-head .section-number{grid-column:1/-1;margin:0}.section-head a{font-size:12px;color:var(--mut);white-space:nowrap}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}.cols>div{min-width:0;padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:12px}.cols h3{font-size:14px;margin:0 0 12px;font-weight:600}.cols ul{margin:0;padding-left:17px;color:var(--mut);font-size:13px}.cols li{margin:7px 0}
 .cmd{display:block;max-width:100%;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:12px;margin:10px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font-size:12px;color:var(--mut);display:flex;flex-wrap:wrap;gap:12px 22px}
@@ -30,6 +97,11 @@ footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font
 .model-detail{display:block;font-size:10px;margin-top:3px}
 #providers th,#providers td,#friction th,#friction td{padding:10px 12px}
 .landing-rate{display:inline-block;min-width:62px;padding:2px 4px;font-size:11px;background:linear-gradient(to right,var(--line) var(--rate),transparent var(--rate)) left center/100% 4px no-repeat}
+
+.value-props{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;list-style:none;padding:0;margin:30px 0}.value-props li{display:flex;gap:10px;align-items:flex-start}.value-props svg{width:21px;height:21px;flex:none;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}.value-props h3,.how-steps h3{font-size:14px;font-weight:600;margin:0 0 8px}.value-props p,.how-steps p{font-size:13px;line-height:1.7;color:var(--mut);margin:0}.value-props code{font-size:12px}.secondary-ctas{display:flex;flex-wrap:wrap;gap:20px;font-size:12px;margin:18px 0 0;color:var(--mut)}.secondary-ctas a:hover{color:var(--fg)}
+.how-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;list-style:none;padding:0;margin:24px 0 30px}.how-steps li{padding:20px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}.step-number{display:grid;place-items:center;width:30px;height:30px;margin-bottom:24px;border:1px solid var(--line);border-radius:50%;font:12px var(--mono);color:var(--mut)}.ranking-explainer{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:36px;border-top:1px solid var(--line);padding-top:28px}.ranking-explainer h3{font-size:17px;margin:0 0 20px}.criteria{margin:0;font-size:13px}.criteria>div{display:grid;grid-template-columns:120px minmax(0,1fr);gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}.criteria dt{font-weight:600}.criteria dd{margin:0;color:var(--mut);line-height:1.65}.criteria small{display:block;font-size:10px;font-weight:400;color:var(--mut);margin-top:4px}.tier-bands{font-size:12px;color:var(--mut);line-height:1.8;margin-top:18px}.tier-bands p{margin:8px 0}.tier-bands strong{display:block;color:var(--fg);font-weight:500}.record-flow{margin:0;padding:20px 12px;align-self:start;background:var(--panel);border:1px solid var(--line);border-radius:12px}.record-flow svg{display:block;width:100%;max-width:340px;margin:auto;font-family:inherit}.record-flow figcaption{font-size:12px;color:var(--mut);line-height:1.8;padding:0 12px}.record-flow code{color:var(--fg)}
+@media(max-width:800px){.how-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.ranking-explainer{gap:24px}}
+@media(max-width:600px){.section-head{grid-template-columns:minmax(0,1fr)}.value-props,.how-steps,.ranking-explainer{grid-template-columns:1fr}.value-props{gap:20px}.how-steps li{padding:20px}.step-number{margin-bottom:14px}.criteria>div{grid-template-columns:100px minmax(0,1fr)}.ranking-explainer{gap:20px}}
 @media(max-width:480px){nav{flex-wrap:wrap;padding:14px 0;gap:10px 16px}nav .sp{display:none}nav .brand{flex-basis:100%}#providers .section-head,#friction .section-head{flex-wrap:wrap;gap:4px;margin-bottom:10px}}
 @media(max-width:720px){.wrap{padding:0 20px}nav{gap:16px;min-height:66px;font-size:12px}nav .optional{display:none}.hero{padding:40px 0 0}h1{font-size:35px;letter-spacing:-1.2px}.lede{font-size:15px}.tools{gap:10px 14px}.cols{grid-template-columns:1fr}.cols>div{padding:20px}.install{align-items:stretch}.install code{font-size:12px;padding:7px}.install button{padding:8px 10px}.glance{margin-top:30px}section{padding-top:34px}h2{font-size:21px}.section-head{align-items:baseline}.section-head a{font-size:11px}}
 </style>
@@ -44,30 +116,12 @@ footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font
   <a href="#providers">Providers</a>
   <a href="#limits">Plans</a>
   <a href="#friction">Friction</a>
-  <a class="optional" href="#method">Method</a>
+  <a class="optional" href="#how">How it works</a>
   <a href="/privacy">Privacy</a>
 </nav>
 
 <main>
-<div class="hero">
-  <p class="eyebrow">Real sessions. Measurable outcomes.</p>
-  <h1>The public record of how AI models actually perform on real work.</h1>
-  <p class="lede">Session reports from developers’ terminals, ranked weekly by outcome. Compare quality, reliability, steering, survival, speed and value. The record covers Claude Code, Codex, OpenCode, Gemini CLI, Qwen Code, Kimi Code, Goose, Crush, Cline, Aider and GitHub Copilot CLI.</p>
-  <div class="tools" aria-label="Developer tools">
-    <span><span class="tool-logo"><img src="/assets/logos/anthropic.svg" alt="" width="18" height="18"></span>Claude Code</span>
-    <span><span class="tool-logo"><img src="/assets/logos/openai.svg" alt="" width="18" height="18"></span>Codex</span>
-    <span><span class="tool-logo"><img src="/assets/logos/opencode.svg" alt="" width="18" height="18"></span>OpenCode</span>
-    <span><span class="tool-logo"><img src="/assets/logos/google.svg" alt="" width="18" height="18"></span>Gemini CLI</span>
-    <span><span class="tool-logo"><img src="/assets/logos/moonshotai.svg" alt="" width="18" height="18"></span>Kimi Code</span>
-    <span><span class="tool-logo"><img src="/assets/logos/github.svg" alt="" width="18" height="18"></span>GitHub Copilot CLI</span>
-  </div>
-  <div class="install" id="install">
-    <code class="mono" id="cmd">${esc(install)}</code>
-    <button id="copy" type="button" aria-label="Copy install command"><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="6" y="6" width="9" height="10" rx="2"/><path d="M4 12H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v1"/></svg><span aria-live="polite">Copy</span></button>
-  </div>
-  <p class="fine">Only redacted metrics are sent. <code>nerfd privacy</code> shows exactly what; <code>nerfd share off</code> stops it. <a href="/privacy">Privacy details</a>.</p>
-  <div class="glance"><p class="eyebrow">At a glance · public record</p>${STAT_STRIP}</div>
-</div>
+<!-- landing-intro -->
 
 <section>
   <div class="section-head"><h2>Tiers, last four weeks</h2><a href="/board">Full scorecard ↗</a></div>
@@ -332,5 +386,7 @@ async function comparisonData(url) {
 })();
 </script>
 </body>
-</html>`, true);
+</html>`, true)
+    .replace('<!-- landing-intro -->', () => intro)
+    .replace(/(<a href=")#method(">\d+ )Method(<\/a>)/, '$1#how$2How it works$3');
 }
