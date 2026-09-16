@@ -1,101 +1,142 @@
 # nerfd
 
-The public record of how AI models actually perform on real work. Captured automatically from Claude Code, Codex, OpenCode, Goose, Gemini CLI, Qwen Code, Kimi Code, Crush, Copilot CLI, Cline and Aider sessions, ranked weekly by outcome, priced by what a good result really costs on your subscription and at API rates — and, because the same open weights are served at different quantisations by different hosts, scored by provider and quantisation as well as by model.
+**The public record of how AI coding models actually perform on real work.**
 
-Live at [nerfd.org](https://nerfd.org): the [board](https://nerfd.org/board), one page per [model](https://nerfd.org/model) with its rank, its standing by kind of work and the week it changed, and the [open data](https://nerfd.org/export.json) (CC BY 4.0). Counts, never conversations; the [privacy page](https://nerfd.org/privacy) shows the exact record. No money from model labs.
+nerfd is a local-first scorecard for the AI coding agents you already use. A one-line install hooks into Claude Code, Codex, OpenCode, Gemini CLI, Qwen Code, Kimi Code, Goose, Crush and Copilot CLI, measures every session on your machine, and tells you which model earned its keep on which kind of work, what your subscription actually bought, and the week a model changed. With sharing on, a redacted record of each session joins the public board at [nerfd.org](https://nerfd.org). Counts, never conversations.
 
-The method and principles, the multi-tool integration plan, the behavioural signals, the plan detector, tokens versus limits, the model view, the personal report and the privacy statement: [docs/METHOD.md](docs/METHOD.md), [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md), [docs/SIGNALS.md](docs/SIGNALS.md), [docs/PLAN-DETECTION.md](docs/PLAN-DETECTION.md), [docs/LIMITS.md](docs/LIMITS.md), [docs/MODEL-VIEW.md](docs/MODEL-VIEW.md), [docs/REPORT.md](docs/REPORT.md), [docs/PRIVACY.md](docs/PRIVACY.md).
+- **Live**: [nerfd.org](https://nerfd.org) · [the board](https://nerfd.org/board) · [one page per model](https://nerfd.org/model) · [what leaves your machine](https://nerfd.org/privacy) · [open data, CC BY 4.0](https://nerfd.org/export.json)
+- **Zero runtime dependencies.** Node 22.13+ runs the TypeScript directly. Small enough to read over a coffee, which is the point.
+- **No money from model labs, ever.** Every evaluator that took lab money ended up ranking its customers.
 
-![landing](docs/landing.png)
+![The nerfd landing page](docs/landing.png)
 
-## Install (users)
+## Why
 
-```
-curl -fsSL https://nerfd.org/install.sh | sh                      # sharing on
-curl -fsSL https://nerfd.org/install.sh | sh -s -- --no-share     # sharing off
-NERFD_SHARE=off sh -c "$(curl -fsSL https://nerfd.org/install.sh)"  # same, for scripted installs
-```
+Nobody knows which model to use for which kind of work this week. Lab benchmarks are static and measure a model through the lab's own harness. Social media is anecdote with no denominator. Model quality genuinely moves: Anthropic has published two postmortems admitting multi-week degradations their own evals did not catch, one of them caused by harness changes rather than weights. The people who can see this are the people doing real work in these terminals every day, and their evidence evaporates into posts.
 
-Needs Node 22.13 or newer. The script downloads the CLI to `~/.nerfd/app`, links `~/.local/bin/nerfd`, installs hooks into every supported tool whose config directory exists, reads your subscription plan off those tools' own config, and turns on autonomous reporting of redacted session records to the host it was downloaded from. It prints exactly what is sent. `nerfd share off` stops it; `nerfd init --remove` takes the hooks out.
+nerfd turns that evidence into a record. Every session becomes a row of counts: model, tool, plan, kind of work, prompts, edits, errors, corrections, interrupts, tokens, latency, and whether the code the session wrote is still there an hour later. The rows are scored the same way for one person and for everyone.
 
-Then:
+## What you get
 
-```
-nerfd sessions                       # what was captured
-nerfd plan                           # your subscription per tool, auto-detected, with what was read to find it
-nerfd plan claude claude-max-20x     # declare one; a declared plan always overrides detection
-nerfd backfill --since 90d           # import the history your tools recorded before nerfd existed
-nerfd rate last 4 kept               # optional two-second rating; inside your tool: /nerfd 4 kept "why"
-nerfd which debug --lang ts          # what to use right now, from your own history
-nerfd cost                           # api-equivalent cost, cost per success, waste, and what your plan bought this month
-nerfd drift                          # week over week per model
-nerfd privacy                        # everything stored locally, and the exact record that would be sent
-nerfd dash                           # local board on http://localhost:8787
-```
+**Your own report**, in one command, from your own sessions: which model ranks where on your work, what a month of your plan bought in successful sessions and API-equivalent value, how many tokens a window holds and how often you hit the wall, where the errors and re-prompting happened.
 
-## Which tools
+**The public board**: tiers on six criteria (quality, reliability, steering, survival, speed, value), the best model at each kind of work, the same open weights compared across hosts and quantisations, what each plan gives you, and how hard people had to push.
 
-`nerfd init` installs into whatever it finds. **Claude Code, Codex, OpenCode, Goose, Gemini CLI, Qwen Code and Kimi Code** are fully live: hooks (or, for OpenCode, a small plugin) give session boundaries, tool calls, errors and interrupts as they happen, and the tool's own transcript or SQLite store gives tokens, cost and the model actually used. **Crush** has exactly one hook — `PreToolUse` — so it runs live on that and fills in the rest from its per-project database. **Copilot CLI** installs hooks as individual files in `~/.copilot/hooks/*.json` and reads its `session-state` event log. **Cline and Aider** emit nothing live and are read from their stores only. Every one of them supports `nerfd backfill [tool] --since 90d`, which imports history that predates the install, so a personal scorecard is populated the minute you install rather than in a fortnight. Anything else reports through `nerfd record`. Per-tool detail, including what each one cannot give: [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md).
+**One page per model**: its rank in the field, its standing inside each kind of work, and a week-by-week score since release with change flags on the week it moved, tested against its own baseline and against the whole field. Change detection, with the numbers, not a verdict.
 
-Any other tool or script:
+![A model page](docs/model.png)
 
-```
-nerfd record --tool aider --model claude-sonnet-5 --cat debug --duration 840 --rating 4 --kept --tokens-in 120000 --tokens-out 9000
+## Quick start
+
+```sh
+curl -fsSL https://nerfd.org/install.sh | sh                      # install, hook every tool found, sharing on
+curl -fsSL https://nerfd.org/install.sh | sh -s -- --no-share     # the same, sharing off
 ```
 
-## What leaves the machine
+The installer downloads the CLI to `~/.nerfd/app`, links `~/.local/bin/nerfd`, installs hooks into every supported tool whose config directory exists, reads your subscription plan off those tools' own config, and prints exactly what would be sent. Then:
 
-Only when sharing is on, only this: model and the model identity derived from it (family, version, size, quantisation, provider, serving mode), effort level, tool and version, plan tier and whether it was declared or detected, ISO week, task category and size, repo language and size and age buckets, duration, counts (prompts, turns, tool calls, edits, files, tests, errors, rate limits, timeouts, interrupts, model switches, tool-call errors, context-limit hits), behavioural signal counts with their detector version, token totals, latency percentiles, subscription window usage where the tool reports it, your rating and kept flag if given, the code survival ratio, and an optional gist link you attach yourself. Never prompts, code, paths, repo names, or notes — and detection's own evidence (which file and field it read) never leaves either. The reporter id is a hash of a random per-install id, rotated weekly. `nerfd show last --public` prints the exact payload, and `nerfd privacy` prints it alongside everything held locally. Full statement: [docs/PRIVACY.md](docs/PRIVACY.md).
+```sh
+nerfd backfill --since 90d      # import the history your tools already wrote; a populated scorecard on day one
+nerfd report                    # your report as one HTML page
+nerfd sessions                  # what was captured
+nerfd rate last 4 kept          # optional two-second rating; inside the tool: /nerfd 4 kept "why"
+nerfd which debug --lang ts     # what to use right now, from your own history
+nerfd cost                      # cost per success, waste, what the plan bought
+nerfd privacy                   # everything stored locally, and the exact record that would be sent
+nerfd share off                 # stop sharing; nerfd init --remove takes the hooks out
+```
 
-## Run the site (operators)
+Any other tool or script reports with `nerfd record --tool <name> --model <id> --cat debug --duration 840 --rating 4 --kept --tokens-in 120000 --tokens-out 9000`.
+
+## How it works
 
 ```
+your tool ──hook JSON──▶ nerfd hook ──▶ ~/.nerfd/local.db ──▶ nerfd report · which · cost · dash
+                                             │
+                                   redact (counts only)
+                                             │
+                                     POST /v1/reports ──▶ the board
+```
+
+1. **Hooks** in each tool give session boundaries, tool calls, errors and interrupts as they happen. The tool's own transcript or store gives tokens, latency and the model actually used.
+2. **At session end**, the conversation is reduced to integers on your machine: corrections, re-prompts, pushback, frustration markers, clarifying questions, edits without a prior read, the kind of work. The text is dropped before the function returns.
+3. **An hour later**, `nerfd check` re-hashes the working tree to measure how much of what the session wrote survived.
+4. **With sharing on**, one small JSON record per session goes to the board. The reporter id is a hash of a random install id, rotated weekly, so sessions cannot be linked across weeks.
+
+Score, published and deliberately simple: `score = 0.55 × rating + 0.30 × survival + 0.15 × clean`, missing parts dropped and weights renormalised, nothing scored under three sessions, no public tier under ten. Tiers are relative to the best model in the field. Drift is a z-score against the trailing four weeks and needs five sessions to flag. The full method: [docs/METHOD.md](docs/METHOD.md).
+
+## Supported tools
+
+| Tool | Live capture | History import | Notes |
+|---|---|---|---|
+| Claude Code | hooks | yes | plus a status-line sampler for subscription windows |
+| Codex | hooks | yes | rollout logs carry window usage |
+| OpenCode | plugin | yes | model, provider and quantisation from the session store |
+| Gemini CLI, Qwen Code | hooks | yes | |
+| Kimi Code | hooks | yes | |
+| Goose | hooks | yes | |
+| Crush | one hook | yes | the rest from its per-project database |
+| Copilot CLI | hooks | yes | |
+| Cline, Aider | none | yes | read from their stores only |
+| anything else | `nerfd record` | | |
+
+Per-tool detail, including what each one cannot give: [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md). Open-weight models are identified by family, version, size, quantisation, provider and serving mode, so a local q4 run and a hosted fp8 endpoint of the same weights are never averaged together: [docs/MODELS.md](docs/MODELS.md).
+
+## Privacy
+
+Only with sharing on, and only this: model identity, effort level, tool and version, plan tier, ISO week, kind and size of work, repo language and size buckets, duration, counts, behavioural signal counts, token totals, latency percentiles, subscription window usage, your rating if you gave one, and the survival ratio. Never prompts, code, paths, repo names or notes. The detector that reads your plan opens one named field per tool, never the keychain, and makes no network call. `nerfd show last --public` prints the exact payload. The whole statement, written for the person who has to approve it: [docs/PRIVACY.md](docs/PRIVACY.md).
+
+## Documentation
+
+| | |
+|---|---|
+| [docs/METHOD.md](docs/METHOD.md) | principles, what is measured, tiers, scoring, architecture |
+| [docs/MODEL-VIEW.md](docs/MODEL-VIEW.md) | the model page, kinds of work, change detection over time |
+| [docs/LIMITS.md](docs/LIMITS.md) | tokens versus limits: window capacity, generosity per plan |
+| [docs/SIGNALS.md](docs/SIGNALS.md) | the behavioural signals and their known false positives |
+| [docs/PLAN-DETECTION.md](docs/PLAN-DETECTION.md) | how the subscription plan is read, and what is never read |
+| [docs/REPORT.md](docs/REPORT.md) | the personal report |
+| [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) | every tool, what it gives and what it cannot |
+| [docs/PRIVACY.md](docs/PRIVACY.md) | what leaves the machine, and how to stop it |
+
+## Self-hosting
+
+The Node server is the whole public site: landing, board, model pages, privacy page, installer, API and open-data export.
+
+```sh
 pnpm install
-pnpm release                                   # builds dist/nerfd.tgz, which /install.sh downloads
-pnpm server -- --port 8787 --db ./reports.db   # landing at /, board at /board, installer at /install.sh
+pnpm release                                   # builds dist/nerfd.tgz, which /install.sh serves
+pnpm server -- --port 8787 --db ./reports.db
 ```
 
-Behind a proxy, set `x-forwarded-proto` and `x-forwarded-host` so the installer bakes in the public origin, or pass `publicOrigin` to `startServer`.
+Behind a reverse proxy, set `x-forwarded-proto` and `x-forwarded-host` so the installer bakes in the public origin. For a serverless platform, wrap `queryData` and the page renderers in `packages/server/src`; nerfd.org is one such wrapper. Endpoints: `GET /v1/tiers`, `/v1/work`, `/v1/model?id=`, `/v1/stats?by=model,category`, `/v1/providers`, `/v1/friction`, `/v1/limits`, `/v1/plans`, `/v1/drift`, `/v1/meta`, `/v1/founders`, `/export.json`; `POST /v1/reports`.
 
-Endpoints: `GET /` landing, `GET /board`, `GET /privacy`, `GET /install.sh`, `GET /dist/nerfd.tgz`, `GET /v1/tiers`, `GET /v1/plans`, `GET /v1/stats?by=model,category&weeks=8` (also `by=family,provider,quant,serving_mode`), `GET /v1/providers?weeks=8&min=10`, `GET /v1/friction?weeks=8`, `GET /v1/drift`, `GET /v1/meta`, `GET /export.json`, `POST /v1/reports`.
-
-## Layout
+## Repository
 
 ```
-packages/core     types, classifier, stats, aggregation, pricing, tiers, plans, redaction, validation
-packages/cli      ms: hooks, local sqlite, commands, local board
-packages/server   node:http site: landing, board, installer, ingest. same aggregation as the CLI
-scripts/release.ts  builds the install tarball
-docs/             plan and market research
+packages/core     types, classifier, stats, aggregation, pricing, tiers, plans, limits, views, redaction, validation
+packages/cli      the nerfd command: adapters, hooks, local SQLite, report, commands
+packages/server   the site: landing, board, model pages, privacy, installer, ingest. Same aggregation as the CLI
+scripts/          release tarball, price snapshot
+docs/             method and integration docs
 ```
 
-Zero runtime dependencies. Node runs the TypeScript directly; there is no build step beyond the tarball.
-
-## Develop
-
-```
+```sh
 pnpm typecheck
 pnpm test
-NERFD_HOME=/tmp/mshome pnpm nerfd sessions   # isolated data dir
 ```
 
-Hook errors never surface in the host tool; they go to `~/.nerfd/hook.log`. `nerfd doctor` shows the tail. Model list prices live in `packages/core/src/pricing.ts`, subscription plans in `packages/core/src/plans.ts`.
-
-## Hosting
-
-The Node server above is the whole public site: landing, board, model pages, privacy page, installer, API and open-data export. Run it behind any reverse proxy with `x-forwarded-proto` and `x-forwarded-host` set, or on a serverless platform by wrapping `queryData` and the page renderers from `packages/server/src`. The nerfd.org instance is one such wrapper; how it is hosted is not part of this repository.
+Contributions are welcome, and the easiest first ones are an adapter for a tool we do not cover, a behavioural signal, or a fix to the model family table. Read [CONTRIBUTING.md](CONTRIBUTING.md) first: it lists the rules a change cannot break.
 
 ## Roadmap
 
-Public and short. Each item is open to contribution; the method behind them is in [docs/METHOD.md](docs/METHOD.md).
-
-- **Verified reporters**: an opt-in stable identity (GitHub sign-in) that weights higher than a weekly-rotating one, both shown.
+- **Verified reporters**: an opt-in stable identity that weights higher than a weekly-rotating one, both shown.
 - **Rematch**: rerun the last task on a second model and record which diff survived, the within-person paired comparison nobody has.
 - **Attribution**: separate a weights change from a harness change from capacity, keyed on tool version and effort distribution.
 - **Alerts**: subscribe to a model and hear when it moves against its own baseline.
-- **Adapters**: Droid, Kilo Code and Cursor CLI; the current status per tool is in [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md).
+- **Adapters**: Droid, Kilo Code and Cursor CLI.
 - **A hand-labelled sample** to measure the behavioural detectors against, rather than reasoning about them.
 
 ## Licence
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). The public dataset at [nerfd.org/export.json](https://nerfd.org/export.json) is CC BY 4.0.
