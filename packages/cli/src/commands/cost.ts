@@ -1,4 +1,4 @@
-import { aggregate, costUsd, hostedEquivalentUsd, isSuccess, planSummaries, reporterWeeks, priceFor } from '@nerfd/core';
+import { aggregate, costUsd, hostedEquivalentUsd, hoursOf, isSuccess, planSummaries, reporterWeeks, priceFor } from '@nerfd/core';
 import { num, str, type Args } from '../args.ts';
 import { loadConfig } from '../paths.ts';
 import { localRows } from '../rows.ts';
@@ -24,7 +24,7 @@ export function cost(a: Args): void {
     table(
       ['model', 'n', 'priced', 'success', '$/session', '$/success', 'waste', '$/hr'],
       groups.map((g) => {
-        const hrs = rows.filter((r) => r.model === g.key.model).reduce((s, r) => s + r.duration_s, 0) / 3600;
+        const hrs = rows.filter((r) => r.model === g.key.model).reduce((s, r) => s + hoursOf(r), 0);
         const total = rows.filter((r) => r.model === g.key.model).map((r) => costUsd(r.model, r.metrics)).filter((x): x is number => x != null).reduce((s, x) => s + x, 0);
         return [g.key.model, g.n, g.n_priced, fmtPct(g.success_rate), money(g.cost_mean), money(g.cost_per_success), fmtPct(g.waste_share), hrs > 0 && g.n_priced > 0 ? money(total / hrs) : '-'];
       }),

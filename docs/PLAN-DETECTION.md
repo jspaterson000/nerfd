@@ -62,7 +62,8 @@ those two keys.
 | Tool | File | Field | Values | Confidence | Cannot distinguish |
 |---|---|---|---|---|---|
 | Claude Code | `~/.claude/.credentials.json` | `claudeAiOauth.subscriptionType` | `pro`, `max`, `team`, `enterprise`, `free` | high (`max`: medium) | **Max 5x from Max 20x** |
-| Claude Code | `~/.claude/.credentials.json` | `claudeAiOauth.rateLimitTier` *(confirmed on a real install, Sep 2026)* | `default_claude_max_5x`, `default_claude_max_20x`, … | high | — |
+| Claude Code | `~/.claude.json` | `oauthAccount.userRateLimitTier`, then `oauthAccount.organizationRateLimitTier` (the account profile, refreshed at login; preferred) | `default_claude_max_5x`, `default_claude_max_20x`, … | high | — |
+| Claude Code | `~/.claude/.credentials.json` | `claudeAiOauth.rateLimitTier` (can lag an upgrade: a real install showed 5x here and 20x in the profile) | same | medium | — |
 | Claude Code | `~/.claude.json` | `oauthAccount.userRateLimitTier`, `.organizationRateLimitTier`, `.organizationType` | as above | low | fallback only |
 | Claude Code | `~/.claude.json` | `oauthAccount` *(presence only)* | — | low (plan stays `null`) | any tier; this only rules out API billing |
 | Claude Code | env / `settings.json` | `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, `CLAUDE_CODE_USE_BEDROCK`/`_VERTEX`/`_FOUNDRY`, `apiKeyHelper` | set / not set | high | → `api` |

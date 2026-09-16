@@ -32,6 +32,26 @@ export interface Row {
   survival_ratio: number | null;
 }
 
+/**
+ * The cap applied to a session's wall-clock span when active time is unknown.
+ * A session the tool could not give us turns for is not evidence of a nine
+ * hour shift; four hours is the longest single sitting worth believing.
+ */
+export const ACTIVE_FALLBACK_CAP_S = 4 * 3600;
+
+/**
+ * Hours of work a session represents. Active time where the adapter could
+ * compute it, otherwise the wall-clock span capped at `ACTIVE_FALLBACK_CAP_S`.
+ *
+ * This is the only definition of "hours" in the codebase. `duration_s` stays
+ * the wall-clock span - it is what size inference reads - but summing it
+ * across resumed sessions counts nights and weekends as work.
+ */
+export function hoursOf(row: { duration_s: number | null; metrics: Metrics }): number {
+  const active = row.metrics.active_s;
+  return (active ?? Math.min(row.duration_s ?? 0, ACTIVE_FALLBACK_CAP_S)) / 3600;
+}
+
 export type GroupKey =
   | 'model' | 'category' | 'tool' | 'week' | 'lang' | 'size' | 'effort'
   // The provider board: same weights, different host, different quantisation.
@@ -340,7 +360,7 @@ export function reporterWeeks(rows: Row[]): ReporterWeek[] {
       api_equiv_usd: priced.length ? priced.reduce((a, b) => a + b, 0) : null,
       limit_hits: list.filter((r) => r.metrics.rate_limit_hits > 0).length,
       limit_peak_pct: peaks.length ? Math.max(...peaks) : null,
-      hours: list.reduce((a, r) => a + r.duration_s, 0) / 3600,
+      hours: list.reduce((a, r) => a + hoursOf(r), 0),
     });
   }
   return out;

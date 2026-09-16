@@ -122,7 +122,7 @@ test('claude: "max" cannot be resolved to 5x or 20x, and is not pretended otherw
 test('claude: a rate-limit tier, where one exists, resolves 20x', () => {
   const d = det('claude', 'claude-rlt');
   assert.equal(d.plan_id, 'claude-max-20x');
-  assert.equal(d.confidence, 'high', 'the field was confirmed on a real install (Sep 2026)');
+  assert.equal(d.confidence, 'medium', 'credentials tier can lag an upgrade; the account profile is the high-confidence source');
   assert.match(d.evidence!, /rateLimitTier$/);
 });
 

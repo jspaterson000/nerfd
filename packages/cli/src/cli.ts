@@ -21,7 +21,8 @@ const HELP = `nerfd - nerfd.ai. a local-first scorecard of how AI models perform
   nerfd export [--public] [--csv]               dump your data
   nerfd report [--weeks 4] [--out file] [--projects]   your own usage, errors, ranking and economics as one page
   nerfd dash [--port 8787]                      local dashboard over your own sessions
-  nerfd backfill [tool] [--since 90d]           import sessions the tool recorded before nerfd existed
+  nerfd backfill [tool] [--since 90d] [--refresh]  import sessions the tool recorded before nerfd existed
+                                                (--refresh re-reads the ledger for sessions already on record)
   nerfd model-info <raw_id> [--family --version --size --quant --provider --modified]
   nerfd privacy [purge --yes]                what is stored, what is sent, how to stop
   nerfd doctor                                  paths, counts, hook status

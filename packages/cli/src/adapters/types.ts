@@ -1,4 +1,4 @@
-import { SIGNAL_VERSION, computeSignals, type Session, type Tool, type Turn } from '@nerfd/core';
+import { SIGNAL_VERSION, activeSeconds, computeSignals, type Session, type Tool, type Turn } from '@nerfd/core';
 import type { TranscriptFacts } from '../transcript.ts';
 
 // Every tool is different, but they all split the same way. Live events
@@ -99,6 +99,9 @@ export function attachSignals(s: Session, turns: Turn[], onError?: (name: string
     if (!turns.length) return;
     s.signals = computeSignals(turns);
     s.signal_version = SIGNAL_VERSION;
+    // Turns are the only place active time can come from, and this is the one
+    // call that has them. `duration_s` stays the wall-clock span.
+    s.metrics.active_s = activeSeconds(turns);
     // `pushback` deliberately conflates "stop" with an interrupted turn, so
     // it is not an interrupt count. The interrupted turns are, and they are
     // the same event the hook counts, so take the larger rather than the sum.

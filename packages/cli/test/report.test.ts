@@ -40,9 +40,10 @@ writeFileSync(join(HOME, 'config.json'), JSON.stringify({
   },
 }, null, 2) + '\n', { mode: 0o600 });
 
-const { putSession } = await import('../src/db.ts');
+const { listSessions, putSession } = await import('../src/db.ts');
 const { buildReportData, labelFor, logoFor } = await import('../src/report/data.ts');
 const { renderFallback } = await import('../src/report/fallback.ts');
+const { renderReport } = await import('../src/report/html.ts');
 
 const REFS = {
   opus: resolveModelRef('claude-opus-5', 'anthropic', {}),
@@ -148,6 +149,14 @@ function session(s: Spec): Session {
 }
 
 for (const s of SPECS) putSession(session(s));
+
+// A session resumed across three days: 72 hours of wall clock, half an hour
+// of work. Deliberately outside the four-week window every assertion below
+// uses, so only the eight-week report sees it.
+const RESUMED = session({ id: 's13', which: 'opus', tool: 'claude-code', plan: MAX20, days: 40, category: 'code', rating: null, kept: 'unknown', survival: null });
+RESUMED.duration_s = 3 * 86_400;
+RESUMED.metrics = { ...RESUMED.metrics, active_s: 1800 };
+putSession(RESUMED);
 
 const data = buildReportData({ weeks: 4, projects: false });
 
@@ -359,4 +368,39 @@ test('`nerfd report --no-open --out file` writes a readable page', () => {
   assert.ok(html.trimStart().toLowerCase().startsWith('<!doctype html>'));
   assert.ok(clean(html) && !html.includes(PROJECT));
   assert.ok(html.includes(LABELS.opus));
+});
+
+test('hours are active time: a session resumed over three days is half an hour', () => {
+  const wide = buildReportData({ weeks: 8, projects: false });
+  assert.equal(wide.glance.sessions, 13);
+  // The twelve sessions above are half an hour each; s13 adds its active
+  // half hour, not its 72 hour span (which would have read 10 hours).
+  assert.equal(wide.glance.hours, 6.5);
+  assert.match(wide.glance.sentence, /6\.5 hours of work/);
+  // duration_s stays the wall span on the record; only what is reported moved.
+  const stored = listSessions({ limit: 50 }).find((s) => s.id === 's13')!;
+  assert.equal(stored.duration_s, 3 * 86_400);
+  assert.equal(stored.metrics.active_s, 1800);
+});
+
+test('a period nobody has judged reports no successes rather than none succeeding', () => {
+  const unjudged = {
+    ...data,
+    glance: { ...data.glance, successes: null, success_rate: null },
+  };
+  const html = renderFallback(unjudged);
+  assert.ok(!/0 of 12 sessions succeeded/.test(html));
+  const full = renderReport(unjudged, { logos: {} });
+  assert.ok(full.includes('not measured yet'), 'the lede says the work is unmeasured');
+  assert.ok(!/0 of 12 sessions succeeded/.test(full));
+});
+
+test('a version that refines the family name replaces it rather than following it', () => {
+  const sol = resolveModelRef('gpt-5.6-sol', 'openai', {});
+  assert.equal(labelFor('gpt-5.6-sol', sol), 'gpt-5.6');            // not gpt-5-5.6
+  const codex = resolveModelRef('gpt-5.6-codex', 'openai', {});
+  assert.equal(labelFor('gpt-5.6-codex', codex), 'gpt-5.6-codex');  // not gpt-codex-5.6-codex
+  const astra = resolveModelRef('gpt-6-astra', 'openai', {});
+  assert.equal(labelFor('gpt-6-astra', astra), 'gpt-6-astra');      // a name, not a number: appended
+  assert.equal(LABELS.opus, 'claude-opus-5');
 });

@@ -1,4 +1,4 @@
-import { signalRates, toReport, type Session } from '@nerfd/core';
+import { hoursOf, signalRates, toReport, type Session } from '@nerfd/core';
 import { listSessions, putSession, resolveSession } from '../db.ts';
 import { finalise } from '../hooks/handler.ts';
 import { flag, num, str, type Args } from '../args.ts';
@@ -29,7 +29,9 @@ export function sessions(a: Args): void {
     table(
       ['id', 'tool', 'model', 'cat', 'sz', 'dur', 'prompts', 'edits', 'err', 'rl', 'int', 'steer', 'rating', 'kept', 'surv', 'when'],
       rows.map((s) => [
-        s.id.slice(0, 8), s.tool, s.model ?? '?', s.category, s.size, fmtDuration(s.duration_s),
+        // Active time, not the wall-clock span: a session resumed the next
+        // morning is not a twelve hour session.
+        s.id.slice(0, 8), s.tool, s.model ?? '?', s.category, s.size, fmtDuration(Math.round(hoursOf(s) * 3600)),
         s.metrics.prompts, s.metrics.edits, s.metrics.errors, s.metrics.rate_limit_hits, s.metrics.interrupts,
         steerCount(s),
         s.outcome.rating ?? '-', s.outcome.kept === 'unknown' ? '-' : s.outcome.kept, fmtPct(s.survival.ratio),

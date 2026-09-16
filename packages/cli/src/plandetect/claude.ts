@@ -79,12 +79,27 @@ export const detectClaude: Detector = ({ home, env }): Detection => {
     }
   }
 
-  // 3. The precise tier, if a rate-limit tier field is present. Unconfirmed,
-  //    allowlisted, and purely additive: absent or unrecognised means step 4.
+  // 3. The precise tier from the account profile in ~/.claude.json, which
+  //    Claude Code refreshes on every login (profileFetchedAt). Seen on a real
+  //    Max 20x install (Sep 2026): organizationRateLimitTier
+  //    "default_claude_max_20x" while the credentials blob below still said
+  //    "default_claude_max_5x" from an expired token issued before an upgrade.
+  //    So the profile wins, and the credentials tier is only a fallback.
+  //    Only these two tier keys are read; the identity keys in the same
+  //    object (emailAddress, fullName, displayName, organizationName,
+  //    accountUuid, organizationUuid) are never named by any path here.
+  const dotJson = underHome(home, '.claude.json');
+  for (const field of [['oauthAccount', 'userRateLimitTier'], ['oauthAccount', 'organizationRateLimitTier']]) {
+    const v = pluckEnum(dotJson, field, RATE_LIMIT_TIERS);
+    if (v) return detected(RATE_LIMIT_TIER[v]!, evidenceOf(home, dotJson, field.join('.')), 'high');
+  }
+
+  // 4. The rate-limit tier in the credentials file. Can lag an upgrade, so
+  //    medium confidence; the CLI prints the tier so a person can correct it.
   const creds = underHome(dir, '.credentials.json');
   const rlt = pluckEnum(creds, ['claudeAiOauth', 'rateLimitTier'], RATE_LIMIT_TIERS);
   if (rlt) {
-    return detected(RATE_LIMIT_TIER[rlt]!, evidenceOf(home, creds, 'claudeAiOauth.rateLimitTier'), 'high');
+    return detected(RATE_LIMIT_TIER[rlt]!, evidenceOf(home, creds, 'claudeAiOauth.rateLimitTier'), 'medium');
   }
 
   // 4. The subscription tier itself, from the credentials file.
@@ -98,17 +113,9 @@ export const detectClaude: Detector = ({ home, env }): Detection => {
     return unknown(ev);
   }
 
-  // 5. ~/.claude.json, as a fallback for the keychain case. Two field names are
-  //    tried, both against allowlists, so a value that is not a tier is
-  //    discarded rather than returned. The identity keys in that same object -
-  //    emailAddress, fullName, displayName, organizationName, accountUuid,
-  //    organizationUuid - are never named by any path in this file, and the
-  //    value gate in read.ts rejects an email or a uuid even if they were.
-  const dotJson = underHome(home, '.claude.json');
-  for (const field of [['oauthAccount', 'userRateLimitTier'], ['oauthAccount', 'organizationRateLimitTier']]) {
-    const v = pluckEnum(dotJson, field, RATE_LIMIT_TIERS);
-    if (v) return detected(RATE_LIMIT_TIER[v]!, evidenceOf(home, dotJson, field.join('.')), 'low');
-  }
+  // 5. ~/.claude.json organizationType, as a fallback for the keychain case
+  //    when no tier field was present above. The value gate in read.ts
+  //    rejects an email or a uuid even if a path ever named one.
   const seat = pluckEnum(dotJson, ['oauthAccount', 'organizationType'], TIERS);
   if (seat) {
     const id = TIER_TO_PLAN[seat];

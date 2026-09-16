@@ -26,8 +26,8 @@ export const SAMPLE: ReportData = {
   glance: { sessions: 84, hours: 62.4, successes: 63, success_rate: .75, api_equiv_usd: 410.8, sentence: 'You put AI to work for 62.4 hours across three tools. 63 of 84 sessions succeeded. Your Claude Max plan delivered about 3.4× its period cost in API-equivalent work.' },
   economics: {
     plans: [
-      { tool: 'Claude Code', plan_id: 'claude-max-5x', name: 'Claude Max 5×', usd_month: 100, weeks: 4, sessions: 38, successes: 29, hours: 32.8, api_equiv_usd: 313.6, multiple: 3.4, cost_per_success: 92.31 / 29, waste_share: .13, limit_hits: 7, limit_peak_pct: 98, hosted_equiv_saved_usd: null },
-      { tool: 'Codex', plan_id: 'chatgpt-plus', name: 'ChatGPT Plus', usd_month: 20, weeks: 4, sessions: 24, successes: 19, hours: 17.6, api_equiv_usd: 76.2, multiple: 4.13, cost_per_success: 18.46 / 19, waste_share: .09, limit_hits: 2, limit_peak_pct: 84, hosted_equiv_saved_usd: null },
+      { tool: 'Claude Code', tools: ['Claude Code'], source: 'detected', plan_id: 'claude-max-5x', name: 'Claude Max 5×', usd_month: 100, weeks: 4, sessions: 38, successes: 29, hours: 32.8, api_equiv_usd: 313.6, multiple: 3.4, cost_per_success: 92.31 / 29, waste_share: .13, limit_hits: 7, limit_peak_pct: 98, hosted_equiv_saved_usd: null },
+      { tool: 'Codex', tools: ['Codex', 'OpenCode'], source: 'assumed', plan_id: 'chatgpt-plus', name: 'ChatGPT Plus', usd_month: 20, weeks: 4, sessions: 24, successes: 19, hours: 17.6, api_equiv_usd: 76.2, multiple: 4.13, cost_per_success: 18.46 / 19, waste_share: .09, limit_hits: 2, limit_peak_pct: 84, hosted_equiv_saved_usd: null },
     ],
     models: models.map((m, i) => ({ label: m.label, logo: m.logo, serving_mode: m.serving_mode, n: m.n, cost_mean: [8.6, 3.175, .84, 1.092, 7.28][i]!, cost_per_success: m.cost_per_success, waste_share: [.08, .09, .12, null, .29][i]! })),
   },

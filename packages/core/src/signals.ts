@@ -645,6 +645,32 @@ export function computeSignals(turns: Turn[]): Signals {
  * carries no shell-command count; read it as "retries per prompt", not as a
  * share of commands.
  */
+/**
+ * How long the session was actually being worked on, in seconds.
+ *
+ * The wall-clock span between the first and last turn is not work: a session
+ * resumed after lunch, or the next morning, or on Monday, counts the gap as
+ * effort and turns eight weeks of coding into 2,457 "hours". So each gap
+ * between consecutive turns is counted only up to `idleCapS`, which is the
+ * longest a person is assumed to still be at the keyboard waiting. A final
+ * half-cap is added for the work that followed the last recorded turn, and a
+ * session with one turn gets a flat minute, because a single timestamp says
+ * nothing about a span.
+ *
+ * Deliberately conservative: it under-counts a long think and never invents
+ * an afternoon.
+ */
+export function activeSeconds(turns: Turn[], idleCapS = 600): number {
+  const ts = turns.map((t) => t.ts).filter((n) => typeof n === 'number' && Number.isFinite(n)).sort((a, b) => a - b);
+  if (ts.length === 0) return 0;
+  if (ts.length === 1) return 60;
+  let total = 0;
+  for (let i = 1; i < ts.length; i++) {
+    total += Math.min(Math.max(0, (ts[i]! - ts[i - 1]!) / 1000), idleCapS);
+  }
+  return Math.round(total + idleCapS / 2);
+}
+
 export function signalRates(s: Signals): SignalRates {
   const perUser = (n: number) => (s.user_turns > 0 ? round(n / s.user_turns, 4) : null);
   return {

@@ -116,6 +116,8 @@ test('attachSignals stores counts, a version and nothing that reads like a trans
   assert.ok(s.signals);
   assert.equal(s.signal_version, SIGNAL_VERSION);
   assert.equal(s.signals!.corrections, 1);
+  // The same pass over the turns is the only place active time can come from.
+  assert.ok(s.metrics.active_s != null && s.metrics.active_s > 0);
 
   // The privacy rule, enforced rather than reviewed: there is no string in
   // what gets written to the database.
@@ -140,6 +142,7 @@ test('attachSignals is inert on an empty transcript and never throws', () => {
   attachSignals(s, []);
   assert.equal(s.signals, undefined);
   assert.equal(s.signal_version, undefined);
+  assert.equal(s.metrics.active_s, null, 'no turns means no claim about active time');
 
   let seen: string | null = null;
   const bad = [null as unknown as Turn];

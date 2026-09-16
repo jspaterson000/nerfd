@@ -47,6 +47,11 @@ export function validateReport(x: unknown): string | null {
     const v = m[k];
     if (v != null && (typeof v !== 'number' || v < 0 || v > 1e7)) return `metrics.${k} invalid`;
   }
+  // Active time is a duration, not an identity, and it is bounded by the same
+  // seven days a session's wall-clock span is. Null when the tool's store
+  // could not reconstruct turns, and absent on clients that predate it.
+  if (m.active_s != null && (typeof m.active_s !== 'number' || m.active_s < 0 || m.active_s > 7 * 86400)) return 'metrics.active_s invalid';
+
   // Added with the adapter layer; a client that predates them is still valid.
   for (const k of ['tool_call_errors','context_limit_hits']) {
     const v = m[k];

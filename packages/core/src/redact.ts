@@ -111,6 +111,8 @@ export function toReport(s: Session, installId: string, clientVersion: string, e
     size: s.size,
     repo: publicLang(s.repo),
     duration_s: s.duration_s ?? 0,
+    // Metrics pass through whole, `active_s` included: it is a duration, like
+    // duration_s and the latencies, and says nothing about who or where.
     metrics: s.metrics,
     // Signals pass through untouched. There is nothing to redact: the type
     // has no string field, so what is here is counts, booleans and nulls.

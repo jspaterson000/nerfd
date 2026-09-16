@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   ABANDON_WINDOW_MS,
   SIGNAL_MARKERS,
+  activeSeconds,
   SIGNAL_VERSION,
   computeSignals,
   emptySignals,
@@ -451,4 +452,31 @@ test('version is published and the local classifier is a stub', () => {
   assert.equal(typeof SIGNAL_VERSION, 'number');
   assert.ok(SIGNAL_VERSION >= 1);
   assert.equal(localClassifierAvailable(), false);
+});
+
+test('activeSeconds counts work, not the night between two sittings', () => {
+  const t0 = Date.parse('2026-09-14T09:00:00Z');
+  const min = 60_000;
+  const turn = (atMin: number): Turn => ({ role: 'user', ts: t0 + atMin * min });
+
+  // Three days between the second turn and the third: the session spans 72
+  // hours of wall clock and holds well under twenty minutes of work.
+  const resumed = [turn(0), turn(2), { ...turn(3 * 24 * 60), role: 'assistant' as const }, turn(3 * 24 * 60 + 2)];
+  const active = activeSeconds(resumed);
+  assert.ok(active < 20 * 60, `${active}s should be under twenty minutes`);
+  // 2 min + a capped 10 + 2 min + the half-cap allowance.
+  assert.equal(active, 2 * 60 + 600 + 2 * 60 + 300);
+
+  // Order does not matter: the turns are sorted before the gaps are taken.
+  assert.equal(activeSeconds([...resumed].reverse()), active);
+
+  // A session that ran straight through is counted in full.
+  assert.equal(activeSeconds([turn(0), turn(5), turn(9)]), 9 * 60 + 300);
+
+  // Degenerate input: one turn is a flat minute, none is nothing.
+  assert.equal(activeSeconds([turn(0)]), 60);
+  assert.equal(activeSeconds([]), 0);
+
+  // The cap is the whole mechanism, so it is a parameter.
+  assert.equal(activeSeconds([turn(0), turn(60)], 120), 120 + 60);
 });

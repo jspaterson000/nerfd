@@ -264,3 +264,29 @@ test('the public record keeps model_ref but never a user-chosen provider name', 
   assert.equal(hosted.model_ref.raw_provider, 'anthropic');
   assert.equal(validateReport({ ...hosted, model_ref: { ...hosted.model_ref, serving_mode: 'wishful' } }) != null, true);
 });
+
+test('the codex ids a real Codex install reports resolve and carry a price', () => {
+  // Every id here came out of a live `nerfd export`, and all three were
+  // either mislabelled or unpriced before.
+  const sol = resolveModelRef('gpt-5.6-sol', 'openai');
+  assert.equal(sol.family, 'gpt-5');
+  assert.equal(sol.version, '5.6');
+  assert.ok(priceFor(sol), 'gpt-5.6-sol is in the snapshot under openai');
+
+  const codex = resolveModelRef('gpt-5-codex', 'openai');
+  assert.equal(codex.family, 'gpt-codex');
+  assert.ok(priceFor(codex));
+
+  const newer = resolveModelRef('gpt-5.6-codex', 'openai');
+  assert.equal(newer.family, 'gpt-codex');
+  assert.ok(priceFor(newer));
+
+  // An id the snapshot has never heard of still belongs to a family somebody
+  // publishes a price for, and the family's own vendor answers first.
+  const internal = resolveModelRef('codex-auto-review', 'openai');
+  assert.equal(internal.family, 'gpt-codex');
+  const p = priceFor(internal);
+  assert.ok(p && p.input > 0, 'a family price beats no price at all');
+  assert.match(p!.source, /openai\//);
+  assert.match(p!.source, /\(family\)$/);
+});

@@ -1,5 +1,5 @@
 import {
-  CATEGORIES, aggregate, costUsd, drift, economics, hostedEquivalentUsd, isSuccess,
+  CATEGORIES, aggregate, costUsd, drift, economics, hostedEquivalentUsd, hoursOf, isSuccess,
   planById, reporterWeeks, steeringRate, weekly,
   type Category, type Group, type ModelRef, type Row, type Session, type Tool,
 } from '@nerfd/core';
@@ -8,7 +8,7 @@ import { loadConfig } from '../paths.ts';
 import { effectivePlan } from '../plandetect/index.ts';
 import { localRows } from '../rows.ts';
 import type {
-  Logo, ReportData, ReportDrift, ReportMatrixCell, ReportModelEconomics, ReportPlan,
+  Logo, PlanSourceLabel, ReportData, ReportDrift, ReportMatrixCell, ReportModelEconomics, ReportPlan,
   ReportPlanEconomics, ReportRankedModel, ReportRoughSession, ReportTroubleModel, ReportWeekTrouble,
 } from './types.ts';
 
@@ -72,11 +72,17 @@ export function labelFor(model: string, ref: ModelRef | null | undefined): strin
   let base = family ?? model ?? 'unknown';
   const version = ref?.version ?? null;
   if (family && version && !family.toLowerCase().includes(version.toLowerCase())) {
+    const v = version.toLowerCase();
     // `gpt-codex` + `5-codex` is `gpt-5-codex`, not `gpt-codex-5-codex`: when
     // the version restates the tail of the family, it replaces it.
     const tail = family.slice(family.lastIndexOf('-') + 1);
-    base = tail.length >= 2 && version.toLowerCase().includes(tail.toLowerCase())
-      ? family.slice(0, family.length - tail.length) + version
+    // `gpt-5` + `5.6` is `gpt-5.6`, not `gpt-5-5.6`, and `qwen3` + `3.8` is
+    // `qwen3.8`: a version that refines the release number already in the
+    // family name replaces that number rather than following it.
+    const numTail = /\d+(?:\.\d+)*$/.exec(family)?.[0] ?? null;
+    base =
+      tail.length >= 2 && v.includes(tail.toLowerCase()) ? family.slice(0, family.length - tail.length) + version
+      : numTail && v.startsWith(numTail) ? family.slice(0, family.length - numTail.length) + version
       : `${family}-${version}`;
   }
   if (ref?.serving_mode === 'local') {
@@ -146,7 +152,7 @@ function totalCost(rows: Row[]): number | null {
 }
 
 function hours(rows: Row[]): number {
-  return sum(rows.map((r) => r.duration_s)) / 3600;
+  return sum(rows.map(hoursOf));
 }
 
 const plural = (n: number, one: string, many = one + 's') => `${n} ${n === 1 ? one : many}`;
@@ -177,14 +183,17 @@ export function buildReportData(opts: ReportOpts): ReportData {
     period: { from: fromIso, to: toIso },
   };
 
-  const plans = declaredAndDetectedPlans(tools);
+  // Imported history carries no plan of its own; `attributePlans` lends it
+  // today's, for this report only, and says so.
+  const attributed = attributePlans(rows);
+  const plans = declaredAndDetectedPlans(tools, attributed.assumedFor);
 
   if (rows.length === 0) {
     const sentence = `No finished sessions in the last ${plural(weeks, 'week')}. Run \`nerfd init\`, then use your coding tool as usual.`;
     return {
       ...base,
       identity: { tools, models: [], plans },
-      glance: { sessions: 0, hours: 0, successes: 0, success_rate: null, api_equiv_usd: null, sentence },
+      glance: { sessions: 0, hours: 0, successes: null, success_rate: null, api_equiv_usd: null, sentence },
       economics: { plans: [], models: [] },
       ranking: { models: [], matrix: { categories: [], models: [], cells: [] }, which: [] },
       trouble: { by_model: [], weekly: [], roughest: [] },
@@ -198,7 +207,7 @@ export function buildReportData(opts: ReportOpts): ReportData {
     };
   }
 
-  const planEconomics = buildPlanEconomics(rows);
+  const planEconomics = buildPlanEconomics(attributed.rows, attributed.sourceOf);
   const ranked = ids.map(toRanked);
   const matrix = buildMatrix(rows, ids, labelOf);
   const glance = buildGlance(rows, weeks, tools, planEconomics);
@@ -227,31 +236,77 @@ export function buildReportData(opts: ReportOpts): ReportData {
  * beats one read off this machine's config, which beats nothing. The file a
  * detector opened never leaves `plandetect`; only the id and the word.
  */
-function declaredAndDetectedPlans(tools: Tool[]): ReportPlan[] {
-  const cfg = loadConfig();
+function declaredAndDetectedPlans(tools: Tool[], assumedFor: Set<Tool>): ReportPlan[] {
   const out: ReportPlan[] = [];
   for (const tool of tools) {
-    const e = effectivePlan(cfg, tool);
-    if (!e.plan_id) continue;
-    const declared = cfg.plans[tool] ?? cfg.plans.other;
-    const known = planById(e.plan_id);
-    const declaredHere = e.plan_source === 'declared' && declared?.id === e.plan_id;
-    out.push({
-      tool,
-      plan_id: e.plan_id,
-      name: (declaredHere ? declared?.name : known?.name) ?? known?.name ?? e.plan_id,
-      usd_month: declaredHere ? (declared?.usd_month ?? null) : (known?.usd_month ?? null),
-      source: e.plan_source === 'declared' || e.plan_source === 'detected' ? e.plan_source : 'unknown',
-    });
+    const p = planForTool(tool);
+    if (!p) continue;
+    out.push({ ...p, source: assumedFor.has(tool) ? 'assumed' : p.source });
   }
   return out.sort((a, b) => a.tool.localeCompare(b.tool) || a.plan_id.localeCompare(b.plan_id));
+}
+
+interface ToolPlan { tool: Tool; plan_id: string; name: string; usd_month: number | null; source: PlanSourceLabel }
+
+/** The plan in force for one tool right now, priced the way `planStamp` prices it. */
+function planForTool(tool: Tool): ToolPlan | null {
+  const cfg = loadConfig();
+  const e = effectivePlan(cfg, tool);
+  if (!e.plan_id) return null;
+  const declared = cfg.plans[tool] ?? cfg.plans.other;
+  const known = planById(e.plan_id);
+  const declaredHere = e.plan_source === 'declared' && declared?.id === e.plan_id;
+  return {
+    tool,
+    plan_id: e.plan_id,
+    name: (declaredHere ? declared?.name : known?.name) ?? known?.name ?? e.plan_id,
+    usd_month: declaredHere ? (declared?.usd_month ?? null) : (known?.usd_month ?? null),
+    source: e.plan_source === 'declared' || e.plan_source === 'detected' ? e.plan_source : 'unknown',
+  };
+}
+
+/**
+ * Sessions imported from a tool's own history predate the plan stamp, so they
+ * carry no plan at all and the economics section comes out empty on an
+ * install whose data was backfilled. The plan in force today is the only
+ * available answer for them, so it is applied here, for this report only:
+ * nothing is written back to the session, and every plan whose sessions were
+ * attributed this way is marked 'assumed' wherever it is shown.
+ */
+function attributePlans(rows: Row[]): { rows: Row[]; assumedFor: Set<Tool>; sourceOf: Map<string, PlanSourceLabel> } {
+  const cache = new Map<Tool, ToolPlan | null>();
+  const planOf = (t: Tool): ToolPlan | null => {
+    if (!cache.has(t)) cache.set(t, planForTool(t));
+    return cache.get(t) ?? null;
+  };
+  const stampedTools = new Set<Tool>(rows.filter((r) => r.plan_id).map((r) => r.tool));
+  const stampedPlans = new Set<string>(rows.map((r) => r.plan_id).filter((x): x is string => x != null));
+  const assumedFor = new Set<Tool>();
+  const attributed = new Set<string>();
+
+  const out = rows.map((r) => {
+    if (r.plan_id) return r;
+    const p = planOf(r.tool);
+    if (!p) return r;
+    if (!stampedTools.has(r.tool)) assumedFor.add(r.tool);
+    attributed.add(p.plan_id);
+    return { ...r, plan_id: p.plan_id, plan_usd_month: p.usd_month };
+  });
+
+  // A plan reads 'assumed' only when nothing on it was stamped at the time.
+  const sourceOf = new Map<string, PlanSourceLabel>();
+  for (const id of attributed) if (!stampedPlans.has(id)) sourceOf.set(id, 'assumed');
+  for (const p of cache.values()) if (p && !sourceOf.has(p.plan_id)) sourceOf.set(p.plan_id, p.source);
+  return { rows: out, assumedFor, sourceOf };
 }
 
 // ---- glance -------------------------------------------------------------
 
 function buildGlance(rows: Row[], weeks: number, tools: Tool[], plans: ReportPlanEconomics[]): ReportData['glance'] {
   const judged = rows.map(isSuccess).filter((x): x is boolean => x != null);
-  const successes = rows.filter((r) => isSuccess(r) === true).length;
+  // Null, not zero. Nothing rated, kept or measured means the period has no
+  // successes to report, which is not the same as having failed everything.
+  const successes = judged.length ? rows.filter((r) => isSuccess(r) === true).length : null;
   const success_rate = judged.length ? judged.filter(Boolean).length / judged.length : null;
   const api = totalCost(rows);
   const hrs = hours(rows);
@@ -261,7 +316,7 @@ function buildGlance(rows: Row[], weeks: number, tools: Tool[], plans: ReportPla
     // "0 succeeded" would be a verdict on work nobody has judged yet.
     success_rate == null
       ? 'None of them are rated or measured yet, so there is no success rate: `nerfd rate last 4 kept` takes two seconds.'
-      : `${successes} succeeded (${pct(success_rate)}).`,
+      : `${successes ?? 0} succeeded (${pct(success_rate)}).`,
   ];
   // The plan sentence is the one people quote, so it names the plan that paid
   // for the most sessions rather than the best-value one.
@@ -288,19 +343,26 @@ function buildGlance(rows: Row[], weeks: number, tools: Tool[], plans: ReportPla
  * plan actually saw sessions, because a report over four weeks of which two
  * were a holiday should not claim a month's price bought nothing.
  */
-function buildPlanEconomics(rows: Row[]): ReportPlanEconomics[] {
+function buildPlanEconomics(rows: Row[], sourceOf: Map<string, PlanSourceLabel>): ReportPlanEconomics[] {
   const rws = reporterWeeks(rows);
+  // By plan, not by tool: one subscription is one card even when three tools
+  // spend it, and its price is charged once rather than once per tool.
   const byPlan = new Map<string, typeof rws>();
   for (const rw of rws) {
-    const key = `${rw.tool} | ${rw.plan_id}`;
-    if (!byPlan.has(key)) byPlan.set(key, []);
-    byPlan.get(key)!.push(rw);
+    if (!byPlan.has(rw.plan_id)) byPlan.set(rw.plan_id, []);
+    byPlan.get(rw.plan_id)!.push(rw);
   }
   const out: ReportPlanEconomics[] = [];
   for (const [, list] of byPlan) {
     const f = list[0]!;
-    const mine = rows.filter((r) => r.tool === f.tool && r.plan_id === f.plan_id);
-    const weeks = list.length;
+    const mine = rows.filter((r) => r.plan_id === f.plan_id);
+    const sessionsByTool = new Map<string, number>();
+    for (const x of list) sessionsByTool.set(x.tool, (sessionsByTool.get(x.tool) ?? 0) + x.sessions);
+    const tools = [...sessionsByTool.keys()].sort();
+    const primary = [...sessionsByTool].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]![0];
+    // Calendar weeks the plan was used in, so two tools in the same week do
+    // not buy the subscription twice.
+    const weeks = new Set(list.map((x) => x.week)).size;
     const prorata = f.plan_usd_week == null ? null : f.plan_usd_week * weeks;
     const api = list.map((x) => x.api_equiv_usd).filter((x): x is number => x != null);
     const api_equiv_usd = api.length ? sum(api) : null;
@@ -309,7 +371,9 @@ function buildPlanEconomics(rows: Row[]): ReportPlanEconomics[] {
     const known = planById(f.plan_id);
     const saved = sum(mine.map((r) => hostedEquivalentUsd(r.model_ref ?? null, r.metrics) ?? 0));
     out.push({
-      tool: f.tool,
+      tool: primary,
+      tools,
+      source: sourceOf.get(f.plan_id) ?? 'unknown',
       plan_id: f.plan_id,
       name: known?.name ?? f.plan_id,
       usd_month: f.plan_usd_month ?? null,
@@ -471,7 +535,9 @@ function roughestSessions(fromIso: string, toIso: string, projects: boolean): Re
         label: labelFor(s.model ?? 'unknown', s.model_ref),
         logo: logoFor(s.model_ref?.family) || logoFor(s.model) || logoFor(s.model_ref?.provider),
         category: s.category,
-        duration_s: s.duration_s ?? 0,
+        // Active time where we have it. The wall-clock span of a session
+        // resumed across two days says nothing about how long it took.
+        duration_s: Math.round(hoursOf(s) * 3600),
         errors: s.metrics.errors,
         rate_limits: s.metrics.rate_limit_hits,
         interrupts: s.metrics.interrupts,

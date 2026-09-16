@@ -68,6 +68,12 @@ export interface Metrics {
   tokens_cache_read: number;
   latency_p50_ms: number | null;  // model response latency after a prompt or tool result
   latency_p95_ms: number | null;
+  // Time the session was actually being worked on, from the gaps between
+  // turns with each idle gap capped (see `activeSeconds`). `duration_s` is
+  // the wall-clock span from the first turn to the last, so a session resumed
+  // the next morning counts a night's sleep as work; this does not. Null when
+  // the tool's store cannot reconstruct turns.
+  active_s: number | null;
   limit_used_pct: number | null;   // subscription window used at session end, where the tool reports it (codex does)
   limit_window_min: number | null; // length of that window in minutes
 }
@@ -160,6 +166,7 @@ export function emptyMetrics(): Metrics {
     errors: 0, rate_limit_hits: 0, timeouts: 0, model_switches: 0, interrupts: 0,
     tool_call_errors: 0, context_limit_hits: 0, tokens_in: 0, tokens_out: 0,
     tokens_cache_read: 0, latency_p50_ms: null, latency_p95_ms: null, limit_used_pct: null, limit_window_min: null,
+    active_s: null,
   };
 }
 

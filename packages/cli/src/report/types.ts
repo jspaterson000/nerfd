@@ -5,25 +5,33 @@
 
 export type Logo = string; // key into the logo set: anthropic, openai, google, moonshotai, zai, deepseek, alibaba, minimax, meta, mistral, xai, ollama, openrouter, groq, lmstudio, opencode, github, or '' for none
 
+export type PlanSourceLabel = 'detected' | 'declared' | 'assumed' | 'unknown';
+
 export interface ReportPlan {
   tool: string;
   plan_id: string;
   name: string;
   usd_month: number | null;
-  source: 'detected' | 'declared' | 'unknown';
+  // 'assumed' means the sessions themselves carry no plan - imported history
+  // predates the stamp - and today's plan was applied to them for the sums.
+  source: PlanSourceLabel;
 }
 
 export interface ReportGlance {
   sessions: number;
   hours: number;
-  successes: number;
+  // Null, not zero, when nothing in the period was rated, kept or measured:
+  // "0 successes" is a verdict on work nobody has judged.
+  successes: number | null;
   success_rate: number | null;
   api_equiv_usd: number | null;   // sum over priced sessions
   sentence: string;               // one plain-English line summarising the period
 }
 
 export interface ReportPlanEconomics {
-  tool: string;
+  tool: string;                   // the tool with the most sessions on this plan; picks the logo
+  tools: string[];                // every tool that ran on it: one subscription, one card
+  source: PlanSourceLabel;
   plan_id: string;
   name: string;
   usd_month: number | null;

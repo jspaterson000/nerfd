@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CRITERIA, CRITERION_HELP, aggregate, classifyPrompt, drift, emptyMetrics, emptySignals, isoWeek, planSummaries, scoreGroup, steeringRate, summarise, tierModels, validateReport, wilson, type Row, type Signals } from '../src/index.ts';
+import { CRITERIA, CRITERION_HELP, aggregate, classifyPrompt, drift, emptyMetrics, emptySignals, hoursOf, isoWeek, planSummaries, reporterWeeks, scoreGroup, steeringRate, summarise, tierModels, validateReport, wilson, type Row, type Signals } from '../src/index.ts';
 
 test('classifyPrompt picks the strongest signal', () => {
   assert.equal(classifyPrompt('fix the failing test, it throws on empty input'), 'debug');
@@ -47,6 +47,30 @@ test('validateReport accepts a good record and rejects a bad one', () => {
   assert.match(validateReport({ ...good, category: 'vibes' }) ?? '', /category/);
   assert.match(validateReport({ ...good, evidence_url: 'https://evil.example/x' }) ?? '', /evidence_url/);
   assert.match(validateReport({ ...good, week: '2026-38' }) ?? '', /week/);
+
+  // Active time: absent is fine (older clients), null is fine, negative is not.
+  const { active_s: _drop, ...older } = good.metrics;
+  assert.equal(validateReport({ ...good, metrics: older }), null);
+  assert.equal(validateReport({ ...good, metrics: { ...good.metrics, active_s: 1800 } }), null);
+  assert.match(validateReport({ ...good, metrics: { ...good.metrics, active_s: -1 } }) ?? '', /active_s/);
+  assert.match(validateReport({ ...good, metrics: { ...good.metrics, active_s: 8 * 86400 } }) ?? '', /active_s/);
+});
+
+test('hours are active time, and a resumed session is not days of work', () => {
+  const threeDays = 3 * 86400;
+  // Active time wins outright where the adapter could compute it.
+  assert.equal(hoursOf({ duration_s: threeDays, metrics: { ...emptyMetrics(), active_s: 1800 } }), 0.5);
+  // Without it, the wall-clock span is believed only up to four hours.
+  assert.equal(hoursOf({ duration_s: threeDays, metrics: emptyMetrics() }), 4);
+  assert.equal(hoursOf({ duration_s: 900, metrics: emptyMetrics() }), 0.25);
+  assert.equal(hoursOf({ duration_s: null, metrics: emptyMetrics() }), 0);
+
+  // And the plan's weekly hours are the same quantity, not the wall span.
+  const [week] = reporterWeeks([
+    row({ duration_s: threeDays, metrics: { ...emptyMetrics(), active_s: 1800 } }),
+    row({ duration_s: 1800, metrics: emptyMetrics() }),
+  ]);
+  assert.equal(week!.hours, 1);
 });
 
 test('aggregate scores only with n >= 3 and drops missing parts', () => {

@@ -92,9 +92,14 @@ export function priceFor(model: string | ModelRef | null | undefined): Price | n
     if (any) return toPrice(any, ref && ref.serving_mode !== 'hosted' ? ' (api-equivalent)' : '');
   }
 
+  // An id the snapshot has never seen - `codex-auto-review`, an internal
+  // alias, a rename that landed after the snapshot - still belongs to a
+  // family somebody publishes a price for, and that price is a far better
+  // answer than "unpriced". Closed families count here, unlike the local
+  // equivalence below, where the whole point is weights you could run.
   const family = ref?.family ?? (id ? normalisedFamily(id) : null);
   if (family) {
-    const cheapest = cheapestInFamily(family, ref?.size ?? null);
+    const cheapest = cheapestInFamily(family, ref?.size ?? null, { listPrice: true });
     if (cheapest) return toPrice(cheapest, ' (family)');
   }
 
@@ -102,9 +107,19 @@ export function priceFor(model: string | ModelRef | null | undefined): Price | n
   return null;
 }
 
-function cheapestInFamily(family: string, size: string | null): CatalogHit | null {
-  const candidates = allModels().filter((h) => priced(h) && h.model.open_weights !== false && sameFamily(h, family));
-  if (candidates.length === 0) return null;
+/**
+ * `listPrice` is the "what would this have cost at API rates" question, and
+ * answers it the way a vendor's price list would: a closed family counts, and
+ * the family's own vendor is asked before a reseller undercutting it. Without
+ * it the question is "what is the cheapest way to have run these weights",
+ * which is what `hostedEquivalentUsd` needs, and which must stay a floor.
+ */
+function cheapestInFamily(family: string, size: string | null, opts: { listPrice?: boolean } = {}): CatalogHit | null {
+  const all = allModels().filter((h) => priced(h) && (opts.listPrice === true || h.model.open_weights !== false) && sameFamily(h, family));
+  if (all.length === 0) return null;
+  const vendor = opts.listPrice ? (familyTable().find((f) => f.family === family)?.vendor ?? null) : null;
+  const own = vendor ? all.filter((h) => h.provider_id === vendor) : [];
+  const candidates = own.length ? own : all;
   const sized = size ? candidates.filter((h) => h.model_id.toLowerCase().includes(size.toLowerCase())) : [];
   const pool = sized.length ? sized : candidates;
   // A blend, not the input price: a cheap-in, expensive-out host is not cheap.
