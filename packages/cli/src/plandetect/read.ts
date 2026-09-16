@@ -247,6 +247,64 @@ export function anyEnvSet(env: NodeJS.ProcessEnv, names: readonly string[]): str
   return null;
 }
 
+/**
+ * The date gate. A subscription period is the one non-enum value detection is
+ * allowed to read, so it gets its own gate rather than a hole in the enum one:
+ * the answer must parse as a calendar date and must land within a decade of
+ * now, and it is handed back re-serialised from `Date`, so whatever shape the
+ * file used, what comes out is an ISO timestamp and nothing else. A token, an
+ * id or an email cannot survive `Date.parse` plus the range check.
+ *
+ * Accepts an ISO string, or a unix timestamp in seconds or milliseconds, which
+ * is how a JWT writes one.
+ */
+const DECADE_MS = 10 * 365 * 86400 * 1000;
+
+export function dateGate(raw: unknown, now = Date.now()): string | null {
+  let t: number | null = null;
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    // Seconds if it is small enough to be one; a JWT uses both.
+    t = raw < 1e11 ? raw * 1000 : raw;
+  } else if (typeof raw === 'string' && raw.length <= 40) {
+    const parsed = Date.parse(raw.trim());
+    if (!Number.isNaN(parsed)) t = parsed;
+  }
+  if (t == null || !Number.isFinite(t)) return null;
+  if (t < now - DECADE_MS || t > now + DECADE_MS) return null;
+  return new Date(t).toISOString();
+}
+
+/** Read one named date field out of a JSON file. Returns an ISO string or null. */
+export function pluckDate(path: string, field: string[]): string | null {
+  if (!readableFile(path)) return null;
+  try {
+    const parsed = JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>;
+    return dateGate(dig(parsed, field));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Read one date claim out of the payload of a JWT held at `tokenField`. Same
+ * decoding as `pluckJwtClaim` - one segment, base64url, no verification, the
+ * token itself never returned - with the date gate instead of the enum one.
+ */
+export function pluckJwtDate(path: string, tokenField: string[], claim: string[]): string | null {
+  if (!readableFile(path)) return null;
+  try {
+    const parsed = JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>;
+    const token = dig(parsed, tokenField);
+    if (typeof token !== 'string') return null;
+    const parts = token.split('.');
+    if (parts.length !== 3 || !parts[1]) return null;
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8')) as Record<string, unknown>;
+    return dateGate(dig(payload, claim));
+  } catch {
+    return null;
+  }
+}
+
 /** Walk a dotted path. Returns undefined rather than throwing on any miss. */
 function dig(obj: unknown, field: readonly string[]): unknown {
   let cur: unknown = obj;

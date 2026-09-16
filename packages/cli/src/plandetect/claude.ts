@@ -20,7 +20,7 @@
 
 import { existsSync } from 'node:fs';
 import { detected, unknown, type Detection, type Detector } from './types.ts';
-import { anyEnvSet, evidenceOf, hasNonEmptyString, hasObject, pluckEnum, readableFile, underHome } from './read.ts';
+import { anyEnvSet, evidenceOf, hasNonEmptyString, hasObject, pluckDate, pluckEnum, readableFile, underHome } from './read.ts';
 
 /** Values reported for `subscriptionType`, mapped to plans.ts ids. */
 const TIER_TO_PLAN: Record<string, string | null> = {
@@ -55,6 +55,20 @@ const RATE_LIMIT_TIER: Record<string, string> = {
 };
 
 const RATE_LIMIT_TIERS = Object.keys(RATE_LIMIT_TIER);
+
+/**
+ * The third key this detector is allowed to name inside `oauthAccount`, beside
+ * the two tier fields: when the subscription was created. It is a date, not an
+ * identity - it says nothing about who the account belongs to - and it exists
+ * here for one job: imported history that predates nerfd has no plan on it, and
+ * a session that ended after this date was on this subscription. Claude Code
+ * writes no end date, so the period is open-ended, which is the truth for a
+ * subscription that is still running. It goes through the date gate in read.ts
+ * and never leaves the machine; only the plan id and the word `assumed` do.
+ * The identity keys in the same object (emailAddress, fullName, displayName,
+ * organizationName, accountUuid, organizationUuid) are still never named.
+ */
+const CREATED_AT = ['oauthAccount', 'subscriptionCreatedAt'];
 
 /** Any of these means the session is billed per token, not against a plan. */
 const API_ENV = [
@@ -91,7 +105,7 @@ export const detectClaude: Detector = ({ home, env }): Detection => {
   const dotJson = underHome(home, '.claude.json');
   for (const field of [['oauthAccount', 'userRateLimitTier'], ['oauthAccount', 'organizationRateLimitTier']]) {
     const v = pluckEnum(dotJson, field, RATE_LIMIT_TIERS);
-    if (v) return detected(RATE_LIMIT_TIER[v]!, evidenceOf(home, dotJson, field.join('.')), 'high');
+    if (v) return { ...detected(RATE_LIMIT_TIER[v]!, evidenceOf(home, dotJson, field.join('.')), 'high'), ...activePeriod(dotJson) };
   }
 
   // 4. The rate-limit tier in the credentials file. Can lag an upgrade, so
@@ -99,7 +113,7 @@ export const detectClaude: Detector = ({ home, env }): Detection => {
   const creds = underHome(dir, '.credentials.json');
   const rlt = pluckEnum(creds, ['claudeAiOauth', 'rateLimitTier'], RATE_LIMIT_TIERS);
   if (rlt) {
-    return detected(RATE_LIMIT_TIER[rlt]!, evidenceOf(home, creds, 'claudeAiOauth.rateLimitTier'), 'medium');
+    return { ...detected(RATE_LIMIT_TIER[rlt]!, evidenceOf(home, creds, 'claudeAiOauth.rateLimitTier'), 'medium'), ...activePeriod(dotJson) };
   }
 
   // 4. The subscription tier itself, from the credentials file.
@@ -109,7 +123,7 @@ export const detectClaude: Detector = ({ home, env }): Detection => {
     const ev = evidenceOf(home, creds, 'claudeAiOauth.subscriptionType');
     // "max" is genuinely ambiguous: same string on $100 and $200. Reported as
     // claude-max at medium confidence so the CLI can ask for one `nerfd plan`.
-    if (id) return detected(id, ev, id === 'claude-max' ? 'medium' : 'high');
+    if (id) return { ...detected(id, ev, id === 'claude-max' ? 'medium' : 'high'), ...activePeriod(dotJson) };
     return unknown(ev);
   }
 
@@ -141,3 +155,12 @@ export const detectClaude: Detector = ({ home, env }): Detection => {
   if (readableFile(creds) || existsSync(dir)) return unknown(evidenceOf(home, creds, 'claudeAiOauth.subscriptionType'));
   return unknown();
 };
+
+/**
+ * When this subscription started. Claude Code records no end date, so
+ * `active_until` is null: the subscription is open-ended until something says
+ * otherwise, which is what a live plan is.
+ */
+function activePeriod(dotJson: string): { active_from: string | null; active_until: string | null } {
+  return { active_from: pluckDate(dotJson, CREATED_AT), active_until: null };
+}

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CRITERIA, CRITERION_HELP, aggregate, classifyPrompt, drift, emptyMetrics, emptySignals, hoursOf, isoWeek, planSummaries, reporterWeeks, scoreGroup, steeringRate, summarise, tierModels, validateReport, wilson, type Row, type Signals } from '../src/index.ts';
+import { CRITERIA, CRITERION_HELP, aggregate, classifyPrompt, drift, emptyMetrics, emptySignals, hoursOf, isAutomatedSession, isoWeek, planSummaries, reporterWeeks, scoreGroup, steeringRate, summarise, tierModels, validateReport, wilson, type Row, type Signals } from '../src/index.ts';
 
 test('classifyPrompt picks the strongest signal', () => {
   assert.equal(classifyPrompt('fix the failing test, it throws on empty input'), 'debug');
@@ -230,4 +230,26 @@ test('drift watches steering as well as rating and latency', () => {
   assert.equal(d.flag, 'alert');
   // Nothing to compare when no session carries signals.
   assert.equal(drift([...base, ...cur].map((r) => ({ ...r, signals: null })), 'm1')!.steering_z, null);
+});
+
+test('the automated flag survives redaction and the validator', () => {
+  const base = {
+    report_id: 'r1', reporter_id: 'abc', client_version: '0.1.0', tool: 'claude-code', tool_version: '2.1.0',
+    model: 'm1', effort: 'high', week: '2026-W38', ended_at: '2026-09-16T00:00:00Z', category: 'code', size: 'm',
+    repo: { lang: 'ts', size: 'm', age: 'established' }, duration_s: 600, metrics: emptyMetrics(),
+    rating: 4, kept: 'kept', survival_ratio: 0.9, evidence_url: null,
+  };
+  assert.equal(validateReport({ ...base, automated: true }), null);
+  assert.equal(validateReport({ ...base, automated: false }), null);
+  // A client that predates the flag sends nothing, and is still valid.
+  assert.equal(validateReport(base), null);
+  assert.equal(validateReport({ ...base, automated: 'yes' }), 'automated invalid');
+
+  // A session with no human prompt and no human turn is automated; one with
+  // either is not. Both counters must be zero, because a hook that never saw a
+  // prompt still has turns in the transcript, and vice versa.
+  const m = emptyMetrics();
+  assert.equal(isAutomatedSession({ metrics: m }), true);
+  assert.equal(isAutomatedSession({ metrics: { ...m, prompts: 1 } }), false);
+  assert.equal(isAutomatedSession({ metrics: m, signals: { ...emptySignals(), user_turns: 2 } }), false);
 });

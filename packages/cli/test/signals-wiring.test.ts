@@ -18,7 +18,7 @@ const CODEX = join(FIXTURES, 'codex', 'rollout.jsonl');
 
 function session(over: Partial<Session> = {}): Session {
   return {
-    id: 's1', tool: 'claude-code', tool_version: null, model: 'claude-opus-5', model_ref: emptyModelRef(),
+    id: 's1', tool: 'claude-code', automated: false, tool_version: null, model: 'claude-opus-5', model_ref: emptyModelRef(),
     effort: null, plan_id: null, plan_usd_month: null, plan_source: 'unknown',
     started_at: '2026-09-16T00:00:00Z', ended_at: '2026-09-16T00:10:00Z', duration_s: 600,
     cwd: null, repo: { lang: 'ts', size: 'm', age: 'established' }, category: 'code',

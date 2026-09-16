@@ -127,6 +127,10 @@ export function toReport(s: Session, installId: string, clientVersion: string, e
     rating: s.outcome.rating,
     kept: s.outcome.kept,
     survival_ratio: s.survival.ratio,
+    // A boolean about the session, not about the person: nobody prompted it.
+    // Published so the board can rank steered work separately without
+    // throwing away what the automated run cost.
+    automated: s.automated ?? false,
     evidence_url: evidenceUrl,
   };
 }

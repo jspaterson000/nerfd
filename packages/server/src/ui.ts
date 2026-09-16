@@ -90,7 +90,7 @@ export const LIMITS_JS = `
       const tier = !finite(p.quality) ? 'dash' : p.quality >= 80 ? 'S' : p.quality >= 65 ? 'A' : p.quality >= 50 ? 'B' : 'C';
       return row(['<span class="mut">' + (i+1) + '.</span> ' + planIdentity(p), money(p.usd_month), bars(p), usage(p.usage_median_pct), wall(p.wall_hit_share), decimal(p.successes_per_dollar), '<span class="tier ' + tier + '">' + (tier === 'dash' ? '–' : tier) + '</span>' + count(p.quality), '<span class="mono">n=' + count(p.n) + '</span><small class="limit-detail">' + count(p.n_windows) + ' windows · ' + count(p.reporter_weeks) + ' reporter-weeks</small>']);
     })) : empty;
-    const capacity = windows.length ? table('Capacity by window · estimates', ['Plan','Window / scope','Total tokens · p25–p75','Uncached + output · p25–p75','Usage median','Wall hits','n windows','n reporters'], windows.map(w => {
+    const capacity = windows.length ? table('Capacity by window · estimates', ['Plan','Window / scope','Total tokens · p25–p75','Uncached + output · p25–p75','Usage median','Wall hits','n windows','<span title="one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks">n reporter-weeks</span>'], windows.map(w => {
       const p = plans.find(p => p.plan_id === w.plan_id);
       return row([safe(p?.name || w.plan_id || 'Unknown plan'), windowName(w) + '<small class="limit-detail">' + safe(w.scope || 'unknown') + '</small>', band(w.capacity_total), band(w.capacity_uncached), usage(w.usage_median_pct), wall(w.wall_hit_share), count(w.n_windows), count(w.n_reporters)]);
     })) : empty;
@@ -159,7 +159,7 @@ main,section{min-width:0;max-width:100%}
 
 export const STAT_STRIP = `<div class="stats" aria-label="At a glance">
 <div class="stat"><b id="s-sessions">–</b><span><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="3" width="14" height="12" rx="3"/><path d="m5 7 2 2-2 2m5 0h3"/></svg>Sessions</span></div>
-<div class="stat"><b id="s-reporters">–</b><span><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="7" cy="6" r="2.5"/><path d="M2 15v-1a5 5 0 0 1 10 0v1m0-11a2.5 2.5 0 0 1 0 5m2 2a4 4 0 0 1 2 4"/></svg>Reporters</span></div>
+<div class="stat" title="one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks"><b id="s-reporters">–</b><span><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="7" cy="6" r="2.5"/><path d="M2 15v-1a5 5 0 0 1 10 0v1m0-11a2.5 2.5 0 0 1 0 5m2 2a4 4 0 0 1 2 4"/></svg>Reporter-weeks</span></div>
 <div class="stat"><b id="s-models">–</b><span><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="4" y="4" width="10" height="10" rx="2"/><path d="M7 1v3m4-3v3M7 14v3m4-3v3M1 7h3m-3 4h3m10-4h3m-3 4h3"/></svg>Models</span></div>
 <div class="stat"><b id="s-week">–</b><span><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="4" width="14" height="12" rx="3"/><path d="M5 2v4m8-4v4M2 8h14m-11 3h2m3 0h2"/></svg>Sessions this week</span></div>
 </div>`;
@@ -285,9 +285,11 @@ function qs() {
 }
 async function meta() {
   const m = await (await fetch('/v1/meta')).json();
-  $('#meta').textContent = m.reports + ' sessions from ' + m.reporters + (m.reporters === 1 ? ' reporter' : ' reporters');
+  const rw = m.reporter_weeks ?? m.reporters;
+  $('#meta').textContent = m.reports + ' sessions from ' + rw + (rw === 1 ? ' reporter-week' : ' reporter-weeks');
+  $('#meta').title = 'one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks';
   $('#s-sessions').textContent = m.reports.toLocaleString();
-  $('#s-reporters').textContent = m.reporters.toLocaleString();
+  $('#s-reporters').textContent = rw.toLocaleString();
   $('#s-models').textContent = m.models.length;
   const week = await (await fetch('/v1/stats?by=week&weeks=1')).json();
   $('#s-week').textContent = week.n.toLocaleString();
@@ -435,7 +437,7 @@ ${COMPARISON_SECTIONS}
 
 <h2>Subscription value</h2>
 <div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="plans"><thead>
-<tr><th>tool</th><th>plan</th><th class="n">price</th><th class="n">reporters</th><th class="n">months</th><th class="n">sessions</th><th class="n">successes</th><th class="n">hours</th><th class="n">api-equiv</th><th class="n">multiple</th><th class="n">$/success</th><th class="n">hit limit</th></tr>
+<tr><th>tool</th><th>plan</th><th class="n">price</th><th class="n" title="one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks">reporter-weeks</th><th class="n">months</th><th class="n">sessions</th><th class="n">successes</th><th class="n">hours</th><th class="n">api-equiv</th><th class="n">multiple</th><th class="n">$/success</th><th class="n">hit limit</th></tr>
 </thead><tbody></tbody></table></div>
 <p class="mut">medians across reporter-weeks, plan price pro-rata. api-equiv = what the same tokens would cost at API list price. multiple = api-equiv / plan price. $/success = plan price / successful sessions that month. hit limit = share of reporter-weeks with at least one rate-limit hit.</p>
 

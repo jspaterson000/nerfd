@@ -24,7 +24,7 @@
 
 import { existsSync } from 'node:fs';
 import { detected, unknown, type Detection, type Detector } from './types.ts';
-import { anyEnvSet, evidenceOf, hasNonEmptyString, pluckEnum, pluckJwtClaim, underHome } from './read.ts';
+import { anyEnvSet, evidenceOf, hasNonEmptyString, pluckEnum, pluckJwtClaim, pluckJwtDate, underHome } from './read.ts';
 
 /**
  * KnownPlan wire strings -> plans.ts ids. Taken verbatim from the serde
@@ -54,6 +54,19 @@ const PLAN_CLAIM_TO_ID: Record<string, string | null> = {
 };
 
 const PLAN_CLAIMS = Object.keys(PLAN_CLAIM_TO_ID);
+
+/**
+ * The two date claims that say when this ChatGPT subscription was active, out
+ * of the same `"https://api.openai.com/auth"` object the plan type comes from.
+ * They are read for one reason: history imported from before nerfd existed has
+ * no plan on it, and a session that ended inside this window was on this plan.
+ * Both go through the date gate in read.ts, so what comes back is an ISO
+ * timestamp or nothing, and neither ever leaves the machine - only the word
+ * `assumed` and the plan id do. No other claim in that object is ever named.
+ */
+const AUTH_CLAIM = 'https://api.openai.com/auth';
+const ACTIVE_START = [AUTH_CLAIM, 'chatgpt_subscription_active_start'];
+const ACTIVE_UNTIL = [AUTH_CLAIM, 'chatgpt_subscription_active_until'];
 
 /** AuthMode values that mean "billed per token", not against a subscription. */
 const API_AUTH_MODES = [
@@ -90,7 +103,7 @@ export const detectCodex: Detector = ({ home, env }): Detection => {
   const jwtEvidence = evidenceOf(home, auth, 'tokens.id_token → "https://api.openai.com/auth".chatgpt_plan_type');
   if (claim) {
     const id = PLAN_CLAIM_TO_ID[claim];
-    if (id) return detected(id, jwtEvidence, 'high');
+    if (id) return { ...detected(id, jwtEvidence, 'high'), ...activePeriod(auth) };
     return unknown(jwtEvidence);
   }
 
@@ -105,3 +118,11 @@ export const detectCodex: Detector = ({ home, env }): Detection => {
   if (existsSync(underHome(home, '.codex'))) return unknown(jwtEvidence);
   return unknown();
 };
+
+/** The subscription's active window, where the token carries one. */
+function activePeriod(auth: string): { active_from: string | null; active_until: string | null } {
+  return {
+    active_from: pluckJwtDate(auth, ['tokens', 'id_token'], ACTIVE_START),
+    active_until: pluckJwtDate(auth, ['tokens', 'id_token'], ACTIVE_UNTIL),
+  };
+}

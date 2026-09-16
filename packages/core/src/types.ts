@@ -37,8 +37,13 @@ export type RepoAge = (typeof REPO_AGE)[number];
 // Where the subscription plan on a session came from. A plan the person typed
 // beats one read off this machine's tool config, which beats nothing. Only
 // the id and this word are ever published; the file and field a detector read
-// stay local. See docs/PLAN-DETECTION.md.
-export const PLAN_SOURCES = ['detected', 'declared', 'unknown'] as const;
+// stay local.
+// 'assumed' is the weakest of the four: nothing about the session itself says
+// which plan was in force, but the session ended inside a subscription period
+// this machine can prove (a Codex JWT's active window, a Claude account's
+// creation date), so the tool's current plan is applied to imported history.
+// See docs/PLAN-DETECTION.md.
+export const PLAN_SOURCES = ['detected', 'declared', 'assumed', 'unknown'] as const;
 export type PlanSource = (typeof PLAN_SOURCES)[number];
 
 // How much of a subscription window a session consumed. The scope is an
@@ -178,6 +183,11 @@ export interface Session {
   shared_at: string | null;
   price_snapshot_date: string | null; // the models.dev snapshot this session was priced against
   source?: 'hook' | 'record' | 'backfill'; // local only: how the session got here
+  // No human prompt and no human turn: a Codex auto-review, a CI agent, a
+  // scripted run. It still costs tokens and still hits the subscription wall,
+  // so it stays in economics and limits, but it never ranks against a session
+  // a person actually steered. See `isAutomatedSession`.
+  automated: boolean;
 }
 
 /** The redacted record that is sent to the public server. */
@@ -207,6 +217,9 @@ export interface Report {
   kept: Kept;
   survival_ratio: number | null;
   evidence_url: string | null;  // optional public gist / PR link the user attached
+  // True when nobody prompted this session. Published so the board can keep
+  // automated runs out of the quality rankings without discarding their cost.
+  automated: boolean;
 }
 
 export function emptyMetrics(): Metrics {
@@ -226,3 +239,18 @@ export function emptyOutcome(): Outcome {
 export function emptySurvival(): Survival {
   return { lines_added: 0, lines_surviving: null, ratio: null, checked_at: null };
 }
+
+/**
+ * A session nobody prompted. Codex auto-review, a CI agent, a scripted run:
+ * the model worked, but no human steered it, so it cannot be evidence about
+ * steering, corrections or friction. The two counters are independent - a hook
+ * that never saw a UserPromptSubmit still has user turns in the transcript, and
+ * a transcript nobody could parse still has the hook's prompt count - so both
+ * must be zero.
+ */
+export function isAutomatedSession(x: { metrics: Pick<Metrics, 'prompts'>; signals?: Signals | null }): boolean {
+  return x.metrics.prompts === 0 && (x.signals?.user_turns ?? 0) === 0;
+}
+
+/** Model ids a tool uses for its own unattended reviewer. */
+export const AUTO_REVIEW_MODEL_RE = /auto-review|review-bot/i;

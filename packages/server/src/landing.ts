@@ -103,7 +103,7 @@ footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font
   <h2>What a month actually buys</h2>
   <p class="sub">The plan is detected from each tool's own config, never typed in. We count what it delivered: successful sessions, hours, the API-equivalent value of the tokens, and how often they reached a rate limit. Medians across reporter-weeks, with the plan price charged pro-rata.</p>
   <div class="tbl" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="plans"><thead>
-    <tr><th>plan</th><th class="n">price</th><th class="n">sessions</th><th class="n">successes</th><th class="n">api-equiv</th><th class="n">multiple</th><th class="n">$ / success</th><th class="n">hit limit</th><th class="n">n</th></tr>
+    <tr><th>plan</th><th class="n">price</th><th class="n">sessions</th><th class="n">successes</th><th class="n">api-equiv</th><th class="n">multiple</th><th class="n">$ / success</th><th class="n">hit limit</th><th class="n" title="one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks">reporter-weeks</th></tr>
   </thead><tbody><tr><td colspan="9" class="mut">loading</td></tr></tbody></table></div>
 </section>
 
@@ -220,7 +220,7 @@ ${IDENTITY_JS}
       const tier = !finite(p.quality) ? 'dash' : p.quality >= 80 ? 'S' : p.quality >= 65 ? 'A' : p.quality >= 50 ? 'B' : 'C';
       return row(['<span class="mut">' + (i+1) + '.</span> ' + planIdentity(p), money(p.usd_month), bars(p), usage(p.usage_median_pct), wall(p.wall_hit_share), decimal(p.successes_per_dollar), '<span class="tier ' + tier + '">' + (tier === 'dash' ? '–' : tier) + '</span>' + count(p.quality), '<span class="mono">n=' + count(p.n) + '</span><small class="limit-detail">' + count(p.n_windows) + ' windows · ' + count(p.reporter_weeks) + ' reporter-weeks</small>']);
     })) : empty;
-    const capacity = windows.length ? table('Capacity by window · estimates', ['Plan','Window / scope','Total tokens · p25–p75','Uncached + output · p25–p75','Usage median','Wall hits','n windows','n reporters'], windows.map(w => {
+    const capacity = windows.length ? table('Capacity by window · estimates', ['Plan','Window / scope','Total tokens · p25–p75','Uncached + output · p25–p75','Usage median','Wall hits','n windows','<span title="one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks">n reporter-weeks</span>'], windows.map(w => {
       const p = plans.find(p => p.plan_id === w.plan_id);
       return row([safe(p?.name || w.plan_id || 'Unknown plan'), windowName(w) + '<small class="limit-detail">' + safe(w.scope || 'unknown') + '</small>', band(w.capacity_total), band(w.capacity_uncached), usage(w.usage_median_pct), wall(w.wall_hit_share), count(w.n_windows), count(w.n_reporters)]);
     })) : empty;
@@ -300,7 +300,7 @@ async function comparisonData(url) {
   try {
     const m = await (await fetch('/v1/meta')).json();
     $('#s-sessions').textContent = m.reports.toLocaleString();
-    $('#s-reporters').textContent = m.reporters.toLocaleString();
+    $('#s-reporters').textContent = (m.reporter_weeks ?? m.reporters).toLocaleString();
     $('#s-models').textContent = m.models.length;
     const wk = await (await fetch('/v1/stats?by=week&weeks=1')).json();
     $('#s-week').textContent = wk.n.toLocaleString();

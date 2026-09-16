@@ -1,11 +1,11 @@
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import type { Session, Turn } from '@nerfd/core';
+import { AUTO_REVIEW_MODEL_RE, type Session, type Turn } from '@nerfd/core';
 import { CODEX_EVENTS, installCodex } from '../hooks/install.ts';
 import { codexTurns, findCodexRollout, listCodexRollouts, parseCodexRollout } from '../transcript.ts';
 import { backfillSession } from './backfill.ts';
-import { attachSignals, emptyLedger, isCanonicalEvent, type Adapter, type HookInput, type LedgerFacts, type NormalisedEvent } from './types.ts';
+import { attachSignals, emptyLedger, isCanonicalEvent, isUnattendedSource, type Adapter, type HookInput, type LedgerFacts, type NormalisedEvent } from './types.ts';
 
 export const CODEX_DIR = join(homedir(), '.codex');
 
@@ -21,6 +21,20 @@ const EVENT_MAP: Record<string, NormalisedEvent['hook_event_name']> = {
   TurnAborted: 'Interrupt',
   Interrupted: 'Interrupt',
 };
+
+/**
+ * Codex runs unattended as well as with a person: `codex exec` in CI, and the
+ * auto-review that fires on its own after a turn. Neither is evidence about
+ * how a model behaves for a human, so both are flagged and kept out of the
+ * quality rankings (they stay in cost and limits - they spent the quota).
+ *
+ * Two tells, either of which is enough. The rollout's `session_meta.source`
+ * names anything that is not a person's thread, and an auto-reviewer is served
+ * under a model id reserved for it.
+ */
+export function codexAutomated(metaSource: string | null | undefined, model: string | null): boolean {
+  return AUTO_REVIEW_MODEL_RE.test(model ?? '') || isUnattendedSource(metaSource);
+}
 
 export const codexAdapter: Adapter = {
   id: 'codex',
@@ -73,6 +87,9 @@ export const codexAdapter: Adapter = {
       if (!s) continue;
       s.limit_windows = facts.limit_windows;
       attachSignals(s, codexTurns(f.path));
+      // After the signals, so the rollout's own account of itself wins over
+      // a turn count: a review bot's thread has user turns in it.
+      if (codexAutomated(facts.meta_source, facts.model)) s.automated = true;
       out.push(s);
     }
     return out;

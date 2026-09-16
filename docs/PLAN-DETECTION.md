@@ -51,9 +51,50 @@ fenced in six ways, and the fence is code, not a promise:
    with the reason shown.
 
 Only two fields ever leave the machine: `plan_id`, and
-`plan_source: 'detected' | 'declared' | 'unknown'`. `evidence` and `confidence`
-are local display only, and there is a test asserting the public surface is
-those two keys.
+`plan_source: 'detected' | 'declared' | 'assumed' | 'unknown'`. `evidence`,
+`confidence` and the two subscription dates below are local display only, and
+there is a test asserting the public surface is those two keys.
+
+### The seventh rule: one date each, and only for history
+
+Rule 1 says "one named field whose value is a plan / tier / type enum". There
+are exactly two exceptions, both added for imported history, and both are
+dates:
+
+| Tool | File | Field | What it is |
+|---|---|---|---|
+| Codex | `~/.codex/auth.json` | `tokens.id_token` → `"https://api.openai.com/auth".chatgpt_subscription_active_start` / `_until` | the window this ChatGPT subscription was active |
+| Claude Code | `~/.claude.json` | `oauthAccount.subscriptionCreatedAt` | when the subscription was created; there is no end date, so the period is open-ended |
+
+A date is not an identity: it says when a subscription ran, not whose it is.
+They cross their own gate in `read.ts` (`dateGate`) rather than a hole in the
+enum one: the value must parse as a calendar date and land within a decade of
+now, and what comes back is re-serialised from `Date`, so whatever shape the
+file used, what the caller sees is an ISO timestamp and nothing else. A token,
+a uuid, an email or an org name cannot survive that, and there is a test that
+points the readers at `access_token`, `chatgpt_account_id` and `email` on
+purpose and asserts they come back empty. Neither date is ever published;
+`nerfd privacy` shows them, and what leaves is the plan id and one word.
+
+### `assumed`: pricing imported history
+
+Backfilled sessions ran before nerfd existed, so nothing on them says which
+plan was in force and `plan_id` was `null` — which is why the public plans
+board was empty for every imported session. Detection knows which plan the
+machine is on **now**; applying that to all of history would put $200 against
+sessions run before the subscription was bought.
+
+So `nerfd backfill` applies the tool's effective plan to an imported session
+only when that session's `ended_at` falls inside the active period above, and
+marks it `plan_source: 'assumed'`. Outside the period — or on a tool that
+records no dates at all — the session keeps `null` and `'unknown'`. OpenCode
+borrows the Codex period, the same way it borrows the plan. A plan you
+declared, or one detected at the time the session actually ran, is better
+evidence and is never overwritten.
+
+`nerfd backfill --restamp` re-runs that pass over sessions already on record,
+for when a period only becomes readable later; `nerfd share all --resend`
+pushes the corrected records to the board, which upserts on `report_id`.
 
 ---
 
@@ -63,11 +104,13 @@ those two keys.
 |---|---|---|---|---|---|
 | Claude Code | `~/.claude/.credentials.json` | `claudeAiOauth.subscriptionType` | `pro`, `max`, `team`, `enterprise`, `free` | high (`max`: medium) | **Max 5x from Max 20x** |
 | Claude Code | `~/.claude.json` | `oauthAccount.userRateLimitTier`, then `oauthAccount.organizationRateLimitTier` (the account profile, refreshed at login; preferred) | `default_claude_max_5x`, `default_claude_max_20x`, … | high | — |
+| Claude Code | `~/.claude.json` | `oauthAccount.subscriptionCreatedAt` (a date, for `assumed` pricing of imported history) | ISO date | high | whether the tier changed since |
 | Claude Code | `~/.claude/.credentials.json` | `claudeAiOauth.rateLimitTier` (can lag an upgrade: a real install showed 5x here and 20x in the profile) | same | medium | — |
 | Claude Code | `~/.claude.json` | `oauthAccount.userRateLimitTier`, `.organizationRateLimitTier`, `.organizationType` | as above | low | fallback only |
 | Claude Code | `~/.claude.json` | `oauthAccount` *(presence only)* | — | low (plan stays `null`) | any tier; this only rules out API billing |
 | Claude Code | env / `settings.json` | `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, `CLAUDE_CODE_USE_BEDROCK`/`_VERTEX`/`_FOUNDRY`, `apiKeyHelper` | set / not set | high | → `api` |
 | Codex | `~/.codex/auth.json` | `tokens.id_token` → `"https://api.openai.com/auth".chatgpt_plan_type` | `free`, `go`, `plus`, `pro`, `prolite`, `team`, `business`, `self_serve_business_*`, `ent26`, `enterprise`, `hc`, `enterprise_cbp_*`, `edu`, `education`, `edu_plus`, `edu_pro` | high | seats within a Business/Enterprise org |
+| Codex | `~/.codex/auth.json` | `tokens.id_token` → `"https://api.openai.com/auth".chatgpt_subscription_active_start` / `_until` | ISO dates / unix timestamps | high | when within the window a plan changed |
 | Codex | `~/.codex/auth.json` | `auth_mode` | `apikey`, `chatgpt`, `chatgptAuthTokens`, `headers`, `agentidentity`, `personalaccesstoken`, `bedrockapikey`, `bedrockaccesskeys` | high | → `api` for all but the two ChatGPT modes |
 | Gemini CLI | `~/.gemini/settings.json` | `security.auth.selectedType` (or legacy `selectedAuthType`) | `oauth-personal`, `gemini-api-key`, `vertex-ai`, `cloud-shell` | high for `api` | **free vs AI Pro vs AI Ultra** — tier is never on disk |
 | OpenCode | `~/.local/share/opencode/auth.json` | provider ids (keys) + `<provider>.type` | `oauth`, `api`, `wellknown` | medium | which OpenCode Zen tier; whose Claude/ChatGPT plan is being borrowed |

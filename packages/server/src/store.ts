@@ -63,7 +63,18 @@ export class ReportStore {
     return (this.db.prepare('SELECT COUNT(*) c FROM reports').get() as { c: number }).c;
   }
 
-  reporters(): number {
+  /**
+   * Distinct reporter ids, which is a count of reporter-WEEKS, not people:
+   * reporter_id = hash(install_id + ISO week), so one person contributes a
+   * new id every week by design. Naming it anything else overstates the
+   * board's reach. See docs/PRIVACY.md.
+   */
+  reporterWeeks(): number {
     return (this.db.prepare('SELECT COUNT(DISTINCT reporter_id) c FROM reports').get() as { c: number }).c;
+  }
+
+  /** @deprecated alias of `reporterWeeks`, kept for one release. */
+  reporters(): number {
+    return this.reporterWeeks();
   }
 }

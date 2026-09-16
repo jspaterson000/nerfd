@@ -1,4 +1,4 @@
-import { SIGNAL_VERSION, activeSeconds, computeSignals, type Session, type Tool, type Turn } from '@nerfd/core';
+import { SIGNAL_VERSION, activeSeconds, computeSignals, isAutomatedSession, type Session, type Tool, type Turn } from '@nerfd/core';
 import type { TranscriptFacts } from '../transcript.ts';
 
 // Every tool is different, but they all split the same way. Live events
@@ -107,9 +107,28 @@ export function attachSignals(s: Session, turns: Turn[], onError?: (name: string
     // the same event the hook counts, so take the larger rather than the sum.
     const interrupted = turns.filter((t) => t.role === 'assistant' && t.interrupted === true).length;
     s.metrics.interrupts = Math.max(s.metrics.interrupts, interrupted);
+    // The user turns are the only evidence a backfilled session has about
+    // whether a person was in it, and they exist only now. A session whose
+    // turns could not be reconstructed at all is left alone rather than
+    // called automated: no evidence is not evidence of a robot. Never
+    // downgraded either - an adapter that already knows the run was
+    // unattended has said so before this call.
+    if (!s.automated) s.automated = isAutomatedSession(s);
   } catch (e) {
     onError?.((e as Error).name);
   }
+}
+
+/**
+ * A `session_meta.source` that names something other than a person's thread.
+ * Codex is the only tool that writes one today (`codex exec` in CI, the
+ * auto-review that fires on its own), and absent means "this build writes
+ * none", which is not evidence either way.
+ */
+const USER_THREAD_SOURCES = /^(user|thread|user[_-]thread|interactive|cli)$/i;
+
+export function isUnattendedSource(metaSource: string | null | undefined): boolean {
+  return metaSource != null && !USER_THREAD_SOURCES.test(metaSource);
 }
 
 export function emptyLedger(): LedgerFacts {
@@ -117,7 +136,7 @@ export function emptyLedger(): LedgerFacts {
     model: null, tool_version: null, turns: 0, tokens_in: 0, tokens_out: 0, tokens_cache_read: 0,
     latencies_ms: [], api_errors: 0, rate_limit_hits: 0, overloaded: 0, timeouts: 0, interrupts: 0,
     tool_call_errors: 0, context_limit_hits: 0, first_ts: null, last_ts: null,
-    rate_limit_used_pct: null, rate_limit_window_min: null, limit_windows: [],
+    rate_limit_used_pct: null, rate_limit_window_min: null, limit_windows: [], meta_source: null,
     raw_model: null, raw_provider: null, base_url: null, declared_name: null,
   };
 }

@@ -98,7 +98,32 @@ function sane(d: Detection): Detection {
   const id = typeof d.plan_id === 'string' && /^[a-z0-9][a-z0-9-]{0,39}$/.test(d.plan_id) ? d.plan_id : null;
   const confidence = d.confidence === 'high' || d.confidence === 'medium' ? d.confidence : 'low';
   const evidence = typeof d.evidence === 'string' && d.evidence.length <= 200 ? d.evidence : null;
-  return id ? { plan_id: id, source: 'detected', evidence, confidence } : { plan_id: null, source: 'unknown', evidence, confidence: 'low' };
+  // The period is re-serialised here too: whatever a detector built by hand,
+  // what the rest of the CLI sees is an ISO timestamp or null.
+  const period = { active_from: isoOrNull(d.active_from), active_until: isoOrNull(d.active_until) };
+  return id
+    ? { plan_id: id, source: 'detected', evidence, confidence, ...period }
+    : { plan_id: null, source: 'unknown', evidence, confidence: 'low', ...period };
+}
+
+function isoOrNull(v: unknown): string | null {
+  if (typeof v !== 'string' || v.length > 40) return null;
+  const t = Date.parse(v);
+  return Number.isNaN(t) ? null : new Date(t).toISOString();
+}
+
+/**
+ * The window a tool's subscription was active, as this machine can prove it.
+ * `[from, until]`, either end open. Used to decide whether an imported session
+ * can be priced at all; see `assumePlan` in commands/backfill.ts.
+ *
+ * OpenCode borrows: signed in to ChatGPT by OAuth, it is spending the Codex
+ * subscription, and `detectOpencode` already returns that detection whole, so
+ * the period comes with it and this needs no special case.
+ */
+export function activePeriod(cfg: Config, tool: Tool): { from: string | null; until: string | null } {
+  const d = withDetections(cfg).detected_plans?.plans?.[tool];
+  return { from: isoOrNull(d?.active_from), until: isoOrNull(d?.active_until) };
 }
 
 // ---------------------------------------------------------------------------

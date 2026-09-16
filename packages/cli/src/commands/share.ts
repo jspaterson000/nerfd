@@ -35,7 +35,13 @@ const OFF = [
 
 /**
  * `nerfd share on|off|status`
- * `nerfd share [last|<id>|all] [--evidence https://gist.github.com/...] [--dry-run] [--server URL]`
+ * `nerfd share [last|<id>|all] [--evidence https://gist.github.com/...] [--dry-run] [--resend] [--server URL]`
+ *
+ * `--resend` includes sessions already sent. The server upserts on report_id,
+ * which is a hash of the install id and the session id and does not rotate, so
+ * a re-send updates the existing record rather than duplicating it. That is
+ * how a correction made locally - a rating, or an assumed plan stamped on by
+ * `nerfd backfill --restamp` - reaches the board.
  */
 export async function share(a: Args): Promise<void> {
   const cfg = loadConfig();
@@ -55,8 +61,9 @@ export async function share(a: Args): Promise<void> {
   const evidence = str(a, 'evidence') ?? null;
   const dry = flag(a, 'dry-run');
 
+  const resend = flag(a, 'resend');
   const targets = ref === 'all'
-    ? listSessions({ endedOnly: true }).filter((s) => !s.shared_at)
+    ? listSessions({ endedOnly: true }).filter((s) => resend || !s.shared_at)
     : [resolveSession(ref)].filter((s): s is NonNullable<typeof s> => s != null);
   if (targets.length === 0) { process.stderr.write('nothing to share.\n'); process.exitCode = 1; return; }
 
@@ -75,5 +82,5 @@ export async function share(a: Args): Promise<void> {
     const r = await publishSession(s, cfg, targets.length === 1 ? evidence : null);
     if (r.ok) ok++; else process.stderr.write(`${s.id.slice(0, 8)}: ${r.reason}\n`);
   }
-  process.stdout.write(`shared ${ok}/${targets.length} to ${cfg.server}\n`);
+  process.stdout.write(`${resend ? 're-sent' : 'shared'} ${ok}/${targets.length} to ${cfg.server}\n`);
 }

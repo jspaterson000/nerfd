@@ -25,13 +25,25 @@
 
 import type { Tool } from '@nerfd/core';
 
-/** What a detector returns. `evidence` and `confidence` never leave the machine. */
+/** What a detector returns. Only `plan_id` is ever published, with the word
+ * `detected`, `assumed` or `declared` beside it. Everything else here -
+ * evidence, confidence, and the two dates - is local. */
 export interface Detection {
   plan_id: string | null;
   source: 'detected' | 'unknown';
   /** "<file> <dotted.field>" - the only record of what was opened. Local only. */
   evidence: string | null;
   confidence: 'high' | 'medium' | 'low';
+  /**
+   * When this subscription started and, where the tool says so, when it runs
+   * out: an ISO timestamp each, and the only non-enum values any detector
+   * reads. They exist so imported history can be priced - a session that ended
+   * inside this window was on this plan - and they never leave the machine.
+   * Null where the tool writes nothing, and `active_until` is null for an
+   * open-ended subscription, which means "still running".
+   */
+  active_from?: string | null;
+  active_until?: string | null;
 }
 
 export interface DetectOpts {

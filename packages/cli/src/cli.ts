@@ -17,11 +17,11 @@ const HELP = `nerfd - nerfd.ai. a local-first scorecard of how AI models perform
   nerfd drift [--weeks 8]                       week-over-week change per model
   nerfd check [--force]                         re-measure how much of each session's code survived
   nerfd share on|off|status                     autonomous reporting of redacted records after each session
-  nerfd share [last|<id>|all] [--dry-run] [--evidence URL]   send specific records
+  nerfd share [last|<id>|all] [--dry-run] [--resend] [--evidence URL]   send specific records (--resend re-sends ones already shared)
   nerfd export [--public] [--csv]               dump your data
   nerfd report [--weeks 4] [--out file] [--projects]   your own usage, errors, ranking and economics as one page
   nerfd dash [--port 8787]                      local dashboard over your own sessions
-  nerfd backfill [tool] [--since 90d] [--refresh]  import sessions the tool recorded before nerfd existed
+  nerfd backfill [tool] [--since 90d] [--refresh] [--restamp]  import sessions the tool recorded before nerfd existed
                                                 (--refresh re-reads the ledger for sessions already on record)
   nerfd model-info <raw_id> [--family --version --size --quant --provider --modified]
   nerfd privacy [purge --yes]                what is stored, what is sent, how to stop
@@ -82,7 +82,7 @@ async function main(): Promise<void> {
       const { startServer } = await import('@nerfd/server');
       const { localRows } = await import('./rows.ts');
       const port = num(a, 'port', 8787);
-      startServer({ port, readOnly: true, title: 'nerfd / local', rows: () => localRows({ weeks: num(a, 'weeks', 26) }) });
+      startServer({ port, readOnly: true, title: 'nerfd / local', rows: () => localRows({ weeks: num(a, 'weeks', 26), includeAutomated: true }) });
       process.stdout.write(`local dashboard: http://localhost:${port}  (ctrl-c to stop)\n`);
       return;
     }

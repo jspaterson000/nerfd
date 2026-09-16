@@ -30,6 +30,10 @@ export function validateReport(x: unknown): string | null {
   // Added with plan auto-detection; a client that predates it sends nothing here.
   if (r.plan_source != null && !PLAN_SOURCES.includes(r.plan_source as never)) return `plan_source must be one of ${PLAN_SOURCES.join(',')}`;
 
+  // Added with the automated-session split; a client that predates it sends
+  // nothing here and its record is still valid, defaulting to "steered".
+  if (r.automated != null && typeof r.automated !== 'boolean') return 'automated invalid';
+
   if (!/^\d{4}-W\d{2}$/.test(r.week as string)) return 'week format';
   if (Number.isNaN(Date.parse(r.ended_at as string))) return 'ended_at not a date';
   if (r.evidence_url && !/^https:\/\/(gist\.github\.com|github\.com)\//.test(r.evidence_url as string)) return 'evidence_url must be a github/gist link';

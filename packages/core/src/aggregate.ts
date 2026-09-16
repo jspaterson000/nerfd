@@ -34,6 +34,16 @@ export interface Row {
   // percentages, a window length and the tokens between two readings. See
   // limits.ts and docs/LIMITS.md. Optional: most tools report nothing.
   limit_windows?: LimitWindow[] | null;
+  // Nobody prompted this session: a Codex auto-review, a CI agent. It is real
+  // spend against a real plan, so economics and limits keep it, but it is not
+  // evidence about how a model behaves for a person, so the quality boards
+  // filter it out. Optional: a record written before the flag has none.
+  automated?: boolean;
+}
+
+/** Rows a person actually steered. What every quality ranking is built on. */
+export function steeredRows(rows: Row[]): Row[] {
+  return rows.filter((r) => !r.automated);
 }
 
 /**

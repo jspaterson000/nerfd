@@ -15,7 +15,8 @@ const money = (v: number | null | undefined) => (v == null ? '-' : v < 10 ? `$${
  */
 export function cost(a: Args): void {
   const weeks = num(a, 'weeks', 8);
-  const rows = localRows({ weeks, category: str(a, 'cat') });
+  // Economics keeps the automated sessions: a robot's tokens are on the bill.
+  const rows = localRows({ weeks, category: str(a, 'cat'), includeAutomated: true });
   if (rows.length === 0) { process.stdout.write('no data yet.\n'); return; }
 
   const groups = aggregate(rows, ['model']);

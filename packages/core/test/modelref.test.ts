@@ -232,7 +232,7 @@ test('rows group by provider, quant, family and serving mode', () => {
 test('the public record keeps model_ref but never a user-chosen provider name', () => {
   const ref = resolveModelRef('my-secret-merge', 'daves-basement-box', { baseUrl: 'http://192.168.1.9:8080' });
   const s: Session = {
-    id: 's1', tool: 'claude-code', tool_version: '2.1.0', model: 'my-secret-merge', model_ref: ref,
+    id: 's1', tool: 'claude-code', automated: false, tool_version: '2.1.0', model: 'my-secret-merge', model_ref: ref,
     effort: null, plan_id: 'custom-25', plan_usd_month: 25, plan_source: 'declared',
     started_at: '2026-09-16T10:00:00Z', ended_at: '2026-09-16T10:31:07.412Z', duration_s: 600,
     cwd: '/Users/someone/secret-project', repo: { lang: 'brandname', size: 'm', age: 'established' },

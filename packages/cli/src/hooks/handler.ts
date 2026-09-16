@@ -1,11 +1,12 @@
 import { execFileSync } from 'node:child_process';
 import {
-  classifyPrompt, costUsd, emptyMetrics, emptyModelRef, emptyOutcome, emptySurvival, hashPath,
-  hostedEquivalentUsd, inferSize, priceSnapshotDate, registerModelDeclarations, resolveModelRef,
+  AUTO_REVIEW_MODEL_RE, classifyPrompt, costUsd, emptyMetrics, emptyModelRef, emptyOutcome,
+  emptySurvival, hashPath, hostedEquivalentUsd, inferSize, isAutomatedSession, priceSnapshotDate,
+  registerModelDeclarations, resolveModelRef,
   type Session, type Tool,
 } from '@nerfd/core';
 import { adapterFor } from '../adapters/registry.ts';
-import { attachSignals } from '../adapters/types.ts';
+import { attachSignals, isUnattendedSource } from '../adapters/types.ts';
 import type { Adapter, HookInput, LedgerFacts, NormalisedEvent } from '../adapters/types.ts';
 import { getSession, putSession, transact } from '../db.ts';
 import { addedLineHashes, repoProfile } from '../git.ts';
@@ -86,6 +87,8 @@ function newSession(tool: Tool, input: HookInput, cfg: Config): Session {
     shared_at: null,
     price_snapshot_date: priceSnapshotDate(),
     source: 'hook',
+    // Settled at SessionEnd, once the prompt count and the signals are in.
+    automated: false,
   };
 }
 
@@ -278,6 +281,12 @@ export function finalise(s: Session, adapter: Adapter | null = adapterFor(s.tool
 
   s.size = inferSize(s.duration_s, s.metrics.tool_calls, s.metrics.edits);
   resolveModel(s, facts);
+  // Decided last, because it reads both the hook's prompt count and the user
+  // turns the signals just produced. A model id a tool reserves for its own
+  // unattended reviewer settles it on its own.
+  s.automated = isAutomatedSession(s)
+    || AUTO_REVIEW_MODEL_RE.test(s.model ?? '')
+    || isUnattendedSource(facts?.meta_source);
 }
 
 function mergeLedger(s: Session, facts: LedgerFacts): void {

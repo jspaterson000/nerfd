@@ -1,6 +1,6 @@
 import {
-  classifyPrompt, emptyMetrics, emptyOutcome, emptySurvival, inferSize, priceSnapshotDate,
-  resolveModelRef, type Session, type Tool,
+  AUTO_REVIEW_MODEL_RE, classifyPrompt, emptyMetrics, emptyOutcome, emptySurvival, inferSize,
+  priceSnapshotDate, resolveModelRef, type Session, type Tool,
 } from '@nerfd/core';
 import type { TranscriptFacts } from '../transcript.ts';
 import { latencyPercentiles } from '../transcript.ts';
@@ -79,5 +79,10 @@ export function backfillSession(
     shared_at: null,
     price_snapshot_date: priceSnapshotDate(),
     source: 'backfill',
+    // A transcript has no prompt counter, so this is provisional: every
+    // backfill path calls `attachSignals` next, and that settles it from the
+    // user turns. Only a model id reserved for an unattended reviewer is
+    // decided here, because no turn count can overturn it.
+    automated: AUTO_REVIEW_MODEL_RE.test(ids.raw_model ?? ''),
   };
 }

@@ -118,6 +118,7 @@ function session(s: Spec): Session {
   return {
     id: s.id,
     tool: s.tool,
+    automated: false,
     tool_version: '1.0.0',
     model: REFS[s.which].raw_id,
     model_ref: REFS[s.which],

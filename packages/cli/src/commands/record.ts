@@ -71,6 +71,8 @@ export async function record(a: Args): Promise<void> {
     shared_at: null,
     price_snapshot_date: priceSnapshotDate(),
     source: 'record',
+    // Somebody sat down and typed this one in, whatever `--prompts` says.
+    automated: false,
   };
   putSession(s);
   process.stdout.write(`recorded ${s.id}  ${tool}  ${model}  ${cat}/${s.size}  rating=${s.outcome.rating ?? '-'}  kept=${kept}\n`);

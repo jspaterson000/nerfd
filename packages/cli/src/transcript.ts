@@ -30,6 +30,11 @@ export interface TranscriptFacts {
   // How much of each subscription window the session consumed. Empty for
   // every tool that does not write window state to disk. See docs/LIMITS.md.
   limit_windows: LimitWindow[];
+  // Where the session came from, where the tool records it: Codex writes a
+  // `source` on its rollout's `session_meta` line. A short enum token only -
+  // never a path, a name or a command - and null for every tool that writes
+  // nothing. Used to tell an auto-review from a thread a person typed in.
+  meta_source?: string | null;
 }
 
 function empty(): TranscriptFacts {
@@ -37,7 +42,7 @@ function empty(): TranscriptFacts {
     model: null, tool_version: null, turns: 0, tokens_in: 0, tokens_out: 0, tokens_cache_read: 0,
     latencies_ms: [], api_errors: 0, rate_limit_hits: 0, overloaded: 0, timeouts: 0, interrupts: 0,
     tool_call_errors: 0, context_limit_hits: 0, first_ts: null, last_ts: null,
-    rate_limit_used_pct: null, rate_limit_window_min: null, limit_windows: [],
+    rate_limit_used_pct: null, rate_limit_window_min: null, limit_windows: [], meta_source: null,
   };
 }
 
@@ -170,6 +175,18 @@ export function findCodexRollout(sessionId: string): string | null {
   return candidates.sort().at(-1) ?? null;
 }
 
+/**
+ * The `source` a Codex rollout records for itself: a string on newer builds,
+ * `{ type }` on others. Kept only if it is a short enum token, because the
+ * point is to tell "user thread" from "auto review" and nothing longer than
+ * that is an answer to that question.
+ */
+function metaSource(p: Record<string, any>): string | null {
+  const raw = typeof p.source === 'string' ? p.source
+    : (p.source && typeof p.source === 'object' && typeof p.source.type === 'string' ? p.source.type : null);
+  return raw && /^[A-Za-z][A-Za-z0-9_-]{0,31}$/.test(raw) ? raw.toLowerCase() : null;
+}
+
 export function parseCodexRollout(path: string): TranscriptFacts {
   const f = empty();
   const lines = readLines(path) as Array<Record<string, any>>;
@@ -184,6 +201,7 @@ export function parseCodexRollout(path: string): TranscriptFacts {
 
     if (l.type === 'session_meta') {
       if (typeof p.cli_version === 'string') f.tool_version = p.cli_version;
+      f.meta_source = metaSource(p) ?? f.meta_source ?? null;
       continue;
     }
     if (l.type === 'turn_context') {

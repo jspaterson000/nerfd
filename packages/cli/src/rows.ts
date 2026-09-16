@@ -24,10 +24,20 @@ export function sessionToRow(s: Session): Row | null {
     rating: s.outcome.rating,
     kept: s.outcome.kept,
     survival_ratio: s.survival.ratio,
+    automated: s.automated ?? false,
   };
 }
 
-export interface RowFilter { weeks?: number; category?: string; lang?: string; tool?: string; model?: string; size?: string; minDurationS?: number }
+export interface RowFilter {
+  weeks?: number; category?: string; lang?: string; tool?: string; model?: string; size?: string; minDurationS?: number;
+  /**
+   * Keep sessions nobody prompted (Codex auto-review, a CI agent). Off by
+   * default, because `nerfd stats` and `nerfd which` answer "which model was
+   * best for me" and a robot's session is not evidence about that. On for the
+   * cost and limits views, where the tokens were spent either way.
+   */
+  includeAutomated?: boolean;
+}
 
 export function localRows(f: RowFilter = {}): Row[] {
   const since = f.weeks ? new Date(Date.now() - f.weeks * 7 * 86400 * 1000).toISOString() : undefined;
@@ -39,6 +49,7 @@ export function localRows(f: RowFilter = {}): Row[] {
     .filter((r) => (f.tool ? r.tool === f.tool : true))
     .filter((r) => (f.model ? r.model === f.model : true))
     .filter((r) => (f.size ? r.size === f.size : true))
+    .filter((r) => (f.includeAutomated ? true : !r.automated))
     // Sessions under a minute with no prompts are noise (opened and closed).
     .filter((r) => r.metrics.prompts > 0 || r.duration_s >= (f.minDurationS ?? 60));
 }

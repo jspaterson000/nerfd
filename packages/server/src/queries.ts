@@ -1,6 +1,6 @@
 import {
   aggregate, drift, estimateCapacity, familyTable, planGenerosity, planSummaries, reconstructWindows,
-  steeringRate, tierModels, weekly,
+  steeredRows, steeringRate, tierModels, weekly,
   type Group, type GroupKey, type Row,
 } from '@nerfd/core';
 
@@ -12,14 +12,28 @@ const ALLOWED_BY = new Set<GroupKey>([
 export const clamp = (n: number, lo: number, hi: number): number => Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : lo;
 const result = (body: unknown): { body: unknown } => ({ body });
 
+/**
+ * Quality boards rank models by how they behaved for a person. A session with
+ * no human prompt and no human turn - a Codex auto-review, a CI agent - had no
+ * person in it, so it cannot be evidence about steering, corrections or
+ * friction, and averaging it in flatters whichever model runs the robots.
+ *
+ * It is not discarded: `/v1/limits`, `/v1/plans` and the economics inside every
+ * group still count it, because it spent real tokens against a real plan.
+ * `?automated=1` puts it back into the ranking for anyone who wants to look.
+ */
+function steered(rows: Row[], url: URL): Row[] {
+  return url.searchParams.get('automated') === '1' ? rows : steeredRows(rows);
+}
+
 /** Shared public queries for Node and Cloudflare. Raw reports never leave this boundary. */
 export function queryData(url: URL, source: (weeks: number) => Row[], readOnly: boolean, origin: string,
-  counts?: { count(): number; reporters(): number }): { body: unknown } | undefined {
+  counts?: { count(): number; reporterWeeks(): number }): { body: unknown } | undefined {
   const p = url.pathname;
       if (p === '/v1/stats') {
         const weeks = clamp(Number(url.searchParams.get('weeks') ?? 8), 1, 52);
         const by = (url.searchParams.get('by') ?? 'model').split(',').map((s) => s.trim()).filter((s): s is GroupKey => ALLOWED_BY.has(s as GroupKey));
-        let rows = source(weeks);
+        let rows = steered(source(weeks), url);
         for (const f of ['category', 'tool', 'model', 'size'] as const) {
           const v = url.searchParams.get(f);
           if (v) rows = rows.filter((r) => r[f] === v);
@@ -31,7 +45,7 @@ export function queryData(url: URL, source: (weeks: number) => Row[], readOnly: 
 
       if (p === '/v1/tiers') {
         const weeks = clamp(Number(url.searchParams.get('weeks') ?? 4), 1, 52);
-        let rows = source(weeks);
+        let rows = steered(source(weeks), url);
         const cat = url.searchParams.get('category');
         if (cat) rows = rows.filter((r) => r.category === cat);
         const minN = readOnly ? 3 : clamp(Number(url.searchParams.get('min') ?? 10), 3, 500);
@@ -59,7 +73,7 @@ export function queryData(url: URL, source: (weeks: number) => Row[], readOnly: 
 
       if (p === '/v1/drift') {
         const weeks = clamp(Number(url.searchParams.get('weeks') ?? 8), 2, 52);
-        const rows = source(weeks);
+        const rows = steered(source(weeks), url);
         const models = [...new Set(rows.map((r) => r.model))];
         const out = models.map((m) => ({ model: m, drift: drift(rows, m), weekly: weekly(rows.filter((r) => r.model === m)) }));
         out.sort((a, b) => (b.drift?.current.n ?? 0) - (a.drift?.current.n ?? 0));
@@ -68,10 +82,19 @@ export function queryData(url: URL, source: (weeks: number) => Row[], readOnly: 
 
       if (p === '/v1/meta') {
         const rows = source(52);
+        const reporterWeeks = counts ? counts.reporterWeeks() : 1;
         return result({
           mode: readOnly ? 'local' : 'public',
           reports: counts ? counts.count() : rows.length,
-          reporters: counts ? counts.reporters() : 1,
+          // Reporter-WEEKS. reporter_id = hash(install_id + ISO week), so one
+          // person counts once per week, by design: the id rotates so sessions
+          // cannot be linked across weeks. `reporters` is the old name for the
+          // same number and is kept for one release.
+          reporter_weeks: reporterWeeks,
+          reporters: reporterWeeks,
+          // Sessions nobody prompted, over the same window. Excluded from the
+          // quality boards, kept in economics and limits.
+          automated_n: rows.filter((r) => r.automated).length,
           models: [...new Set(rows.map((r) => r.model))].sort(),
           categories: [...new Set(rows.map((r) => r.category))].sort(),
           langs: [...new Set(rows.map((r) => r.repo.lang))].sort(),
@@ -85,7 +108,7 @@ export function queryData(url: URL, source: (weeks: number) => Row[], readOnly: 
       // together. Small cells are dropped rather than shown thin.
       if (p === '/v1/providers') {
         const weeks = clamp(Number(url.searchParams.get('weeks') ?? 8), 1, 52);
-        let rows = source(weeks);
+        let rows = steered(source(weeks), url);
         const cat = url.searchParams.get('category');
         if (cat) rows = rows.filter((r) => r.category === cat);
         const minN = readOnly ? 3 : clamp(Number(url.searchParams.get('min') ?? 10), 3, 500);
@@ -118,7 +141,7 @@ export function queryData(url: URL, source: (weeks: number) => Row[], readOnly: 
       // best row is first and models with no signals sort to the bottom.
       if (p === '/v1/friction') {
         const weeks = clamp(Number(url.searchParams.get('weeks') ?? 8), 1, 52);
-        let rows = source(weeks);
+        let rows = steered(source(weeks), url);
         const cat = url.searchParams.get('category');
         if (cat) rows = rows.filter((r) => r.category === cat);
         const models = aggregate(rows, ['model']).map((g) => ({
