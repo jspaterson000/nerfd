@@ -1,10 +1,10 @@
-import { esc, FAVICON, SHARED_CSS, IDENTITY_JS, STAT_STRIP } from './ui.ts';
+import { esc, FAVICON, SHARED_CSS, IDENTITY_JS, STAT_STRIP, readablePublic } from './ui.ts';
 
 // The public front door. Self-contained HTML using the same visual primitives as the board.
 
 export function landingPage(origin: string): string {
   const install = `curl -fsSL ${origin}/install.sh | sh`;
-  return `<!doctype html>
+  return readablePublic(`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -231,7 +231,7 @@ ${IDENTITY_JS}
     const current = ++request;
     let data = null;
     try { const response = await fetch('/v1/limits?weeks=8'); if (response.ok) data = await response.json(); } catch {}
-    if (current === request) document.getElementById('limits-content').innerHTML = render(data);
+    if (current === request) { window.nerfdAnswers('limits', data); document.getElementById('limits-content').innerHTML = render(data); }
   }
   loadLimits();
   document.getElementById('reload')?.addEventListener('click', loadLimits);
@@ -267,6 +267,7 @@ async function comparisonData(url) {
   try {
     const data = await comparisonData('/v1/providers?weeks=8');
     const total = (f) => f.rows.reduce((n, r) => n + (finite(r.n) ? r.n : 0), 0);
+    window.nerfdAnswers('providers', data);
     target.innerHTML = (Array.isArray(data?.families) ? data.families : []).filter(f => Array.isArray(f.rows) && f.rows.length)
       .sort((a, b) => total(b) - total(a)).slice(0, 4).map(f => {
         const rows = f.rows.map(r => {
@@ -290,6 +291,7 @@ async function comparisonData(url) {
   const target = $('#friction-table tbody');
   try {
     const data = await comparisonData('/v1/friction?weeks=8');
+    window.nerfdAnswers('friction', data);
     target.innerHTML = (Array.isArray(data?.models) ? data.models : []).sort((a, b) => (b.n || 0) - (a.n || 0)).slice(0, 8).map(r =>
       '<tr><td>' + identity(r.model) + '</td><td class="n">' + number(r.n) + '</td>' +
       [r.steering, r.correction_rate, r.reprompt_rate, r.frustration_rate, r.pushback_rate, r.clarification_rate, r.edit_without_read_rate, r.abandoned_rate]
@@ -299,12 +301,15 @@ async function comparisonData(url) {
 (async () => {
   try {
     const m = await (await fetch('/v1/meta')).json();
+    window.nerfdAnswers('meta', m);
     $('#s-sessions').textContent = m.reports.toLocaleString();
     $('#s-reporters').textContent = (m.reporter_weeks ?? m.reporters).toLocaleString();
     $('#s-models').textContent = m.models.length;
     const wk = await (await fetch('/v1/stats?by=week&weeks=1')).json();
+    window.nerfdAnswers('week', wk);
     $('#s-week').textContent = wk.n.toLocaleString();
     const t = await (await fetch('/v1/tiers?weeks=4')).json();
+    window.nerfdAnswers('tiers', t);
     $('#tiers tbody').innerHTML = t.tiers.map((r) => '<tr>' +
       '<td class="model">' + identity(r.model, r.provider) + '</td>' +
       '<td>' + tier(r.overall, 'score ' + (r.score ?? '–')) + '<span class="mut">' + (r.score ?? '') + '</span></td>' +
@@ -312,6 +317,7 @@ async function comparisonData(url) {
       '<td class="n">' + pct(r.waste_share) + '</td>' +
       '<td class="n">' + r.n + '</td></tr>').join('') || '<tr><td colspan="10" class="mut">no model has ' + t.min_n + ' sessions yet. be the first: run the installer.</td></tr>';
     const p = await (await fetch('/v1/plans?weeks=12')).json();
+    window.nerfdAnswers('plans', p);
     $('#plans tbody').innerHTML = p.plans.map((s) => '<tr>' +
       '<td>' + identity(s.plan_id, s.provider) + ' <span class="mut">' + esc(s.tool) + '</span></td>' +
       '<td class="n">' + (s.plan_usd_month == null ? 'usage' : '$' + s.plan_usd_month) + '</td>' +
@@ -321,10 +327,10 @@ async function comparisonData(url) {
       '<td class="n">' + (s.value_multiple_median == null ? '–' : (s.value_multiple_median < 1 ? s.value_multiple_median.toFixed(2) : s.value_multiple_median.toFixed(1)) + "×") + '</td>' +
       '<td class="n">' + usd(s.cost_per_success_median) + '</td>' +
       '<td class="n">' + pct(s.limit_hit_share) + '</td>' +
-      '<td class="n">' + s.reporters + '</td></tr>').join('') || '<tr><td colspan="9" class="mut">no plan data yet. reporters set theirs with <span class="mono">nerfd plan claude claude-max-20x</span>.</td></tr>';
+      '<td class="n">' + (s.reporter_weeks ?? s.reporters) + '</td></tr>').join('') || '<tr><td colspan="9" class="mut">no plan data yet. reporters set theirs with <span class="mono">nerfd plan claude claude-max-20x</span>.</td></tr>';
   } catch (e) { console.error(e); for (const id of ['tiers', 'plans']) if ($('#' + id + ' tbody').textContent.trim() === 'loading') $('#' + id + ' tbody').innerHTML = '<tr><td colspan="' + (id === 'tiers' ? 10 : 9) + '" class="mut">Unable to load metrics. Please refresh to try again.</td></tr>'; }
 })();
 </script>
 </body>
-</html>`;
+</html>`, true);
 }

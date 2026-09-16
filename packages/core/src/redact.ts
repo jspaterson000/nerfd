@@ -2,7 +2,6 @@ import { createHash } from 'node:crypto';
 import { lookupModel } from './catalog.ts';
 import { emptyModelRef, type ModelRef } from './modelref.ts';
 import { planById } from './plans.ts';
-import { normalisedFamily } from './pricing.ts';
 import { SIGNAL_VERSION } from './signals.ts';
 import { isoWeek } from './stats.ts';
 import type { Report, RepoProfile, Session } from './types.ts';
@@ -45,12 +44,21 @@ function publicLang(repo: RepoProfile): RepoProfile {
  * we derived from it.
  */
 export function publicModelId(model: string, ref: ModelRef): string {
-  const known = lookupModel(ref.provider ?? ref.raw_provider ?? null, model) != null || normalisedFamily(model) != null;
+  // "Known" means the exact id exists in the vendored catalogue. A family
+  // pattern match is not enough: "qwen38-27b-abliterated" matches the qwen3
+  // family and is still a name somebody typed into their own config. Anything
+  // served locally is derived regardless, since local ids are always self-named.
+  const known = ref.serving_mode !== 'local' && lookupModel(ref.provider ?? ref.raw_provider ?? null, model) != null;
   if (known) return model.slice(0, 64);
+  return derivedModelLabel(ref);
+}
+
+/** family[:size] [quant] [local]: identity without the person's own naming. */
+export function derivedModelLabel(ref: ModelRef): string {
   const bits = [
     ref.family ? (ref.size ? `${ref.family}:${ref.size}` : ref.family) : 'unknown',
-    ref.serving_mode,
     ref.quant !== 'unknown' ? ref.quant : null,
+    ref.serving_mode === 'local' ? 'local' : null,
   ].filter((x): x is string => x != null);
   return bits.join(' ').slice(0, 64);
 }
@@ -63,9 +71,13 @@ export function publicModelId(model: string, ref: ModelRef): string {
  * quantisations of the same weights apart.
  */
 export function publicModelRef(r: ModelRef): ModelRef {
+  // raw_id is kept only when it is a public product id in the catalogue and
+  // was served by a hosted provider. Quantisation is its own field, so a
+  // self-named local id adds nothing the board needs and can name anything.
+  const catalogued = r.serving_mode !== 'local' && lookupModel(r.provider ?? r.raw_provider ?? null, r.raw_id) != null;
   return {
     ...r,
-    raw_id: r.raw_id ? r.raw_id.slice(0, 80) : null,
+    raw_id: catalogued && r.raw_id ? r.raw_id.slice(0, 80) : null,
     raw_provider: r.serving_mode === 'local' ? r.provider : (r.raw_provider ? r.raw_provider.slice(0, 80) : null),
   };
 }

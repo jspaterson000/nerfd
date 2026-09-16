@@ -1,3 +1,4 @@
+import { READ_GUIDE, READABLE_CSS, READABLE_JS, defineHeaders } from '../assets/presentation.ts';
 // Shared inline assets keep the public page and local dashboard in one visual family.
 export const FAVICON = `<link rel="icon" href="/assets/logos/nerfd.svg">`;
 
@@ -101,7 +102,7 @@ export const LIMITS_JS = `
     const current = ++request;
     let data = null;
     try { const response = await fetch('/v1/limits?weeks=8'); if (response.ok) data = await response.json(); } catch {}
-    if (current === request) document.getElementById('limits-content').innerHTML = render(data);
+    if (current === request) { window.nerfdAnswers('limits', data); document.getElementById('limits-content').innerHTML = render(data); }
   }
   loadLimits();
   document.getElementById('reload')?.addEventListener('click', loadLimits);
@@ -248,12 +249,13 @@ async function loadComparisons(category = '', preview = false) {
     (async () => {
       let data = null;
       try { const response = await fetch('/v1/providers?weeks=8&min=10' + suffix); if (response.ok) data = await response.json(); } catch {}
-      if (request === comparisonRequest) $('#provider-families').innerHTML = renderProviders(data, preview);
+      if (request === comparisonRequest) { window.nerfdAnswers('providers', data); $('#provider-families').innerHTML = renderProviders(data, preview); }
     })(),
     (async () => {
       let data = null;
       try { const response = await fetch('/v1/friction?weeks=8' + suffix); if (response.ok) data = await response.json(); } catch {}
       if (request !== comparisonRequest) return;
+      window.nerfdAnswers('friction', data);
       const models = Array.isArray(data?.models) ? data.models : [];
       $('#friction-table tbody').innerHTML = models.slice(0, preview ? 5 : undefined).map(r => '<tr><td>' + identity(r.model) + '</td><td class="n" title="' + metricNumber(r.n_signals) + ' sessions with signals">' + metricNumber(r.n) + '</td>' +
         [r.steering, r.correction_rate, r.reprompt_rate, r.frustration_rate, r.pushback_rate, r.clarification_rate, r.edit_without_read_rate, r.abandoned_rate].map(v => '<td class="n">' + rateBar(v) + '</td>').join('') + '</tr>').join('') || '<tr><td colspan="10" class="empty">Conversation signals will appear as sessions are shared.</td></tr>';
@@ -285,6 +287,7 @@ function qs() {
 }
 async function meta() {
   const m = await (await fetch('/v1/meta')).json();
+  window.nerfdAnswers('meta', m);
   const rw = m.reporter_weeks ?? m.reporters;
   $('#meta').textContent = m.reports + ' sessions from ' + rw + (rw === 1 ? ' reporter-week' : ' reporter-weeks');
   $('#meta').title = 'one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks';
@@ -292,6 +295,7 @@ async function meta() {
   $('#s-reporters').textContent = rw.toLocaleString();
   $('#s-models').textContent = m.models.length;
   const week = await (await fetch('/v1/stats?by=week&weeks=1')).json();
+  window.nerfdAnswers('week', week);
   $('#s-week').textContent = week.n.toLocaleString();
   for (const c of m.categories) $('#cat').insertAdjacentHTML('beforeend', '<option>' + esc(c) + '</option>');
   for (const l of m.langs) $('#lang').insertAdjacentHTML('beforeend', '<option>' + esc(l) + '</option>');
@@ -299,6 +303,7 @@ async function meta() {
 async function loadTiers() {
   const cat = $('#cat').value;
   const t = await (await fetch('/v1/tiers?weeks=' + $('#weeks').value + (cat ? '&category=' + encodeURIComponent(cat) : ''))).json();
+  window.nerfdAnswers('tiers', t);
   $('#tiers tbody').innerHTML = t.tiers.map((r) => '<tr>' +
     '<td>' + identity(r.model, r.provider) + '</td>' +
     '<td>' + fmt.tier(r.overall) + '</td>' +
@@ -311,6 +316,7 @@ async function loadTiers() {
 }
 async function loadStats() {
   const r = await (await fetch('/v1/stats?' + qs())).json();
+  window.nerfdAnswers('score', r);
   const by = r.by;
   const head = [...by, 'n', 'score', '', 'rating', 'good [95%]', 'rated', 'surv', 'clean', 'steer', 'tool err', 'p50', 'rate-lim', 'overload', 'interr', 'switch', '$/sess', '$/success', 'waste', 'dur'];
   $('#score thead').innerHTML = '<tr>' + head.map((h, i) => '<th class="' + (i >= by.length ? 'n' : '') + '">' + esc(h) + '</th>').join('') + '</tr>';
@@ -340,10 +346,11 @@ async function loadStats() {
 }
 async function loadPlans() {
   const p = await (await fetch('/v1/plans?weeks=' + Math.max(12, Number($('#weeks').value)))).json();
+  window.nerfdAnswers('plans', p);
   $('#plans tbody').innerHTML = p.plans.map((s) => '<tr>' +
     '<td>' + identity(s.tool, s.provider) + '</td><td>' + esc(s.plan_id) + '</td>' +
     '<td class="n">' + (s.plan_usd_month == null ? 'usage' : '$' + s.plan_usd_month) + '</td>' +
-    '<td class="n">' + s.reporters + '</td><td class="n">' + s.reporter_months + '</td>' +
+    '<td class="n">' + (s.reporter_weeks ?? s.reporters) + '</td><td class="n">' + s.reporter_months + '</td>' +
     '<td class="n">' + fmt.num(s.sessions_median, 0) + '</td><td class="n">' + fmt.num(s.successes_median, 0) + '</td>' +
     '<td class="n">' + fmt.num(s.hours_median, 0) + 'h</td>' +
     '<td class="n">' + fmt.usd(s.api_equiv_median) + '</td>' +
@@ -354,6 +361,7 @@ async function loadPlans() {
 }
 async function loadDrift() {
   const d = await (await fetch('/v1/drift?weeks=' + $('#weeks').value)).json();
+  window.nerfdAnswers('drift', d);
   $('#drift tbody').innerHTML = d.models.map((m) => {
     const dr = m.drift;
     const width = Math.max(1, m.weekly.length) * 9;
@@ -383,7 +391,7 @@ meta().catch(() => { $('#meta').textContent = 'Session totals are unavailable.';
 `;
 
 export function boardPage(title: string, readOnly: boolean, origin: string): string {
-  return `<!doctype html>
+  return readablePublic(`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -402,20 +410,20 @@ ${FAVICON}
 ${STAT_STRIP}
 
 <div class="controls">
-  <label>by<select id="by">
-    <option value="model">model</option>
-    <option value="model,category">model x category</option>
-    <option value="model,lang">model x language</option>
-    <option value="model,size">model x task size</option>
-    <option value="model,effort">model x effort</option>
-    <option value="model,tool">model x tool</option>
-    <option value="family">family</option>
-    <option value="provider">provider</option>
-    <option value="plan_id">plan</option>
-    <option value="family,provider">family × provider</option>
-    <option value="family,provider,quant">family × provider × quant</option>
-    <option value="serving_mode">serving mode</option>
-    <option value="category">category</option>
+  <label>Group rows by<select id="by">
+    <option value="model">Model</option>
+    <option value="model,category">Model × task</option>
+    <option value="model,lang">Model × language</option>
+    <option value="model,size">Model × task size</option>
+    <option value="model,effort">Model × reasoning effort</option>
+    <option value="model,tool">Model × tool</option>
+    <option value="family">Family</option>
+    <option value="provider">Provider</option>
+    <option value="plan_id">Plan</option>
+    <option value="family,provider">Family × provider</option>
+    <option value="family,provider,quant">Family × provider × quant</option>
+    <option value="serving_mode">Serving mode</option>
+    <option value="category">Task</option>
   </select></label>
   <label>weeks<select id="weeks"><option>2</option><option selected>4</option><option>8</option><option>12</option><option>26</option></select></label>
   <label>category<select id="cat"><option value="">all</option></select></label>
@@ -457,9 +465,104 @@ ${COMPARISON_SECTIONS}
 
 <script>${BOARD_JS}</script>
 </body>
-</html>`;
+</html>`, false);
 }
 
 export function esc(s: string): string {
   return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+}
+
+// Answer builders only consume the existing endpoint responses. Never infer ratings
+// from an unrated composite, or unique reporters from rotating reporter-week IDs.
+const ANSWER_JS = `
+(() => {
+ const state = {};
+ const number = v => typeof v === 'number' && Number.isFinite(v);
+ const count = v => number(v) ? v.toLocaleString('en-US', {maximumFractionDigits:1}) : 'not measured';
+ const set = (id, text) => { const el = document.getElementById(id + '-answer'); if(el) el.textContent = text; };
+ window.nerfdAnswers = (kind, data) => {
+   state[kind] = data;
+   if (kind === 'tiers') {
+     const rows = data?.tiers || []; const top = rows.filter(r => number(r.score)).sort((a,b) => b.score-a.score)[0];
+     const rated = rows.filter(r => r.criteria?.quality?.tier && r.criteria.quality.tier !== '-');
+     state.quality = !rows.length ? 'No model has enough sessions for a public tier yet.' : !rated.length ? 'Not enough rated sessions yet to rank quality; scores below use clean sessions and measured code survival only.' : rated.length < rows.length ? 'Ratings cover only part of this field; composite scores use the observations available for each model.' : 'Quality ratings are available; compare like tasks before choosing a model.';
+     set('tiers', state.quality + (top ? ' ' + top.model + ' has the highest composite score, ' + count(top.score) + '/100 (n=' + count(top.n) + '), in this ' + count(data.weeks || 4) + '-week field.' : ' Tiers appear after ' + count(data?.min_n || 10) + ' sessions per model.'));
+   }
+   if(kind === 'score') {
+     const rows = data?.groups || []; const rated = rows.reduce((s,r) => s + (r.n_rated || 0),0); const n = rows.reduce((s,r) => s + (r.n || 0),0);
+     set('score', rows.length ? count(rated) + ' of ' + count(n) + ' sessions have a rating in this grouping. ' + (rated < 3 ? 'Too few ratings to rank quality; use the clean-session and code-survival evidence below.' : 'Compare scores within the same task and tool; missing inputs are reweighted.') : 'No sessions match these filters. Widen the time window or choose all tasks and languages.');
+   }
+   if(kind === 'providers') {
+     const families = data?.families || []; const comparable = families.filter(f => (f.rows || []).filter(r => r.n >= 10).length >= 2);
+     set('providers', !families.length ? 'No host comparison yet. Shared sessions must identify the model family and provider; the board needs ten sessions per row.' : count(families.length) + ' model families are recorded; ' + count(comparable.length) + ' have at least two serving variants with ten sessions each. ' + (comparable.length ? 'Compare the same quantisation and task before attributing a difference to the host.' : 'A single host is evidence of use, not a head-to-head comparison.'));
+   }
+   if(kind === 'limits') {
+     const windows = data?.windows || []; const w = windows.find(w => w.window_min === 10080 && number(w.capacity_total?.p50)) || windows.find(w => number(w.capacity_total?.p50));
+     set('limits', w ? (w.window_min === 10080 ? 'A weekly' : 'A ' + count(w.window_min / 60) + '-hour') + ' window for ' + w.plan_id + ' holds about ' + count(w.capacity_total.p50) + ' total tokens; the middle half spans ' + count(w.capacity_total.p25) + '–' + count(w.capacity_total.p75) + ' (n=' + count(w.n_windows) + ' windows). Typical usage is ' + count(w.usage_median_pct) + '%.' : 'No capacity estimate yet. Codex usage readings or the Claude Code status-line sampler must cover enough of a window to estimate its size.');
+   }
+   if(kind === 'friction') {
+     const rows = (data?.models || []).filter(r => number(r.steering) && (r.n_signals ?? r.n) >= 3).sort((a,b) => a.steering-b.steering); const r = rows[0];
+     set('friction', r ? r.model + ' has the lowest observed steering rate: ' + count(r.steering*100) + '% (n=' + count(r.n_signals ?? r.n) + ' sessions with signals). This counts extra direction, not quality; tool and reporter habits affect it.' : 'Too few conversation signals to compare effort yet. Supported tools record corrections and repeated requests locally when sessions finish.');
+   }
+   if(kind === 'plans') {
+     const plans = data?.plans || []; const p = plans.filter(p => number(p.api_equiv_median)).sort((a,b) => b.reporters-a.reporters)[0];
+     set('plans', p ? p.plan_id + ' recorded a median $' + count(p.api_equiv_median) + ' of API-equivalent token use per reporter-week (n=' + count(p.reporter_weeks ?? p.reporters) + ' reporter-weeks). ' + (number(p.cost_per_success_median) ? 'Measured successes cost $' + count(p.cost_per_success_median) + ' each at the period-adjusted plan price.' : 'Cost per success needs a measured successful outcome and plan price.') : 'No priced plan comparison yet. Record the plan and token usage to see what the subscription delivered.');
+   }
+   if(kind === 'drift') {
+     const models = data?.models || []; const flags = models.filter(m => ['watch','alert'].includes(m.drift?.flag)); const eligible = models.filter(m => m.drift);
+     set('drift', eligible.length ? count(flags.length) + ' of ' + count(eligible.length) + ' comparable models have a change flag against their trailing baseline. A flag asks for a closer look; it is not a verdict.' : 'Not enough weekly history to measure change. A flag needs a baseline and at least five sessions this week.');
+   }
+   const m = state.meta;
+   set('glance', (m ? count(m.reports) + ' sessions across ' + count(m.models?.length || 0) + ' models are in this record (' + count(m.reporter_weeks ?? m.reporters) + ' reporter-weeks, not unique people). ' : 'Session totals are still loading or unavailable. ') + (state.week ? count(state.week.n) + ' sessions were recorded this week. ' : '') + (state.quality || 'Quality rankings need rated sessions. ') + ' Open a section for evidence and sample sizes.');
+ };
+})();
+`;
+
+export function readablePublic(source: string, landing: boolean): string {
+  let html = source;
+  const answer = (id: string, text = 'Loading the observations for this section; if unavailable, refresh to try again.'): string => `<p class="answer" id="${id}-answer" aria-live="polite">${text}</p>`;
+  // Give formerly unsectioned tables stable section anchors without moving IDs.
+  if (landing) {
+    html = html.replace('<section>\n  <div class="section-head"><h2>Tiers', '<section id="tiers-section">\n  <div class="section-head"><h2>Tiers');
+    html = html.replace('<section>\n  <h2>What a month actually buys', '<section id="plans-section">\n  <h2>Subscription value');
+    const glance = html.match(/  <div class="glance">[\s\S]*?<\/div>\n<\/div>/)?.[0];
+    if (glance) html = html.replace(glance, '</div>');
+    const panel = `<div class="glance-panel"><h2>This week in one look</h2>${answer('glance', 'Loading this week’s record. Ratings, measured outcomes and sample sizes will explain what can be compared.')}${STAT_STRIP}</div>${READ_GUIDE}`;
+    html = html.replace('  <div class="install" id="install">', panel + '<h2>Make your next session count</h2><p class="sub">Install once for a personal report of what worked, what it cost and where work got harder.</p><div class="install" id="install">');
+    html = html.replace('The public record of how AI models actually perform on real work.</h1>', 'Which AI is working for you?</h1>');
+    html = html.replace(/<p class="lede">[\s\S]*?<\/p>/, '<p class="lede">See what worked, what your plan bought, and how much direction each model needed. Start with your own sessions; compare the public evidence as it grows.</p>');
+  } else {
+    html = html.replace(STAT_STRIP, `<div class="glance-panel"><h2>This week in one look</h2>${answer('glance')}${STAT_STRIP}</div>${READ_GUIDE}`);
+    for (const [title, id, end] of [['Model tiers','tiers-section','${COMPARISON_SECTIONS}'], ['Session scorecard','score-section','<h2>Subscription value</h2>'], ['Subscription value','plans-section','<h2>Weekly drift</h2>'], ['Weekly drift','drift-section','</main>']]) {
+      html = html.replace(`<h2>${title}</h2>`, `<section id="${id}"><h2>${title}</h2>`);
+      if (title === 'Model tiers') html = html.replace('<section id="providers"', '</section><section id="providers"');
+      else html = html.replace(end, '</section>' + end);
+    }
+    html = html.replace('<footer>', '<footer id="method"><h2>Method</h2>');
+  }
+  const sections = [['tiers-section','Tiers','tiers'],['providers','Same weights, different host','providers'],['limits','What a plan gives you','limits'],['friction','How hard people had to push','friction'], ...(!landing ? [['score-section','Session scorecard','score']] : []),['plans-section','Subscription value','plans'], ...(!landing ? [['drift-section','Weekly change','drift']] : []), ['method','Method','method']];
+  const nav = `<nav class="section-nav" aria-label="Sections">${sections.map(([id, label], i) => `<a href="#${id}">${String(i+1).padStart(2,'0')} ${label}</a>`).join('')}</nav>`;
+  html = html.replace(landing ? '\n<section id="tiers-section">' : '<div class="controls">', nav + (landing ? '\n<section id="tiers-section">' : '<div class="controls">'));
+  sections.forEach(([id, title, key], i) => {
+    const start = html.indexOf(`id="${id}"`); if(start < 0) return;
+    const h2 = html.indexOf('<h2', start); if(h2 < 0) return;
+    const close = html.indexOf('</h2>', h2) + 5;
+    const marker = `<span class="section-number">${String(i+1).padStart(2,'0')}</span>`;
+    html = html.slice(0,h2) + marker + html.slice(h2,close) + answer(key, key === 'method' ? 'Your sessions produce local counts; sharing sends redacted metrics, never prompts or code.' : undefined) + html.slice(close);
+  });
+  // Answer paragraphs belong below the section heading row, not inside its flex layout.
+  html = html.replace(/(<div class="section-head">[\s\S]*?<\/h2>)(<p class="answer"[\s\S]*?<\/p>)([\s\S]*?<\/div>)/g, '$1$3$2');
+  if (landing) {
+    for (const [id] of sections) {
+      if(id === 'method') continue;
+      const start = html.indexOf(`id="${id}"`); const end = html.indexOf('</section>', start);
+      if(start < 0 || end < 0) continue;
+      let part = html.slice(start,end).replace(/href="\/board(?:#[^"]*)?"/g, `href="/board#${id}"`);
+      if(!part.includes('href="/board')) part += `<p class="section-context"><a href="/board#${id}">Explore this evidence on the board ↗</a></p>`;
+      html = html.slice(0,start) + part + html.slice(end);
+    }
+  }
+  html = html.replace('</style>', READABLE_CSS + '\n.glance-panel .stats{grid-template-columns:repeat(3,minmax(0,1fr))}.glance-panel .stat:nth-child(2){display:none}.glance-panel .stat{padding:16px}.glance-panel .stat b{font-size:24px}\n</style>');
+  html = html.replace('<script>', () => `<script>${ANSWER_JS}</script><script>${READABLE_JS}</script><script>`);
+  return defineHeaders(html);
 }

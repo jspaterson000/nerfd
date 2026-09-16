@@ -59,3 +59,21 @@ export const SAMPLE: ReportData = {
   share: { headline: 'A month of AI. Measured.', lines: ['84 sessions · 62.4 hours · 75% successful (n=84)', 'Claude Opus leads: 88 / 100 points (n=28)', 'Claude Max: 3.4× API-equivalent value (n=38)', '34 errors · 12 rate limits across 84 sessions'], caption: 'My AI usage, measured locally with nerfd: 84 sessions, 75% successful, and 3.4× API-equivalent value from Claude Max. Personal results, not a universal benchmark. Compare on nerfd.ai.' },
   empty: false,
 };
+
+// Sparse synthetic record: activity is known, quality and most outcomes are not.
+export const SAMPLE_THIN: ReportData = (() => {
+  const data = structuredClone(SAMPLE);
+  data.ranking.models = data.ranking.models.map((m, i) => ({ ...m, n: i === 4 ? 2 : m.n, rating_mean: i === 4 ? 4 : null, score: i === 4 ? null : Math.round(m.friction_free * 100), success_rate: null, survival_mean: null, cost_per_success: null, latency_p50_ms: i === 3 ? null : m.latency_p50_ms }));
+  const sessions = data.ranking.models.reduce((sum,m) => sum+m.n,0);
+  data.glance = { ...data.glance, sessions, successes: 1, success_rate: 1 / sessions, sentence: 'Most sessions are unrated. Activity is visible; model quality needs more outcome evidence.' };
+  data.ranking.matrix.cells = data.ranking.matrix.cells.map(c => ({...c, score: c.n < 3 ? null : 70}));
+  data.ranking.which = data.ranking.which.map(w => ({...w, best: null}));
+  data.economics.plans = data.economics.plans.map((p,i) => ({...p, sessions: i === 0 ? p.sessions - 8 : p.sessions, successes: i === 0 ? 1 : 0, cost_per_success: null, waste_share: null}));
+  data.economics.models = data.economics.models.map(m => ({...m, cost_per_success: null, waste_share: null}));
+  data.trouble.by_model = data.trouble.by_model.map((m,i) => ({...m, n: data.ranking.models[i]!.n, correction_rate: null, reprompt_rate: null, pushback_rate: null, frustration_rate: null, clarification_rate: null, edit_without_read_rate: null, abandoned_rate: null}));
+  data.trouble.roughest = data.trouble.roughest.map(s => ({...s, rating: null}));
+  data.limits = {windows: [], plans: [], observed_only: [{scope:'seven_day',window_min:10080,sessions:3,samples:4}],empty:false};
+  data.drift = data.drift.map(m => ({...m, weekly:m.weekly.slice(0,1).map(w => ({...w,score:null})),flag:'n/a',rating_z:null,friction_z:null,steering_z:null}));
+  data.share = {headline:'A record taking shape.',lines:[`${sessions} sessions · mostly unrated`, 'More outcome evidence needed to compare quality'],caption:'My local session record is growing. Most sessions are unrated; scores are not a quality verdict.'};
+  return data;
+})();
