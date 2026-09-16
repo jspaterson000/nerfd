@@ -16,11 +16,33 @@ const RULES: Array<[Category, RegExp, number]> = [
 
 export function classifyPrompt(prompt: string | null | undefined): Category {
   if (!prompt) return 'other';
-  const text = prompt.slice(0, 2000);
+  return classifyTexts([prompt]);
+}
+
+/**
+ * Classify a whole conversation from the person's side of it. The first
+ * prompt says what the session was for, so it counts double; the next few
+ * user turns refine it, because "fix the failing test" often only shows up on
+ * turn three of a session that opened with "here is the repo". Up to eight
+ * user turns are read, each cut at 2000 characters, and only the category
+ * comes out: the texts are neither stored nor returned.
+ *
+ * This is what a backfilled session gets, and what `finalise` re-runs at
+ * session end when the person has not set the category themselves.
+ */
+export function classifyTexts(texts: Array<string | null | undefined>): Category {
   const scores = new Map<Category, number>();
-  for (const [cat, re, weight] of RULES) {
-    const hits = text.match(new RegExp(re.source, re.flags + 'g'));
-    if (hits) scores.set(cat, (scores.get(cat) ?? 0) + hits.length * weight);
+  let read = 0;
+  for (const raw of texts) {
+    if (typeof raw !== 'string' || !raw.trim()) continue;
+    if (read >= 8) break;
+    const text = raw.slice(0, 2000);
+    const turnWeight = read === 0 ? 2 : 1;
+    read++;
+    for (const [cat, re, weight] of RULES) {
+      const hits = text.match(new RegExp(re.source, re.flags + 'g'));
+      if (hits) scores.set(cat, (scores.get(cat) ?? 0) + hits.length * weight * turnWeight);
+    }
   }
   let best: Category = 'other';
   let bestScore = 0;

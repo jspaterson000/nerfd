@@ -1,4 +1,4 @@
-import { SIGNAL_VERSION, activeSeconds, computeSignals, isAutomatedSession, type Session, type Tool, type Turn } from '@nerfd/core';
+import { SIGNAL_VERSION, activeSeconds, classifyTexts, computeSignals, isAutomatedSession, type Session, type Tool, type Turn } from '@nerfd/core';
 import type { TranscriptFacts } from '../transcript.ts';
 
 // Every tool is different, but they all split the same way. Live events
@@ -99,6 +99,15 @@ export function attachSignals(s: Session, turns: Turn[], onError?: (name: string
     if (!turns.length) return;
     s.signals = computeSignals(turns);
     s.signal_version = SIGNAL_VERSION;
+    // The kind of work, from the person's side of the conversation. A
+    // backfilled session has no hook prompt to classify, and a live one was
+    // classified on its first prompt alone; the turns are the better
+    // evidence and they exist only here. One enum value comes out. A
+    // category the person set with `nerfd rate` is theirs and stays.
+    if (s.category_source !== 'user') {
+      const inferred = classifyTexts(turns.filter((t) => t.role === 'user').map((t) => t.text));
+      if (inferred !== 'other') s.category = inferred;
+    }
     // Turns are the only place active time can come from, and this is the one
     // call that has them. `duration_s` stays the wall-clock span.
     s.metrics.active_s = activeSeconds(turns);

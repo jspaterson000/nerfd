@@ -23,6 +23,25 @@ function identity(label, provider) {
   const host = provider && String(provider) !== name ? '<small class="provider">' + identity(provider) + '</small>' : '';
   return '<span class="identity"><span class="logo">' + icon + fallback + '</span><span>' + esc(name) + '</span>' + host + '</span>';
 }
+// Every model name on a board is a door to its own page.
+function modelLink(id, inner) { return '<a class="model-link" href="/model/' + encodeURIComponent(id) + '">' + (inner || identity(id)) + '</a>'; }
+const WORK_NAMES = { code: 'writing code', debug: 'debugging', refactor: 'refactoring', review: 'review and explanation', ux: 'UI and styling', strategy: 'planning and architecture', writing: 'docs and prose', research: 'research', ops: 'infra and shell work', other: 'unclassified work' };
+function workName(c) { return WORK_NAMES[c] || c; }
+`;
+
+// Best at each kind of work: one card per category, shared by the landing
+// page and the board. Same tiering as the table, run inside each category.
+export const WORK_JS = `
+function renderWorkCards(data, preview = false) {
+  const cards = Array.isArray(data?.work) ? data.work : [];
+  const minN = data?.min_n ?? 10;
+  const tierOf = (t) => '<span class="tier ' + (!t || t === '-' ? 'dash' : t) + '">' + (t || '–') + '</span>';
+  return cards.slice(0, preview ? 6 : undefined).map(c => {
+    const ranked = c.ranked.filter(r => r.tier !== '-');
+    const list = (ranked.length ? ranked : c.ranked).slice(0, 3).map(r => '<li>' + tierOf(r.tier) + modelLink(r.model) + '<span class="n">' + (r.score == null ? '' : r.score + ' · ') + 'n=' + r.n + '</span></li>').join('');
+    return '<article class="work-card"><h3>' + esc(workName(c.category)) + '</h3><p class="meta">' + c.n + ' session' + (c.n === 1 ? '' : 's') + ' · ' + c.n_models + ' model' + (c.n_models === 1 ? '' : 's') + (ranked.length ? '' : ' · none with ' + minN + '+ sessions yet') + '</p><ol>' + list + '</ol><a class="more" href="/board?category=' + encodeURIComponent(c.category) + '#tiers-section">Filter the board to ' + esc(workName(c.category)) + ' ↗</a></article>';
+  }).join('') || '<p class="empty">Cards appear as sessions are classified by kind of work. Categories are inferred from the conversation on the reporter’s machine.</p>';
+}
 `;
 
 
@@ -154,6 +173,10 @@ main,section{min-width:0;max-width:100%}
 #friction>.eyebrow{margin:24px 0 6px}#friction h2{margin-top:0}.family-card h3 .identity{min-width:0;overflow-wrap:anywhere}.family-card h3 .identity>span:last-child{min-width:0}
 #limits h3{font-size:13px;font-weight:600;margin:24px 0 10px}#limits .sub{max-width:780px}.limit-detail{display:block;font-size:10px;color:var(--mut);margin-top:4px}.limit-band{display:block;position:relative;width:170px;height:12px;margin:3px 0 7px;background:var(--soft);border-radius:3px}.limit-band i{position:absolute;top:3px;height:6px;background:var(--mut);opacity:.45;border-radius:2px}.limit-band b{position:absolute;top:0;width:2px;height:12px;background:var(--fg);transform:translateX(-1px)}.limit-usage{display:inline-block;width:36px;height:4px;background:var(--soft);margin-right:7px;vertical-align:middle;border-radius:2px;overflow:hidden}.limit-usage i{display:block;height:100%;background:var(--mut)}.limit-wall{padding:3px 5px;border-radius:4px}.limit-wall.high{color:var(--bad);background:color-mix(in srgb,var(--bad) 9%,transparent)}.limit-scatter{max-width:680px;margin:0}.limit-scatter svg{display:block;width:100%;height:auto;font:11px var(--mono);fill:var(--mut)}.limit-scatter figcaption{font-size:12px;color:var(--mut)}.limit-key{display:flex;flex-wrap:wrap;gap:8px 30px;padding-left:24px;font-size:11px}.limit-key li{padding-left:2px}.limit-key .logo{width:22px;height:22px}.limit-key .logo img{width:15px;height:15px}
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.work-chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}.work-chips button{font-size:12px;padding:6px 12px;border-radius:20px}.work-chips button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}.work-chips button small{color:inherit;opacity:.7;margin-left:6px;font-family:var(--mono);font-size:10px}
+.work-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:8px}.work-card{padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}.work-card h3{font-size:14px;margin:0 0 2px;font-weight:600;text-transform:capitalize}.work-card .meta{font-size:11px;color:var(--mut);margin:0 0 10px}.work-card ol{margin:0;padding:0;list-style:none}.work-card li{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:12px}.work-card li .tier{margin:0}.work-card li .model-link{min-width:0;flex:1}.work-card li .n{font-size:11px;color:var(--mut);white-space:nowrap}.work-card .more{display:block;margin-top:10px;font-size:11px;color:var(--mut)}
+.model-link:hover{text-decoration:none}.model-link .identity>span:nth-child(2){text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line)}.model-link:hover .identity>span:nth-child(2){text-decoration-color:var(--fg)}
+.hidden-control{display:none!important}
 @media(max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat{padding:16px 18px}.stat:nth-child(2){border-right:0}.stat:nth-child(-n+2){border-bottom:1px solid var(--line)}.stat b{font-size:24px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 `;
@@ -257,7 +280,7 @@ async function loadComparisons(category = '', preview = false) {
       if (request !== comparisonRequest) return;
       window.nerfdAnswers('friction', data);
       const models = Array.isArray(data?.models) ? data.models : [];
-      $('#friction-table tbody').innerHTML = models.slice(0, preview ? 5 : undefined).map(r => '<tr><td>' + identity(r.model) + '</td><td class="n" title="' + metricNumber(r.n_signals) + ' sessions with signals">' + metricNumber(r.n) + '</td>' +
+      $('#friction-table tbody').innerHTML = models.slice(0, preview ? 5 : undefined).map(r => '<tr><td>' + modelLink(r.model) + '</td><td class="n" title="' + metricNumber(r.n_signals) + ' sessions with signals">' + metricNumber(r.n) + '</td>' +
         [r.steering, r.correction_rate, r.reprompt_rate, r.frustration_rate, r.pushback_rate, r.clarification_rate, r.edit_without_read_rate, r.abandoned_rate].map(v => '<td class="n">' + rateBar(v) + '</td>').join('') + '</tr>').join('') || '<tr><td colspan="10" class="empty">Conversation signals will appear as sessions are shared.</td></tr>';
     })()
   ]);
@@ -266,6 +289,7 @@ async function loadComparisons(category = '', preview = false) {
 
 export const BOARD_JS = `
 ${IDENTITY_JS}
+${WORK_JS}
 ${COMPARISON_JS}
 ${LIMITS_JS}
 const $ = (s) => document.querySelector(s);
@@ -297,15 +321,39 @@ async function meta() {
   const week = await (await fetch('/v1/stats?by=week&weeks=1')).json();
   window.nerfdAnswers('week', week);
   $('#s-week').textContent = week.n.toLocaleString();
-  for (const c of m.categories) $('#cat').insertAdjacentHTML('beforeend', '<option>' + esc(c) + '</option>');
+  for (const c of m.categories) $('#cat').insertAdjacentHTML('beforeend', '<option value="' + esc(c) + '">' + esc(workName(c)) + '</option>');
   for (const l of m.langs) $('#lang').insertAdjacentHTML('beforeend', '<option>' + esc(l) + '</option>');
+  const wanted = new URLSearchParams(location.search).get('category') || '';
+  if (wanted && m.categories.includes(wanted)) $('#cat').value = wanted;
+  await renderChips();
+}
+// The kind-of-work filter: one row of chips with counts, kept in step with
+// the select and the URL so a filtered board can be linked to.
+async function renderChips() {
+  let counts = new Map();
+  try { const c = await (await fetch('/v1/stats?by=category&weeks=' + $('#weeks').value)).json(); counts = new Map(c.groups.map(g => [g.key.category, g.n])); } catch {}
+  const cats = [...$('#cat').options].map(o => o.value).filter(Boolean).sort((a, b) => (counts.get(b) || 0) - (counts.get(a) || 0));
+  const total = [...counts.values()].reduce((a, b) => a + b, 0);
+  const current = $('#cat').value;
+  $('#work-chips').innerHTML = [['', 'All work', total], ...cats.map(c => [c, workName(c), counts.get(c) || 0])].map(([v, label, n]) => '<button type="button" data-cat="' + esc(v) + '" aria-pressed="' + (v === current) + '">' + esc(label) + '<small>' + n + '</small></button>').join('');
+  $('#work-chips').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    $('#cat').value = b.dataset.cat;
+    const u = new URL(location.href); if (b.dataset.cat) u.searchParams.set('category', b.dataset.cat); else u.searchParams.delete('category'); history.replaceState(null, '', u.toString());
+    $('#work-chips').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    load();
+  }));
+}
+async function loadWork() {
+  const w = await (await fetch('/v1/work?weeks=' + $('#weeks').value)).json();
+  window.nerfdAnswers('work', w);
+  $('#work-cards').innerHTML = renderWorkCards(w);
 }
 async function loadTiers() {
   const cat = $('#cat').value;
   const t = await (await fetch('/v1/tiers?weeks=' + $('#weeks').value + (cat ? '&category=' + encodeURIComponent(cat) : ''))).json();
   window.nerfdAnswers('tiers', t);
   $('#tiers tbody').innerHTML = t.tiers.map((r) => '<tr>' +
-    '<td>' + identity(r.model, r.provider) + '</td>' +
+    '<td>' + modelLink(r.model, identity(r.model, r.provider)) + '</td>' +
     '<td>' + fmt.tier(r.overall) + '</td>' +
     '<td class="n">' + (r.score ?? '-') + '</td>' +
     ['quality','reliability','steering','survival','speed','value'].map((c) => '<td>' + fmt.tier(r.criteria?.[c]?.tier ?? '-') + ' <span class="mut">' + esc(r.criteria?.[c]?.display ?? '–') + '</span></td>').join('') +
@@ -321,7 +369,7 @@ async function loadStats() {
   const head = [...by, 'n', 'score', '', 'rating', 'good [95%]', 'rated', 'surv', 'clean', 'steer', 'tool err', 'p50', 'rate-lim', 'overload', 'interr', 'switch', '$/sess', '$/success', 'waste', 'dur'];
   $('#score thead').innerHTML = '<tr>' + head.map((h, i) => '<th class="' + (i >= by.length ? 'n' : '') + '">' + esc(h) + '</th>').join('') + '</tr>';
   $('#score tbody').innerHTML = r.groups.map((g) => '<tr>' +
-    by.map((b) => '<td>' + (b === 'model' || b === 'family' ? identity(g.key[b], g.provider ?? g.key.provider) : b === 'provider' || b === 'tool' ? identity(g.key[b]) : esc(g.key[b])) + '</td>').join('') +
+    by.map((b) => '<td>' + (b === 'model' ? modelLink(g.key[b], identity(g.key[b], g.provider ?? g.key.provider)) : b === 'family' ? identity(g.key[b], g.provider ?? g.key.provider) : b === 'provider' || b === 'tool' ? identity(g.key[b]) : b === 'category' ? esc(workName(g.key[b])) : esc(g.key[b])) + '</td>').join('') +
     '<td class="n">' + g.n + '</td>' +
     '<td class="n">' + (g.score ?? '-') + '</td>' +
     '<td><span class="bar" style="width:' + (g.score ?? 0) * 0.8 + 'px"></span></td>' +
@@ -369,7 +417,7 @@ async function loadDrift() {
       const height = w.score == null ? 2 : Math.max(2, Math.min(100, w.score) * .24);
       return '<rect x="' + (i * 9) + '" y="' + (26 - height) + '" width="6" height="' + height + '" rx="1.5" fill="currentColor" opacity="' + (w.score == null ? '.25' : '.8') + '"><title>' + esc(w.week) + ': n=' + w.n + ', score=' + (w.score ?? 'unscored') + '</title></rect>';
     }).join('') + '</svg>';
-    return '<tr><td>' + identity(m.model, m.provider) + '</td>' +
+    return '<tr><td>' + modelLink(m.model, identity(m.model, m.provider)) + '</td>' +
       '<td class="n">' + (dr ? dr.current.n : '-') + '</td>' +
       '<td class="flag-' + (dr ? dr.flag : 'none') + '">' + (dr ? dr.flag : 'n/a') + '</td>' +
       '<td class="n">' + fmt.num(dr && dr.rating_z, 1) + '</td>' +
@@ -381,11 +429,12 @@ async function loadDrift() {
 async function load() {
   $('#reload').disabled = true;
   $('#reload').textContent = 'Refreshing…';
-  try { await Promise.all([loadTiers(), loadStats(), loadPlans(), loadDrift(), loadComparisons($('#cat').value)]); }
+  try { await Promise.all([loadTiers(), loadWork(), loadStats(), loadPlans(), loadDrift(), loadComparisons($('#cat').value)]); }
   catch (e) { $('#meta').textContent = 'Unable to refresh. ' + e.message; }
   finally { $('#reload').disabled = false; $('#reload').textContent = 'Refresh'; }
 }
 for (const id of ['by', 'weeks', 'cat', 'lang']) $('#' + id).addEventListener('change', load);
+$('#weeks').addEventListener('change', renderChips);
 $('#reload').addEventListener('click', load);
 meta().catch(() => { $('#meta').textContent = 'Session totals are unavailable.'; }).finally(load);
 `;
@@ -403,7 +452,7 @@ ${FAVICON}
 <body>
 <header>
   <a class="brand" href="/"><span class="app-icon" aria-hidden="true">n</span><span>nerfd<em>.ai</em></span></a>
-  <nav aria-label="Main navigation">${readOnly ? '' : `<a href="${esc(origin)}/#install">Install</a>`}<a href="/privacy">Privacy</a><a href="/export.json">Raw data</a></nav>
+  <nav aria-label="Main navigation"><a href="/model">Models</a>${readOnly ? '' : `<a href="${esc(origin)}/#install">Install</a>`}<a href="/privacy">Privacy</a><a href="/export.json">Raw data</a></nav>
 </header>
 <main>
 <div class="board-heading"><div><h1>${readOnly ? esc(title) : 'The public scorecard'}</h1><p class="mut" id="meta" role="status">Loading session metrics…</p></div><span class="status">${readOnly ? 'Your sessions only' : 'Public record'}</span></div>
@@ -426,16 +475,25 @@ ${STAT_STRIP}
     <option value="category">Task</option>
   </select></label>
   <label>weeks<select id="weeks"><option>2</option><option selected>4</option><option>8</option><option>12</option><option>26</option></select></label>
-  <label>category<select id="cat"><option value="">all</option></select></label>
+  <label class="hidden-control">category<select id="cat"><option value="">all</option></select></label>
   <label>lang<select id="lang"><option value="">all</option></select></label>
   <button id="reload">Refresh</button>
 </div>
 
+<div class="work-chips" id="work-chips" role="group" aria-label="Kind of work"></div>
+
 <h2>Model tiers</h2>
-<div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="tiers"><thead>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="tiers" data-sortable><thead>
 <tr><th>model</th><th>tier</th><th class="n">score</th><th>quality</th><th>reliability</th><th>steering</th><th>survival</th><th>speed</th><th>value</th><th class="n">waste</th><th class="n">n</th></tr>
 </thead><tbody></tbody></table></div>
 <p class="mut" id="tiers-note"></p>
+</section>
+<section id="work" aria-labelledby="work-heading">
+<h2 id="work-heading">Best at each kind of work</h2>
+<p class="sub">The same tiering, run inside each kind of work. A model can lead at debugging and trail at UI; this is where you find out which. Click a card to filter every table above and below to that work.</p>
+<div class="work-grid" id="work-cards"><p class="empty">Loading kinds of work…</p></div>
+<p class="metric-note mut">Kind of work is inferred from the conversation on the reporter’s machine and can be corrected with <span class="mono">nerfd rate</span>. A card ranks models with ten or more sessions on that work; the rest are listed with their n.</p>
+</section>
 
 ${COMPARISON_SECTIONS}
 
@@ -486,7 +544,12 @@ const ANSWER_JS = `
      const rows = data?.tiers || []; const top = rows.filter(r => number(r.score)).sort((a,b) => b.score-a.score)[0];
      const rated = rows.filter(r => r.criteria?.quality?.tier && r.criteria.quality.tier !== '-');
      state.quality = !rows.length ? 'No model has enough sessions for a public tier yet.' : !rated.length ? 'Not enough rated sessions yet to rank quality; scores below use clean sessions and measured code survival only.' : rated.length < rows.length ? 'Ratings cover only part of this field; composite scores use the observations available for each model.' : 'Quality ratings are available; compare like tasks before choosing a model.';
-     set('tiers', state.quality + (top ? ' ' + top.model + ' has the highest composite score, ' + count(top.score) + '/100 (n=' + count(top.n) + '), in this ' + count(data.weeks || 4) + '-week field.' : ' Tiers appear after ' + count(data?.min_n || 10) + ' sessions per model.'));
+     const scope = data?.category ? 'For ' + (typeof workName === 'function' ? workName(data.category) : data.category) + ', ' : '';
+     set('tiers', scope + (scope ? state.quality.charAt(0).toLowerCase() + state.quality.slice(1) : state.quality) + (top ? ' ' + top.model + ' has the highest composite score, ' + count(top.score) + '/100 (n=' + count(top.n) + '), in this ' + count(data.weeks || 4) + '-week field.' : ' Tiers appear after ' + count(data?.min_n || 10) + ' sessions per model.'));
+   }
+   if(kind === 'work') {
+     const cards = (data?.work || []); const led = cards.filter(c => c.ranked.some(r => r.tier !== '-'));
+     set('work', led.length ? led.slice(0, 4).map(c => { const r = c.ranked.find(r => r.tier !== '-'); return (typeof workName === 'function' ? workName(c.category) : c.category) + ': ' + r.model + ' (' + r.tier + (number(r.score) ? ', ' + count(r.score) : '') + ', n=' + count(r.n) + ')'; }).join('; ') + '.' + (cards.length > led.length ? ' ' + count(cards.length - led.length) + ' more kind' + (cards.length - led.length === 1 ? '' : 's') + ' of work have sessions but no model with enough of them to rank.' : '') : cards.length ? count(cards.length) + ' kinds of work have sessions, but no model has reached the ' + count(data?.min_n || 10) + ' sessions a per-task rank needs.' : 'No classified work yet. Categories are inferred from the conversation on the reporter’s machine.');
    }
    if(kind === 'score') {
      const rows = data?.groups || []; const rated = rows.reduce((s,r) => s + (r.n_rated || 0),0); const n = rows.reduce((s,r) => s + (r.n || 0),0);
@@ -535,12 +598,12 @@ export function readablePublic(source: string, landing: boolean): string {
     html = html.replace(STAT_STRIP, `<div class="glance-panel"><h2>This week in one look</h2>${answer('glance')}${STAT_STRIP}</div>${READ_GUIDE}`);
     for (const [title, id, end] of [['Model tiers','tiers-section','${COMPARISON_SECTIONS}'], ['Session scorecard','score-section','<h2>Subscription value</h2>'], ['Subscription value','plans-section','<h2>Weekly drift</h2>'], ['Weekly drift','drift-section','</main>']]) {
       html = html.replace(`<h2>${title}</h2>`, `<section id="${id}"><h2>${title}</h2>`);
-      if (title === 'Model tiers') html = html.replace('<section id="providers"', '</section><section id="providers"');
+      if (title === 'Model tiers') { /* closed in the markup, before the work section */ }
       else html = html.replace(end, '</section>' + end);
     }
     html = html.replace('<footer>', '<footer id="method"><h2>Method</h2>');
   }
-  const sections = [['tiers-section','Tiers','tiers'],['providers','Same weights, different host','providers'],['limits','What a plan gives you','limits'],['friction','How hard people had to push','friction'], ...(!landing ? [['score-section','Session scorecard','score']] : []),['plans-section','Subscription value','plans'], ...(!landing ? [['drift-section','Weekly change','drift']] : []), ['method','Method','method']];
+  const sections = [['tiers-section','Tiers','tiers'],['work','Best at each kind of work','work'],['providers','Same weights, different host','providers'],['limits','What a plan gives you','limits'],['friction','How hard people had to push','friction'], ...(!landing ? [['score-section','Session scorecard','score']] : []),['plans-section','Subscription value','plans'], ...(!landing ? [['drift-section','Weekly change','drift']] : []), ['method','Method','method']];
   const nav = `<nav class="section-nav" aria-label="Sections">${sections.map(([id, label], i) => `<a href="#${id}">${String(i+1).padStart(2,'0')} ${label}</a>`).join('')}</nav>`;
   html = html.replace(landing ? '\n<section id="tiers-section">' : '<div class="controls">', nav + (landing ? '\n<section id="tiers-section">' : '<div class="controls">'));
   sections.forEach(([id, title, key], i) => {

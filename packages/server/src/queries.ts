@@ -1,6 +1,6 @@
 import {
-  aggregate, drift, estimateCapacity, familyTable, planGenerosity, planSummaries, reconstructWindows,
-  steeredRows, steeringRate, tierModels, weekly,
+  aggregate, drift, estimateCapacity, familyTable, modelView, planGenerosity, planSummaries, reconstructWindows,
+  steeredRows, steeringRate, tierModels, weekly, workBoard,
   type Group, type GroupKey, type Row,
 } from '@nerfd/core';
 
@@ -10,7 +10,7 @@ const ALLOWED_BY = new Set<GroupKey>([
   'provider', 'quant', 'family', 'serving_mode',
 ]);
 export const clamp = (n: number, lo: number, hi: number): number => Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : lo;
-const result = (body: unknown): { body: unknown } => ({ body });
+const result = (body: unknown, status = 200): { body: unknown; status: number } => ({ body, status });
 
 /**
  * Quality boards rank models by how they behaved for a person. A session with
@@ -28,7 +28,7 @@ function steered(rows: Row[], url: URL): Row[] {
 
 /** Shared public queries for Node and Cloudflare. Raw reports never leave this boundary. */
 export function queryData(url: URL, source: (weeks: number) => Row[], readOnly: boolean, origin: string,
-  counts?: { count(): number; reporterWeeks(): number }): { body: unknown } | undefined {
+  counts?: { count(): number; reporterWeeks(): number }): { body: unknown; status: number } | undefined {
   const p = url.pathname;
       if (p === '/v1/stats') {
         const weeks = clamp(Number(url.searchParams.get('weeks') ?? 8), 1, 52);
@@ -49,7 +49,29 @@ export function queryData(url: URL, source: (weeks: number) => Row[], readOnly: 
         const cat = url.searchParams.get('category');
         if (cat) rows = rows.filter((r) => r.category === cat);
         const minN = readOnly ? 3 : clamp(Number(url.searchParams.get('min') ?? 10), 3, 500);
-        return result({ weeks, n: rows.length, min_n: minN, tiers: tierModels(aggregate(rows, ['model']), minN) });
+        return result({ weeks, category: cat || null, n: rows.length, min_n: minN, tiers: tierModels(aggregate(rows, ['model']), minN) });
+      }
+
+      // One model: where it ranks, on what work, and how it has moved week by
+      // week since it was first seen. Same aggregator, same minimum, same
+      // steered population as the tier board, so the page and the table agree.
+      if (p === '/v1/model') {
+        const id = (url.searchParams.get('id') ?? '').trim();
+        if (!id) return result({ error: 'id required' }, 400);
+        const weeks = clamp(Number(url.searchParams.get('weeks') ?? 26), 2, 52);
+        const rows = steered(source(weeks), url);
+        const minN = readOnly ? 3 : clamp(Number(url.searchParams.get('min') ?? 10), 3, 500);
+        const view = modelView(rows, id, minN, weeks);
+        if (!view) return result({ error: 'no sessions for this model in the window', model: id, weeks }, 404);
+        return result(view);
+      }
+
+      // Best at each kind of work: one card per category, ranked within it.
+      if (p === '/v1/work') {
+        const weeks = clamp(Number(url.searchParams.get('weeks') ?? 8), 1, 52);
+        const rows = steered(source(weeks), url);
+        const minN = readOnly ? 3 : clamp(Number(url.searchParams.get('min') ?? 10), 3, 500);
+        return result({ weeks, n: rows.length, min_n: minN, work: workBoard(rows, minN) });
       }
 
       if (p === '/v1/plans') {

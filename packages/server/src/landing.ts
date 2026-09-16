@@ -1,4 +1,4 @@
-import { esc, FAVICON, SHARED_CSS, IDENTITY_JS, STAT_STRIP, readablePublic } from './ui.ts';
+import { esc, FAVICON, SHARED_CSS, IDENTITY_JS, STAT_STRIP, WORK_JS, readablePublic } from './ui.ts';
 import { READ_GUIDE } from '../assets/presentation.ts';
 
 // The public front door. Self-contained HTML using the same visual primitives as the board.
@@ -112,6 +112,7 @@ footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font
   <a class="brand" href="/"><span class="app-icon" aria-hidden="true">n</span><span>nerfd<em>.ai</em></span></a>
   <span class="sp"></span>
   <a href="/board">Board</a>
+  <a href="/model">Models</a>
   <a href="#install">Install</a>
   <a href="#providers">Providers</a>
   <a href="#limits">Plans</a>
@@ -129,6 +130,12 @@ footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font
   <div class="tbl" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="tiers"><thead>
     <tr><th>model</th><th>overall</th><th>quality</th><th>reliability</th><th>steering</th><th>survival</th><th>speed</th><th>value</th><th class="n">waste</th><th class="n">n</th></tr>
   </thead><tbody><tr><td colspan="10" class="mut">loading</td></tr></tbody></table></div>
+</section>
+
+<section id="work" aria-labelledby="work-heading">
+  <div class="section-head"><h2 id="work-heading">Best at each kind of work</h2><a href="/board#work">Every kind of work ↗</a></div>
+  <p class="sub">The same tiering, run inside each kind of work. A model can lead at debugging and trail at UI. Each card links to the board filtered to that work.</p>
+  <div class="work-grid" id="work-cards" aria-live="polite"><p class="empty">Loading kinds of work…</p></div>
 </section>
 
 <section id="providers" aria-labelledby="providers-heading">
@@ -219,6 +226,7 @@ footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font
 
 <script>
 ${IDENTITY_JS}
+${WORK_JS}
 (() => {
   const finite = v => typeof v === 'number' && Number.isFinite(v);
   const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -365,11 +373,12 @@ async function comparisonData(url) {
     const t = await (await fetch('/v1/tiers?weeks=4')).json();
     window.nerfdAnswers('tiers', t);
     $('#tiers tbody').innerHTML = t.tiers.map((r) => '<tr>' +
-      '<td class="model">' + identity(r.model, r.provider) + '</td>' +
+      '<td class="model">' + modelLink(r.model, identity(r.model, r.provider)) + '</td>' +
       '<td>' + tier(r.overall, 'score ' + (r.score ?? '–')) + '<span class="mut">' + (r.score ?? '') + '</span></td>' +
       ['quality','reliability','steering','survival','speed','value'].map((c) => '<td>' + tier(r.criteria?.[c]?.tier ?? '-', r.criteria?.[c]?.display ?? '–') + '<span class="mut">' + esc(r.criteria?.[c]?.display ?? '–') + '</span></td>').join('') +
       '<td class="n">' + pct(r.waste_share) + '</td>' +
       '<td class="n">' + r.n + '</td></tr>').join('') || '<tr><td colspan="10" class="mut">no model has ' + t.min_n + ' sessions yet. be the first: run the installer.</td></tr>';
+    try { const w = await (await fetch('/v1/work?weeks=4')).json(); window.nerfdAnswers('work', w); $('#work-cards').innerHTML = renderWorkCards(w, true); } catch { $('#work-cards').innerHTML = '<p class="empty">Unable to load kinds of work. Please refresh to try again.</p>'; }
     const p = await (await fetch('/v1/plans?weeks=12')).json();
     window.nerfdAnswers('plans', p);
     $('#plans tbody').innerHTML = p.plans.map((s) => '<tr>' +

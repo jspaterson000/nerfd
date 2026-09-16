@@ -14,8 +14,9 @@ import { activePeriod, planStamp, refreshDetections } from '../plandetect/index.
  * nothing is invented: sessions that already exist are left alone.
  *
  * `--refresh` re-reads the tool's own ledger for sessions already on record
- * and updates the figures derived from it - the behavioural signals and
- * active time - so a detector added after an import does not need a wipe.
+ * and updates the figures derived from it - the behavioural signals, active
+ * time and the kind of work - so a detector added after an import does not
+ * need a wipe.
  * Nothing the person supplied is touched: rating, kept and survival stay.
  *
  * `--restamp` imports nothing and re-runs the assumed-plan pass over sessions
@@ -83,7 +84,11 @@ export function backfill(a: Args): void {
  */
 function rederive(existing: Session, fresh: Session): boolean {
   const derived = existing.source === 'backfill';
-  const before = JSON.stringify([existing.metrics.active_s, existing.metrics.rate_limit_hits, existing.metrics.overloaded, existing.signal_version, existing.signals, existing.limit_windows]);
+  const snapshot = () => JSON.stringify([existing.metrics.active_s, existing.metrics.rate_limit_hits, existing.metrics.overloaded, existing.signal_version, existing.signals, existing.limit_windows, existing.category]);
+  const before = snapshot();
+  // The kind of work, now classified from the user turns rather than from
+  // nothing: an imported session used to be "other" for want of a prompt.
+  if (existing.category_source !== 'user' && fresh.category !== 'other') existing.category = fresh.category;
   if (fresh.metrics.active_s != null) existing.metrics.active_s = fresh.metrics.active_s;
   if (derived) {
     existing.metrics.rate_limit_hits = fresh.metrics.rate_limit_hits;
@@ -94,7 +99,7 @@ function rederive(existing: Session, fresh: Session): boolean {
     existing.signal_version = fresh.signal_version ?? null;
   }
   if (fresh.limit_windows?.length) existing.limit_windows = fresh.limit_windows;
-  if (JSON.stringify([existing.metrics.active_s, existing.metrics.rate_limit_hits, existing.metrics.overloaded, existing.signal_version, existing.signals, existing.limit_windows]) === before) return false;
+  if (snapshot() === before) return false;
   putSession(existing);
   return true;
 }

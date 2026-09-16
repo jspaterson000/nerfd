@@ -1,6 +1,12 @@
 // Inline presentation primitives shared by the public pages and offline report.
 // No requests, libraries, or report data are introduced here.
 const definitions: [string, string, string][] = [
+  ['^rank$', 'Rank is the position among models with enough sessions in this field, by composite score; 1 is best.', 'Needs the minimum session count to rank.'],
+  ['^work$|^best in this work|best at', 'The kind of work, inferred from the conversation on the reporter’s machine; nerfd rate can correct it.', 'No sessions on this kind of work yet.'],
+  ['^moved$', 'Metrics that shifted |z| ≥ 2 from the trailing four weeks; worse always means worse, whichever direction the metric runs.', 'Nothing moved measurably this week.'],
+  ['field score', 'The composite score of every model that week on the same formula, so a dip shared by the field is not one model’s.', 'No other sessions that week.'],
+  ['tools · effort|^tools$', 'Which tools and reasoning-effort levels ran the model that week; a harness change looks like a weights change from here.', 'Not recorded.'],
+  ['^n signals', 'Sessions with conversation signals, the denominator for the friction rates.', 'No sessions with signals.'],
   [' z$|^flag$', 'Drift compares the current week with a trailing baseline; watch needs |z| ≥ 2, alert ≥ 3, and five current-week sessions.', 'Need enough current and baseline weeks to measure change.'],
   ['reporter|evidence', 'One reporter-week is one person contributing in one week; rotating IDs cannot identify unique people across weeks.', 'No reporting weeks recorded.'],
   ['n windows', 'Number of observed or qualifying usage windows, as labelled beside the table.', 'No qualifying windows yet.'],
@@ -65,6 +71,7 @@ section{scroll-margin-top:84px}main>section{padding-top:56px;margin-top:12px}mai
 .detail-toggle{display:block;margin:12px 0 8px;font-size:12px;padding:6px 10px}.compact-table .detail-cell{display:none}.compact-table td{padding-top:16px;padding-bottom:16px}.compact-table td:first-child{white-space:normal;min-width:130px}.compact-table .identity{flex-wrap:wrap}.compact-table .provider{display:block}.compact-table .row-group th{display:table-cell}
 .metric-help{display:inline-grid;place-items:center;margin-left:5px;width:17px;height:17px;border-radius:50%;padding:0;font:11px -apple-system,BlinkMacSystemFont,sans-serif;text-transform:none;vertical-align:middle;color:var(--mut);background:var(--panel);border:1px solid var(--line)}
 .metric-popover{position:fixed;inset:auto;max-width:min(320px,calc(100vw - 32px));padding:14px 16px;border:1px solid var(--line);border-radius:10px;color:var(--fg);background:var(--panel);box-shadow:0 8px 30px #0002;font:13px/1.6 -apple-system,BlinkMacSystemFont,sans-serif;z-index:20;margin:0}
+.sort-header{cursor:pointer;user-select:none}.sort-header[aria-sort="ascending"]::after{content:" ↑"}.sort-header[aria-sort="descending"]::after{content:" ↓"}
 .missing{color:var(--mut);text-decoration:underline dotted;text-underline-offset:3px;cursor:help}.family-card>summary{padding:16px}.family-card>summary h3{display:inline;padding:0}.family-card .detail-toggle{margin-left:14px}.rank-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.rank-detail{margin-top:12px;font-size:12px}.rank-detail .rank-metrics{margin-top:12px}.section-context{font-size:12px;color:var(--mut)}
 @media(min-width:900px){.section-nav{position:sticky;top:0;backdrop-filter:blur(16px)}}
 @media(max-width:600px){.glance-panel{padding:18px}.answer{font-size:15px}.compact-table th,.compact-table td{padding:10px 8px;font-size:11px}.compact-table .identity{gap:5px}.section-nav{font-size:11px}main>section{padding-top:36px}.rank-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -102,9 +109,11 @@ export const READABLE_JS = `
      if (!headers.length) return;
      const labels = headers.map(h => (h.dataset.label || h.textContent).toLowerCase());
      const keep = new Set([0]);
-     // Identity, tier, score, cost and evidence are the decision layer.
-     const priorities = [/^tier$|^overall$/, /^score$/, /\\$.*success|usd.*success|tokens.*dollar/, /^n$|n sessions|evidence|reporter|this week n/, /^plan$/, /^price$|usd.*month/, /steer/, /total tokens/, /quality|reliability/];
-     for (const pattern of priorities) { const i = labels.findIndex(l => pattern.test(l)); if (i >= 0 && keep.size < 5) keep.add(i); }
+     // A page can name its decision columns; otherwise identity, tier, score, cost and evidence are the decision layer.
+     const explicit = table.dataset.keep ? table.dataset.keep.split(',').map(s => s.trim().toLowerCase()) : null;
+     const priorities = explicit ? explicit.map(k => new RegExp('^' + k.replace(/[.*+?^{}$()|[\\]\\\\]/g, '\\\\$&') + '$')) : [/^tier$|^overall$/, /^score$/, /\\$.*success|usd.*success|tokens.*dollar/, /^n$|n sessions|evidence|reporter|this week n/, /^plan$/, /^price$|usd.*month/, /steer/, /total tokens/, /quality|reliability/];
+     const limit = explicit ? Math.max(5, explicit.length) : 5;
+     for (const pattern of priorities) { const i = labels.findIndex(l => pattern.test(l)); if (i >= 0 && keep.size < limit) keep.add(i); }
      for (let i = 1; keep.size < Math.min(5, headers.length); i++) keep.add(i);
      for (const row of table.rows) for (let i=0;i<row.cells.length;i++) row.cells[i].classList.toggle('detail-cell', row.cells[i].colSpan === 1 && !keep.has(i));
      if (!table.dataset.enhanced) {
@@ -116,6 +125,21 @@ export const READABLE_JS = `
        set(stored(key) || Boolean(location.hash && table.closest('section')?.id === location.hash.slice(1)));
        b.addEventListener('click', () => { const detail = table.classList.contains('compact-table'); set(detail); try { localStorage.setItem(key, detail ? 'detail' : 'compact'); } catch {} });
        region.before(b);
+     }
+     if (table.hasAttribute('data-sortable') && !table.dataset.sorted && table.tBodies.length === 1) {
+       table.dataset.sorted = 'true';
+       const value = (cell) => { if (cell.dataset.sort != null) return Number(cell.dataset.sort); const t = cell.textContent.trim(); const tier = {S:4,A:3,B:2,C:1}[t.charAt(0)]; if (/^[SABC](\\s|$)/.test(t) && tier) return tier; const n = parseFloat(t.replace(/[$,%×x\\s]/g, '').replace(/^#/, '')); return Number.isFinite(n) && /^[#$]?[-+\\d.]/.test(t) ? n : t.toLowerCase(); };
+       headers.forEach((th, i) => {
+         th.classList.add('sort-header');
+         th.addEventListener('click', (e) => {
+           if (e.target.closest('.metric-help')) return;
+           const dir = th.getAttribute('aria-sort') === 'descending' ? 'ascending' : 'descending';
+           headers.forEach(h => h.removeAttribute('aria-sort')); th.setAttribute('aria-sort', dir);
+           const body = table.tBodies[0]; const rows = [...body.rows].filter(r => r.cells.length === headers.length);
+           rows.sort((a, b) => { const x = value(a.cells[i]), y = value(b.cells[i]); const c = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y)); return dir === 'ascending' ? c : -c; });
+           body.append(...rows);
+         });
+       });
      }
      table.querySelectorAll('td').forEach(td => {
        const label = labels[td.cellIndex] || '';

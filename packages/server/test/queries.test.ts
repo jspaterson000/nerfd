@@ -68,3 +68,38 @@ test('an automated session is out of the tier board but still on the bill', () =
   // And anyone who wants to look can ask for them back.
   assert.equal(ask('/v1/tiers?min=3&automated=1', rows).n, 4);
 });
+
+test('/v1/model ranks one model against the field and 404s an unknown one', () => {
+  const rows = [
+    ...Array.from({ length: 4 }, () => row({ model: 'gpt-5.3-codex', category: 'debug', rating: 5 })),
+    ...Array.from({ length: 4 }, () => row({ model: 'claude-opus-5', category: 'debug', rating: 3 })),
+    row({ model: 'gpt-5.3-codex', automated: true, rating: 1 }),
+  ];
+  const q = queryData(new URL('http://x/v1/model?id=gpt-5.3-codex&min=3'), () => rows, false, 'http://x')!;
+  assert.equal(q.status, 200);
+  const v = q.body as Record<string, any>;
+  assert.equal(v.n, 4, 'the automated session is not evidence about the model');
+  assert.equal(v.overall.rank, 1);
+  assert.equal(v.overall.of, 2);
+  assert.equal(v.categories[0].category, 'debug');
+  assert.equal(v.categories[0].rank, 1);
+
+  const missing = queryData(new URL('http://x/v1/model?id=nobody'), () => rows, false, 'http://x')!;
+  assert.equal(missing.status, 404);
+  assert.equal(queryData(new URL('http://x/v1/model'), () => rows, false, 'http://x')!.status, 400);
+});
+
+test('/v1/work returns one card per kind of work, best first, and /v1/tiers echoes its category', () => {
+  const rows = [
+    ...Array.from({ length: 3 }, () => row({ model: 'gpt-5.3-codex', category: 'debug', rating: 5 })),
+    ...Array.from({ length: 3 }, () => row({ model: 'claude-opus-5', category: 'debug', rating: 2, survival_ratio: 0.1 })),
+    row({ model: 'claude-opus-5', category: 'ux' }),
+  ];
+  const w = ask('/v1/work?min=3', rows);
+  assert.equal(w.work.length, 2);
+  assert.equal(w.work[0].category, 'debug');
+  assert.equal(w.work[0].ranked[0].model, 'gpt-5.3-codex');
+  assert.equal(w.work[1].n_ranked, 0);
+  assert.equal(ask('/v1/tiers?category=debug&min=3', rows).category, 'debug');
+  assert.equal(ask('/v1/tiers?min=3', rows).category, null);
+});

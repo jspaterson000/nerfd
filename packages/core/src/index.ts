@@ -11,3 +11,4 @@ export * from './limits.ts';
 export * from './pricing.ts';
 export * from './tiers.ts';
 export * from './plans.ts';
+export * from './views.ts';

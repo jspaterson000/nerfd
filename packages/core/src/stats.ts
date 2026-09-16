@@ -39,7 +39,10 @@ export function driftZ(current: number[], baseline: number[]): number | null {
   const sc = sem(current), sb = sem(baseline);
   if (mc == null || mb == null || sc == null || sb == null) return null;
   const se = Math.sqrt(sc * sc + sb * sb);
-  if (se === 0) return null;
+  // Two constant samples have no standard error, and summing 0.9 six times
+  // leaves a variance of 1e-33 rather than 0: below noise is no error at all.
+  if (se < 1e-9) return null;
+  if (Math.abs(mc - mb) < 1e-9) return 0;
   return (mc - mb) / se;
 }
 

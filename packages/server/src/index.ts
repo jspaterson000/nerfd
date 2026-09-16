@@ -7,6 +7,7 @@ import { installScript } from './installer.ts';
 import { landingPage } from './landing.ts';
 import type { ReportStore } from './store.ts';
 import { boardPage } from './ui.ts';
+import { modelPage, modelIdFromPath } from './model.ts';
 
 // Plain node:http. No framework, no middleware stack, nothing to audit but
 // this file. The same server runs the public site and `nerfd dash`.
@@ -72,6 +73,9 @@ export function startServer(o: ServerOptions) {
         return text(res, 200, landingPage(origin), 'text/html; charset=utf-8');
       }
       if (req.method === 'GET' && p === '/board') return text(res, 200, boardPage(o.title, o.readOnly, origin), 'text/html; charset=utf-8');
+      if (req.method === 'GET' && (p === '/model' || p.startsWith('/model/'))) {
+        return text(res, 200, modelPage(o.title, o.readOnly, origin, modelIdFromPath(url)), 'text/html; charset=utf-8');
+      }
       if (req.method === 'GET' && p === '/health') return json(res, 200, { ok: true, mode: o.readOnly ? 'local' : 'public' });
 
       if (req.method === 'GET' && p.startsWith('/assets/')) {
@@ -103,7 +107,7 @@ export function startServer(o: ServerOptions) {
 
       if (req.method === 'GET') {
         const data = queryData(url, source, o.readOnly, origin, o.store);
-        if (data) return json(res, 200, data.body);
+        if (data) return json(res, data.status, data.body);
       }
 
       if (req.method === 'POST' && p === '/v1/reports') {
@@ -114,8 +118,11 @@ export function startServer(o: ServerOptions) {
         const err = validateReport(parsed);
         if (err) return json(res, 422, { error: err });
         const r = parsed as Report;
+        // The daily cap is on new records: a correction to a record this
+        // reporter already sent (a rating, a reclassified task) adds nothing
+        // to the dataset and is never refused.
         const max = o.maxPerReporterPerDay ?? 200;
-        if (o.store.recentFromReporter(r.reporter_id) >= max) return json(res, 429, { error: 'daily limit' });
+        if (!o.store.owns(r.report_id, r.reporter_id) && o.store.recentFromReporter(r.reporter_id) >= max) return json(res, 429, { error: 'daily limit' });
         const result = o.store.insert(r);
         if (result === 'rejected') return json(res, 403, { error: 'report id belongs to another reporter' });
         return json(res, result === 'inserted' ? 201 : 200, { ok: true, result });

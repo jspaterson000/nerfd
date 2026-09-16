@@ -43,6 +43,12 @@ export class ReportStore {
     return existing ? 'updated' : 'inserted';
   }
 
+  /** True when this report id is already on record from this reporter. */
+  owns(reportId: string, reporterId: string): boolean {
+    const row = this.db.prepare('SELECT reporter_id FROM reports WHERE report_id = ?').get(reportId) as { reporter_id: string } | undefined;
+    return row?.reporter_id === reporterId;
+  }
+
   /** Reports from a reporter in the last 24h. Used for a soft rate limit. */
   recentFromReporter(reporterId: string): number {
     const since = new Date(Date.now() - 86400 * 1000).toISOString();
