@@ -81,38 +81,23 @@ NERFD_HOME=/tmp/mshome pnpm nerfd sessions   # isolated data dir
 
 Hook errors never surface in the host tool; they go to `~/.nerfd/hook.log`. `nerfd doctor` shows the tail. Model list prices live in `packages/core/src/pricing.ts`, subscription plans in `packages/core/src/plans.ts`.
 
-## Deploy to Cloudflare (nerfd.org)
+## Deploy to Cloudflare
 
-The public site runs as a Cloudflare Worker. Reports persist in the `Reports`
-SQLite Durable Object; the CLI and local dashboard retain their Node SQLite store.
-`wrangler.jsonc` pins the account (`[account id]`)
-and the `nerfd.org` / `www.nerfd.org` custom domains. `www` redirects to the apex.
+The public site runs as a Cloudflare Worker with a SQLite Durable Object for
+reports. To run your own copy: set your domain and public origin in
+`wrangler.jsonc`, put your account id in `CLOUDFLARE_ACCOUNT_ID` or
+`~/.config/nerfd-cloudflare/account_id`, then
 
 ```sh
-pnpm install --frozen-lockfile
-pnpm cf:login       # first use: select only your account
-pnpm cf:whoami      # confirm the account before deploying
-pnpm typecheck
-pnpm cf:check
-pnpm test
+pnpm cf:login && pnpm cf:whoami
+pnpm typecheck && pnpm cf:check && pnpm test
 pnpm cf:deploy
 ```
 
-The `cf:*` commands isolate OAuth credentials under
-`~/.config/nerfd-cloudflare`, so another project's Wrangler login is unaffected.
-Never commit credentials. The deployed installer uses `https://nerfd.org` as its
-origin. `cf:deploy` builds the CLI archive and static assets before uploading the
-Worker. No local database, sample reports, or environment files are uploaded.
-The public release archive includes the source needed to run the CLI.
-
-For a local Worker check, run `pnpm cf:build` then `pnpm exec wrangler dev --port 8791` and, in another
-terminal, `pnpm cf:smoke`. The check writes synthetic reports only to the
-local Worker database. Production verification should check `/health`, `/v1/meta`,
-`/board`, `/install.sh`, and `/dist/nerfd.tgz` without adding sample sessions.
-
-This repository uses explicit command-line deployment. There is no Git remote or
-automatic push-to-deploy integration configured yet. Cloudflare storage persists
-across Worker deploys; do not delete the Durable Object namespace during updates.
+The full walk-through, local Worker checks and operating notes are in
+[docs/deployment/cloudflare.md](docs/deployment/cloudflare.md). The repository
+names no account; the `cf:*` commands keep their login under
+`~/.config/nerfd-cloudflare`, separate from any other project's Wrangler state.
 
 ## Licence
 
