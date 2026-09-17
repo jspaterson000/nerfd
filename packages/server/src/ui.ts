@@ -1,3 +1,5 @@
+import { RANKINGS_TABLE_JS, RANKINGS_CONTROLS_JS } from '../assets/rankings.ts';
+import { designPage } from '../assets/design.ts';
 import { READ_GUIDE, READABLE_CSS, READABLE_JS, defineHeaders } from '../assets/presentation.ts';
 // Shared inline assets keep the public page and local dashboard in one visual family.
 export const FAVICON = `<link rel="icon" href="/assets/logos/nerfd.svg">`;
@@ -134,14 +136,14 @@ export const LIMITS_JS = `
     return ranked + '<p class="metric-note mut">Bands are p25–p75, with the median marked on one shared scale. Tokens per dollar extrapolates the selected window to a month. Wall-hit share counts reporter-weeks with a hit; successes exclude wall and context-limit hits. Quality: S ≥ 80 · A ≥ 65 · B ≥ 50 · C &lt; 50.</p>' + capacity + '<p class="metric-note mut">Capacity is estimated, including cached input in total tokens. Uncached is input plus output. Usage and wall hits in this table describe the qualifying windows only; n counts those windows and reporters.</p><h3>Generosity and quality</h3>' + scatter(plans);
   }
   let request = 0;
-  async function loadLimits() {
+  async function loadLimits(weeks = 8) {
     const current = ++request;
     let data = null;
-    try { const response = await fetch('/v1/limits?weeks=8'); if (response.ok) data = await response.json(); } catch {}
-    if (current === request) { window.nerfdAnswers('limits', data); document.getElementById('limits-content').innerHTML = render(data); }
+    try { const response = await fetch('/v1/limits?weeks='+weeks); if (response.ok) data = await response.json(); } catch {}
+    if (current === request) { window.nerfdAnswers('limits', data); document.getElementById('limits-content').innerHTML = data?render(data):'<p class="empty">Usage-limit results could not be loaded. Use Refresh to try again.</p>'; }
   }
-  loadLimits();
-  document.getElementById('reload')?.addEventListener('click', loadLimits);
+  window.nerfdLoadLimits=loadLimits;
+  if(!document.getElementById('rankings-app')){loadLimits();document.getElementById('reload')?.addEventListener('click',()=>loadLimits());}
 })();
 `;
 
@@ -269,6 +271,7 @@ function providerRows(rows) {
   }).join('');
 }
 function renderProviders(data, preview = false) {
+  if(!data)return '<p class="empty">Provider results could not be loaded. Use Refresh to try again.</p>';
   const families = Array.isArray(data?.families) ? data.families : [];
   return families.filter(f => Array.isArray(f.rows) && f.rows.length).slice(0, preview ? 3 : undefined).map(f => {
     const buckets = [[], [], [], []];
@@ -282,23 +285,23 @@ function renderProviders(data, preview = false) {
   }).join('') || '<p class="empty">Provider comparisons will appear when a host has ten sessions in this window.</p>';
 }
 let comparisonRequest = 0;
-async function loadComparisons(category = '', preview = false) {
+async function loadComparisons(category = '', preview = false, weeks = 8) {
   const request = ++comparisonRequest;
   const suffix = category ? '&category=' + encodeURIComponent(category) : '';
   await Promise.all([
     (async () => {
       let data = null;
-      try { const response = await fetch('/v1/providers?weeks=8&min=10' + suffix); if (response.ok) data = await response.json(); } catch {}
+      try { const response = await fetch('/v1/providers?weeks='+weeks+'&min=10' + suffix); if (response.ok) data = await response.json(); } catch {}
       if (request === comparisonRequest) { window.nerfdAnswers('providers', data); $('#provider-families').innerHTML = renderProviders(data, preview); }
     })(),
     (async () => {
       let data = null;
-      try { const response = await fetch('/v1/friction?weeks=8' + suffix); if (response.ok) data = await response.json(); } catch {}
+      try { const response = await fetch('/v1/friction?weeks='+weeks + suffix); if (response.ok) data = await response.json(); } catch {}
       if (request !== comparisonRequest) return;
       window.nerfdAnswers('friction', data);
       const models = Array.isArray(data?.models) ? data.models : [];
       $('#friction-table tbody').innerHTML = models.slice(0, preview ? 5 : undefined).map(r => '<tr><td>' + modelLink(r.model) + '</td><td class="n" title="' + metricNumber(r.n_signals) + ' sessions with signals">' + metricNumber(r.n) + '</td>' +
-        [r.steering, r.correction_rate, r.reprompt_rate, r.frustration_rate, r.pushback_rate, r.clarification_rate, r.edit_without_read_rate, r.abandoned_rate].map(v => '<td class="n">' + rateBar(v) + '</td>').join('') + '</tr>').join('') || '<tr><td colspan="10" class="empty">Conversation signals will appear as sessions are shared.</td></tr>';
+        [r.steering, r.correction_rate, r.reprompt_rate, r.frustration_rate, r.pushback_rate, r.clarification_rate, r.edit_without_read_rate, r.abandoned_rate].map(v => '<td class="n">' + rateBar(v) + '</td>').join('') + '</tr>').join('') || '<tr><td colspan="10" class="empty">'+(data?'No conversation signals recorded in this view.':'Conversation signals could not be loaded. Use Refresh to try again.')+'</td></tr>';
     })()
   ]);
 }
@@ -327,60 +330,24 @@ function qs() {
   return p.toString();
 }
 async function meta() {
-  const m = await (await fetch('/v1/meta')).json();
-  window.nerfdAnswers('meta', m);
-  const rw = m.reporter_weeks ?? m.reporters;
-  $('#meta').textContent = m.reports + ' sessions from ' + rw + (rw === 1 ? ' reporter-week' : ' reporter-weeks');
-  $('#meta').title = 'one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks';
-  $('#s-sessions').textContent = m.reports.toLocaleString();
-  $('#s-reporters').textContent = rw.toLocaleString();
-  $('#s-models').textContent = m.models.length;
-  const week = await (await fetch('/v1/stats?by=week&weeks=1')).json();
-  window.nerfdAnswers('week', week);
-  $('#s-week').textContent = week.n.toLocaleString();
-  for (const c of m.categories) $('#cat').insertAdjacentHTML('beforeend', '<option value="' + esc(c) + '">' + esc(workName(c)) + '</option>');
-  for (const l of m.langs) $('#lang').insertAdjacentHTML('beforeend', '<option>' + esc(l) + '</option>');
-  const wanted = new URLSearchParams(location.search).get('category') || '';
-  if (wanted && m.categories.includes(wanted)) $('#cat').value = wanted;
-  await renderChips();
+ try{const response=await fetch('/v1/meta');if(!response.ok)return;const m=await response.json();
+ for(const lang of m.langs??[])$('#lang').insertAdjacentHTML('beforeend','<option>'+esc(lang)+'</option>');
+ const wanted=new URLSearchParams(location.search).get('lang');if(wanted&&m.langs.includes(wanted)){$('#lang').value=wanted;if(activeView==='evidence')loadStats();}
+ }catch{}
 }
-// The kind-of-work filter: one row of chips with counts, kept in step with
-// the select and the URL so a filtered board can be linked to.
-async function renderChips() {
-  let counts = new Map();
-  try { const c = await (await fetch('/v1/stats?by=category&weeks=' + $('#weeks').value)).json(); counts = new Map(c.groups.map(g => [g.key.category, g.n])); } catch {}
-  const cats = [...$('#cat').options].map(o => o.value).filter(Boolean).sort((a, b) => (counts.get(b) || 0) - (counts.get(a) || 0));
-  const total = [...counts.values()].reduce((a, b) => a + b, 0);
-  const current = $('#cat').value;
-  $('#work-chips').innerHTML = [['', 'All work', total], ...cats.map(c => [c, workName(c), counts.get(c) || 0])].map(([v, label, n]) => '<button type="button" data-cat="' + esc(v) + '" aria-pressed="' + (v === current) + '">' + esc(label) + '<small>' + n + '</small></button>').join('');
-  $('#work-chips').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
-    $('#cat').value = b.dataset.cat;
-    const u = new URL(location.href); if (b.dataset.cat) u.searchParams.set('category', b.dataset.cat); else u.searchParams.delete('category'); history.replaceState(null, '', u.toString());
-    $('#work-chips').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-    load();
-  }));
-}
+const extraRequests={work:0,stats:0,plans:0,drift:0};
 async function loadWork() {
+  const request=++extraRequests.work;
   const w = await (await fetch('/v1/work?weeks=' + $('#weeks').value)).json();
+  if(request!==extraRequests.work)return;
   window.nerfdAnswers('work', w);
   $('#work-cards').innerHTML = renderWorkCards(w);
 }
-async function loadTiers() {
-  const cat = $('#cat').value;
-  const t = await (await fetch('/v1/tiers?weeks=' + $('#weeks').value + (cat ? '&category=' + encodeURIComponent(cat) : ''))).json();
-  window.nerfdAnswers('tiers', t);
-  $('#tiers tbody').innerHTML = t.tiers.map((r) => '<tr>' +
-    '<td>' + modelLink(r.model, identity(r.model, r.provider)) + '</td>' +
-    '<td>' + fmt.tier(r.overall) + '</td>' +
-    '<td class="n">' + (r.score ?? '-') + '</td>' +
-    ['quality','reliability','steering','survival','speed','value'].map((c) => '<td>' + fmt.tier(r.criteria?.[c]?.tier ?? '-') + ' <span class="mut">' + esc(r.criteria?.[c]?.display ?? '–') + '</span></td>').join('') +
-    '<td class="n">' + fmt.pct(r.waste_share) + '</td>' +
-    '<td class="n">' + r.n + '</td>' +
-  '</tr>').join('') || '<tr><td colspan="11" class="mut">no models with ' + t.min_n + '+ sessions in this window.</td></tr>';
-  $('#tiers-note').textContent = 'last ' + t.weeks + ' weeks. tiers need ' + t.min_n + '+ sessions; bands are relative to the best model in the set.';
-}
+${RANKINGS_TABLE_JS}
 async function loadStats() {
+  const request=++extraRequests.stats;
   const r = await (await fetch('/v1/stats?' + qs())).json();
+  if(request!==extraRequests.stats)return;
   window.nerfdAnswers('score', r);
   const by = r.by;
   const head = [...by, 'n', 'score', '', 'rating', 'good [95%]', 'rated', 'surv', 'clean', 'steer', 'tool err', 'p50', 'rate-lim', 'overload', 'interr', 'switch', '$/sess', '$/success', 'waste', 'dur'];
@@ -410,7 +377,9 @@ async function loadStats() {
   $('#empty').hidden = r.groups.length > 0;
 }
 async function loadPlans() {
+  const request=++extraRequests.plans;
   const p = await (await fetch('/v1/plans?weeks=' + Math.max(12, Number($('#weeks').value)))).json();
+  if(request!==extraRequests.plans)return;
   window.nerfdAnswers('plans', p);
   $('#plans tbody').innerHTML = p.plans.map((s) => '<tr>' +
     '<td>' + identity(s.tool, s.provider) + '</td><td>' + esc(s.plan_id) + '</td>' +
@@ -425,7 +394,9 @@ async function loadPlans() {
   '</tr>').join('') || '<tr><td colspan="12" class="mut">no plan data yet. reporters set theirs with: nerfd plan claude claude-max-20x</td></tr>';
 }
 async function loadDrift() {
+  const request=++extraRequests.drift;
   const d = await (await fetch('/v1/drift?weeks=' + $('#weeks').value)).json();
+  if(request!==extraRequests.drift)return;
   window.nerfdAnswers('drift', d);
   $('#drift tbody').innerHTML = d.models.map((m) => {
     const dr = m.drift;
@@ -443,42 +414,41 @@ async function loadDrift() {
       '<td class="spark">' + spark + '</td></tr>';
   }).join('') || '<tr><td colspan="7" class="mut">need at least two weeks of data per model.</td></tr>';
 }
-async function load() {
-  $('#reload').disabled = true;
-  $('#reload').textContent = 'Refreshing…';
-  try { await Promise.all([loadTiers(), loadWork(), loadStats(), loadPlans(), loadDrift(), loadComparisons($('#cat').value)]); }
-  catch (e) { $('#meta').textContent = 'Unable to refresh. ' + e.message; }
-  finally { $('#reload').disabled = false; $('#reload').textContent = 'Refresh'; }
-}
-for (const id of ['by', 'weeks', 'cat', 'lang']) $('#' + id).addEventListener('change', load);
-$('#weeks').addEventListener('change', renderChips);
-$('#reload').addEventListener('click', load);
-meta().catch(() => { $('#meta').textContent = 'Session totals are unavailable.'; }).finally(load);
+${RANKINGS_CONTROLS_JS}
 `;
 
 export function boardPage(title: string, readOnly: boolean, origin: string): string {
-  return readablePublic(`<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)}</title>
-<meta name="description" content="Every AI coding model ranked on real work: tiers, best at each kind of work, plans, friction and weekly change.">
-${readOnly ? '' : socialMeta(origin, '/board', 'The public scorecard · nerfd.ai', 'Every AI coding model ranked on real work: tiers, best at each kind of work, what a plan gives you, friction and weekly change.')}
-${FAVICON}
-<style>${BASE_CSS}</style>
-</head>
-<body>
-<header>
-  <a class="brand" href="/"><span class="app-icon" aria-hidden="true">n</span><span>nerfd<em>.ai</em></span></a>
-  <nav aria-label="Main navigation"><a href="/model">Models</a>${readOnly ? '' : `<a href="${esc(origin)}/#install">Install</a>`}<a href="/privacy">Privacy</a><a href="/export.json">Raw data</a></nav>
-</header>
-<main>
-<div class="board-heading"><div><h1>${readOnly ? esc(title) : 'The public scorecard'}</h1><p class="mut" id="meta" role="status">Loading session metrics…</p></div><span class="status">${readOnly ? 'Your sessions only' : 'Public record'}</span></div>
-${STAT_STRIP}
+  const categories=[['code','Coding'],['debug','Debugging'],['review','Review'],['ux','UI & design'],['refactor','Refactoring'],['strategy','Planning'],['writing','Documentation'],['research','Research'],['ops','Infrastructure'],['other','Other work']];
+  return designPage(defineHeaders(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rankings · ${esc(title)}</title><meta name="description" content="Compare AI coding models by task, quality, reliability, steering, speed and value, using community results.">${FAVICON}${readOnly ? '' : socialMeta(origin,'/board','AI model rankings · nerfd','Compare models on real coding work. Filter by task, choose a measurement and inspect the results.')}<style>${BASE_CSS}${READABLE_CSS}</style></head><body><header></header><main id="rankings-app" tabindex="-1">
+<div class="rankings-title"><h1>${readOnly ? esc(title) : 'Rankings'}</h1><span id="meta" role="status">Loading results…</span><button type="button" class="method-link" popovertarget="rankings-help">How rankings work <span aria-hidden="true">↗</span></button></div>
+<nav class="ranking-tabs" role="tablist" aria-label="Ranking views">${[['models','Models'],['providers','Providers'],['plans','Plans'],['changes','Changes'],['evidence','Evidence']].map(([id,label],i)=>`<button type="button" role="tab" id="tab-${id}" aria-controls="view-${id}" aria-selected="${i===0}" tabindex="${i===0?0:-1}" data-view="${id}">${label}</button>`).join('')}</nav>
+<div class="ranking-toolbar">
+<label id="work-filter">Work type<select id="cat"><option value="">All work</option>${categories.map(([id,label])=>`<option value="${id}">${label}</option>`).join('')}</select></label>
+<div id="metric-filter"><span class="control-label">Rank by</span><select id="rank-metric" aria-label="Rank by"><option value="score">Overall score</option><option value="quality">Human rating</option><option value="reliability">Reliability</option><option value="steering">Least steering</option><option value="survival">Code survival</option><option value="speed">Response time</option><option value="value">Cost per success</option><option value="sessions">Most evidence</option><option value="name">Model name</option></select><div class="comparison-switcher" role="group" aria-label="Choose a comparison">${[['score','Overall'],['quality','Quality'],['reliability','Reliability'],['steering','Steering'],['survival','Code kept'],['speed','Speed'],['value','Value']].map(([id,label])=>`<button type="button" data-compare="${id}" aria-pressed="${id==='score'}">${label}</button>`).join('')}</div></div>
+<label>Period<select id="weeks">${[2,4,8,12,26].map(w=>`<option value="${w}"${w===4?' selected':''}>${w} weeks</option>`).join('')}</select></label>
+<label class="table-search" id="search-filter"><span class="sr-only">Search models</span><input id="rank-search" type="search" placeholder="Search models…" autocomplete="off"></label>
+<button id="reload" type="button" aria-label="Refresh results" title="Refresh results">↻</button>
+</div>
+<p id="view-error" role="alert" hidden></p>
+<section id="view-models" role="tabpanel" aria-labelledby="tab-models" tabindex="0" class="ranking-panel">
+<div class="table-caption"><span id="rank-count" role="status">Loading rankings…</span><span id="rank-direction"></span><button type="button" id="clear-filters" hidden>Clear filters</button><details class="column-menu"><summary>Columns</summary><div>${[['quality','Human rating'],['reliability','Reliability'],['steering','Steering'],['survival','Code survival'],['speed','Response time'],['value','Cost per success']].map(([id,label])=>`<label><input type="checkbox" value="${id}" data-extra-column> ${label}</label>`).join('')}<button type="button" id="reset-columns">Reset to recommended</button></div></details></div>
+<div class="table-wrap rankings-table-wrap" tabindex="0" role="region" aria-label="Model rankings"><table id="tiers" data-managed="true"><thead></thead><tbody><tr><td class="empty">Loading rankings…</td></tr></tbody></table></div>
+<details id="pending-models" class="pending-models" hidden><summary id="pending-summary">Models needing more evidence</summary><ul id="pending-list"></ul></details>
+<p class="ranking-note" id="tiers-note"></p>
+</section>
+<section id="view-providers" role="tabpanel" aria-labelledby="tab-providers" tabindex="0" class="ranking-panel" hidden><div id="providers" class="panel-content"><h2>Compare hosting providers</h2><p class="sub">Compare the same model and quantisation across hosts. Results use the selected task and period.</p><div id="provider-families"><p class="empty">Loading providers…</p></div></div></section>
+<section id="view-plans" role="tabpanel" aria-labelledby="tab-plans" tabindex="0" class="ranking-panel" hidden><div id="plans-section" class="panel-content"><h2>Subscription value</h2><p class="sub">All work in the selected period. API-equivalent value estimates token cost; it is not cash saved.</p><div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="plans"><thead>
+<tr><th>tool</th><th>plan</th><th class="n">price</th><th class="n" title="one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks">reporter-weeks</th><th class="n">months</th><th class="n">sessions</th><th class="n">successes</th><th class="n">hours</th><th class="n">api-equiv</th><th class="n">multiple</th><th class="n">$/success</th><th class="n">hit limit</th></tr>
+</thead><tbody></tbody></table></div>
+<p class="mut">medians across reporter-weeks, plan price pro-rata. api-equiv = what the same tokens would cost at API list price. multiple = api-equiv / plan price. $/success = plan price / successful sessions that month. hit limit = share of reporter-weeks with at least one rate-limit hit.</p>
 
-<div class="controls">
-  <label>Group rows by<select id="by">
+</div>${LIMITS_SECTION.replace('Last eight weeks','Selected period').replace('last eight weeks','selected period')}</section>
+<section id="view-changes" role="tabpanel" aria-labelledby="tab-changes" tabindex="0" class="ranking-panel" hidden><div id="drift-section" class="panel-content"><h2>Weekly changes</h2><p class="sub">All work in the selected period. A flag marks a change from a model’s recent results; it does not establish the cause.</p><div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="drift"><thead>
+<tr><th>model</th><th class="n">this week n</th><th>flag</th><th class="n">rating z</th><th class="n">clean z</th><th class="n">latency z</th><th>score by week (oldest to newest)</th></tr>
+</thead><tbody></tbody></table></div>
+
+</div></section>
+<section id="view-evidence" role="tabpanel" aria-labelledby="tab-evidence" tabindex="0" class="ranking-panel" hidden><div id="score-section" class="panel-content"><h2>Detailed session evidence</h2><p class="sub">Dig into the session-level evidence. Group rows and filter by language here; these controls apply to this table.</p><div class="score-controls">  <label>Group evidence by<select id="by">
     <option value="model">Model</option>
     <option value="model,category">Model × task</option>
     <option value="model,lang">Model × language</option>
@@ -487,62 +457,26 @@ ${STAT_STRIP}
     <option value="model,tool">Model × tool</option>
     <option value="family">Family</option>
     <option value="provider">Provider</option>
-    <option value="plan_id">Plan</option>
+
     <option value="family,provider">Family × provider</option>
     <option value="family,provider,quant">Family × provider × quant</option>
     <option value="serving_mode">Serving mode</option>
     <option value="category">Task</option>
-  </select></label>
-  <label>weeks<select id="weeks"><option>2</option><option selected>4</option><option>8</option><option>12</option><option>26</option></select></label>
-  <label class="hidden-control">category<select id="cat"><option value="">all</option></select></label>
-  <label>lang<select id="lang"><option value="">all</option></select></label>
-  <button id="reload">Refresh</button>
-</div>
+  </select></label>  <label>Language<select id="lang"><option value="">all</option></select></label></div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="score"><thead></thead><tbody></tbody></table></div>
+<div class="empty" id="empty" hidden>no sessions in this window.</div>
 
-<div class="work-chips" id="work-chips" role="group" aria-label="Kind of work"></div>
-
-<h2>Model tiers</h2>
-<div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="tiers" data-sortable><thead>
-<tr><th>model</th><th>tier</th><th class="n">score</th><th>quality</th><th>reliability</th><th>steering</th><th>survival</th><th>speed</th><th>value</th><th class="n">waste</th><th class="n">n</th></tr>
-</thead><tbody></tbody></table></div>
-<p class="mut" id="tiers-note"></p>
-</section>
-<section id="work" aria-labelledby="work-heading">
+</div><div id="friction" class="panel-content"><h2>Conversation signals</h2><p class="sub">Corrections and repeated requests are measured locally. Rates depend on the task, tool and person.</p><div class="table-wrap"><table id="friction-table"><thead><tr><th>model</th><th>sessions</th><th>steering</th><th>corrections</th><th>re-prompts</th><th>frustration</th><th>pushback</th><th>clarifications</th><th>edits without read</th><th>abandoned</th></tr></thead><tbody></tbody></table></div></div><section id="work" aria-labelledby="work-heading">
 <h2 id="work-heading">Best at each kind of work</h2>
-<p class="sub">The same tiering, run inside each kind of work. A model can lead at debugging and trail at UI; this is where you find out which. Click a card to filter every table above and below to that work.</p>
+<p class="sub">Overview of all task categories in the selected period. Choose a task to open its model rankings.</p>
 <div class="work-grid" id="work-cards"><p class="empty">Loading kinds of work…</p></div>
 <p class="metric-note mut">Kind of work is inferred from the conversation on the reporter’s machine and can be corrected with <span class="mono">nerfd rate</span>. A card ranks models with ten or more sessions on that work; the rest are listed with their n.</p>
 </section>
 
-${COMPARISON_SECTIONS}
-
-<h2>Session scorecard</h2>
-<div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="score"><thead></thead><tbody></tbody></table></div>
-<div class="empty" id="empty" hidden>no sessions in this window.</div>
-
-<h2>Subscription value</h2>
-<div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="plans"><thead>
-<tr><th>tool</th><th>plan</th><th class="n">price</th><th class="n" title="one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks">reporter-weeks</th><th class="n">months</th><th class="n">sessions</th><th class="n">successes</th><th class="n">hours</th><th class="n">api-equiv</th><th class="n">multiple</th><th class="n">$/success</th><th class="n">hit limit</th></tr>
-</thead><tbody></tbody></table></div>
-<p class="mut">medians across reporter-weeks, plan price pro-rata. api-equiv = what the same tokens would cost at API list price. multiple = api-equiv / plan price. $/success = plan price / successful sessions that month. hit limit = share of reporter-weeks with at least one rate-limit hit.</p>
-
-<h2>Weekly drift</h2>
-<div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="drift"><thead>
-<tr><th>model</th><th class="n">this week n</th><th>flag</th><th class="n">rating z</th><th class="n">clean z</th><th class="n">latency z</th><th>score by week (oldest to newest)</th></tr>
-</thead><tbody></tbody></table></div>
-
-</main>
-<footer>
-  <p><a href="/privacy">Privacy</a></p>
-  <p>score = 0.55 x rating + 0.30 x survival + 0.15 x clean. missing parts are dropped and weights renormalised. n &lt; 3 is never scored.</p>
-  <p>rating: 1 to 5 from the person who did the work. survival: share of lines the session added that still exist an hour or more later. clean: sessions with no errors, rate limits, interrupts or model switches. success: rated 4+, or kept, or 60%+ survival. waste: spend on sessions rated 2 or less, reverted, or under 20% survival.</p>
-  <p>tiers: each criterion normalised to the best model in the set. S &gt;= 92%, A &gt;= 78%, B &gt;= 60%, else C. overall from score: S &gt;= 80, A &gt;= 65, B &gt;= 50.</p>
-  <p>drift flags: watch = |z| &gt;= 2, alert = |z| &gt;= 3, and only with n &gt;= 5 this week. this is change detection, not a verdict. <a href="/export.json">raw data</a> &middot; <a href="/v1/stats">api</a></p>
-</footer>
-
-<script>${BOARD_JS}</script>
-</body>
-</html>`, false);
+</section>
+<aside id="rankings-help" popover class="rankings-help"><button type="button" popovertarget="rankings-help" popovertargetaction="hide" aria-label="Close ranking explanation">×</button><h2>How rankings work</h2><p>Scores combine human ratings (55%), code survival (30%) and clean sessions (15%). Missing inputs are excluded and the remaining weights are adjusted.</p><p>Public ranks require 10 sessions per model; local ranks require 3. A score without ratings is not a human assessment of quality.</p><p>Steering, speed and cost are separate comparisons. Lower is better for these measurements. Different tasks, tools and people affect results.</p><a href="https://github.com/jspaterson000/nerfd/blob/main/docs/METHOD.md">Read the full method ↗</a></aside>
+</main><footer class="ranking-footer"><a href="/privacy">Privacy</a><a href="/export.json">Download data ↗</a><span>${readOnly?'Your local results':'Community results · human-directed sessions'}</span></footer>
+<script>${ANSWER_JS}</script><script>${READABLE_JS}</script><script>${BOARD_JS}</script></body></html>`),readOnly);
 }
 
 export function esc(s: string): string {
@@ -568,7 +502,7 @@ const ANSWER_JS = `
    }
    if(kind === 'work') {
      const cards = (data?.work || []); const led = cards.filter(c => c.ranked.some(r => r.tier !== '-'));
-     set('work', led.length ? led.slice(0, 4).map(c => { const r = c.ranked.find(r => r.tier !== '-'); return (typeof workName === 'function' ? workName(c.category) : c.category) + ': ' + r.model + ' (' + r.tier + (number(r.score) ? ', ' + count(r.score) : '') + ', n=' + count(r.n) + ')'; }).join('; ') + '.' + (cards.length > led.length ? ' ' + count(cards.length - led.length) + ' more kind' + (cards.length - led.length === 1 ? '' : 's') + ' of work have sessions but no model with enough of them to rank.' : '') : cards.length ? count(cards.length) + ' kinds of work have sessions, but no model has reached the ' + count(data?.min_n || 10) + ' sessions a per-task rank needs.' : 'No classified work yet. Categories are inferred from the conversation on the reporter’s machine.');
+     set('work', led.length ? count(led.length) + ' kinds of work have enough evidence to compare models.' + (cards.length > led.length ? ' ' + count(cards.length - led.length) + ' more kind' + (cards.length - led.length === 1 ? '' : 's') + ' of work have sessions but no model with enough of them to rank.' : '') : cards.length ? count(cards.length) + ' kinds of work have sessions, but no model has reached the ' + count(data?.min_n || 10) + ' sessions a per-task rank needs.' : 'No classified work yet. Categories are inferred from the conversation on the reporter’s machine.');
    }
    if(kind === 'score') {
      const rows = data?.groups || []; const rated = rows.reduce((s,r) => s + (r.n_rated || 0),0); const n = rows.reduce((s,r) => s + (r.n || 0),0);
@@ -614,15 +548,15 @@ export function readablePublic(source: string, landing: boolean): string {
     html = html.replace('The public record of how AI models actually perform on real work.</h1>', 'Which AI is working for you?</h1>');
     html = html.replace(/<p class="lede">[\s\S]*?<\/p>/, '<p class="lede">See what worked, what your plan bought, and how much direction each model needed. Start with your own sessions; compare the public evidence as it grows.</p>');
   } else {
-    html = html.replace(STAT_STRIP, `<div class="glance-panel"><h2>This week in one look</h2>${answer('glance')}${STAT_STRIP}</div>${READ_GUIDE}`);
-    for (const [title, id, end] of [['Model tiers','tiers-section','${COMPARISON_SECTIONS}'], ['Session scorecard','score-section','<h2>Subscription value</h2>'], ['Subscription value','plans-section','<h2>Weekly drift</h2>'], ['Weekly drift','drift-section','</main>']]) {
+    html = html.replace(STAT_STRIP, `<div class="record-overview">${STAT_STRIP}<details class="record-context"><summary>About this record</summary>${answer('glance')}</details></div>${READ_GUIDE}`);
+    for (const [title, id, end] of [['Model rankings','tiers-section','${COMPARISON_SECTIONS}'], ['Session scorecard','score-section','<h2>Subscription value</h2>'], ['Subscription value','plans-section','<h2>Weekly drift</h2>'], ['Weekly drift','drift-section','</main>']]) {
       html = html.replace(`<h2>${title}</h2>`, `<section id="${id}"><h2>${title}</h2>`);
-      if (title === 'Model tiers') { /* closed in the markup, before the work section */ }
+      if (title === 'Model rankings') { /* closed in the markup, before the work section */ }
       else html = html.replace(end, '</section>' + end);
     }
     html = html.replace('<footer>', '<footer id="method"><h2>Method</h2>');
   }
-  const sections = [['tiers-section','Tiers','tiers'],['work','Best at each kind of work','work'],['providers','Same weights, different host','providers'],['limits','What a plan gives you','limits'],['friction','How hard people had to push','friction'], ...(!landing ? [['score-section','Session scorecard','score']] : []),['plans-section','Subscription value','plans'], ...(!landing ? [['drift-section','Weekly change','drift']] : []), ['method','Method','method']];
+  const sections = [['tiers-section','Model rankings','tiers'],['work','Task fit','work'],['providers','Hosting providers','providers'],['limits','Usage limits','limits'],['friction','Human effort','friction'], ...(!landing ? [['score-section','Detailed evidence','score']] : []),['plans-section','Subscription value','plans'], ...(!landing ? [['drift-section','Weekly change','drift']] : []), ['method','Method','method']];
   const nav = `<nav class="section-nav" aria-label="Sections">${sections.map(([id, label], i) => `<a href="#${id}">${String(i+1).padStart(2,'0')} ${label}</a>`).join('')}</nav>`;
   html = html.replace(landing ? '\n<section id="tiers-section">' : '<div class="controls">', nav + (landing ? '\n<section id="tiers-section">' : '<div class="controls">'));
   sections.forEach(([id, title, key], i) => {

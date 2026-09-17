@@ -89,6 +89,7 @@ export const READABLE_JS = `
  }
  function decorate() {
    document.querySelectorAll('th').forEach(th => {
+     if(th.closest('[data-managed]'))return;
      if (th.querySelector('.metric-help')) return;
      const label = th.textContent.trim(); const definition = th.dataset.definition || meaning(label)[0];
      th.dataset.label = label; th.dataset.definition = definition;
@@ -105,6 +106,7 @@ export const READABLE_JS = `
      const missing=document.createElement('span'); missing.textContent=value.textContent; missing.className='missing'; missing.tabIndex=0; missing.setAttribute('role','button'); missing.title=meaning(label)[1]; help(missing,meaning(label)[1]); missing.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();missing.click();}}); value.replaceChildren(missing);
    });
    document.querySelectorAll('table').forEach((table, index) => {
+     if(table.hasAttribute('data-managed'))return;
      const headers = [...(table.tHead?.rows[0]?.cells || [])];
      if (!headers.length) return;
      const labels = headers.map(h => (h.dataset.label || h.textContent).toLowerCase());
@@ -121,8 +123,8 @@ export const READABLE_JS = `
        const region = table.closest('.table-wrap,.tbl') || table;
        const key = 'nerfd:detail:' + location.pathname + ':' + (table.id || (table.closest('section')?.id || 'page') + ':' + index);
        const b = document.createElement('button'); b.type = 'button'; b.className = 'detail-toggle';
-       const set = detail => { table.classList.toggle('compact-table', !detail); b.textContent = detail ? 'Show less' : 'Show detail'; b.setAttribute('aria-expanded', String(detail)); };
-       set(stored(key) || Boolean(location.hash && table.closest('section')?.id === location.hash.slice(1)));
+       const set = detail => { table.classList.toggle('compact-table', !detail); b.textContent = detail ? 'Fewer columns' : 'All measurements'; b.setAttribute('aria-expanded', String(detail)); };
+       set(stored(key));
        b.addEventListener('click', () => { const detail = table.classList.contains('compact-table'); set(detail); try { localStorage.setItem(key, detail ? 'detail' : 'compact'); } catch {} });
        region.before(b);
      }
@@ -130,7 +132,7 @@ export const READABLE_JS = `
        table.dataset.sorted = 'true';
        const value = (cell) => { if (cell.dataset.sort != null) return Number(cell.dataset.sort); const t = cell.textContent.trim(); const tier = {S:4,A:3,B:2,C:1}[t.charAt(0)]; if (/^[SABC](\\s|$)/.test(t) && tier) return tier; const n = parseFloat(t.replace(/[$,%×x\\s]/g, '').replace(/^#/, '')); return Number.isFinite(n) && /^[#$]?[-+\\d.]/.test(t) ? n : t.toLowerCase(); };
        headers.forEach((th, i) => {
-         th.classList.add('sort-header');
+         th.classList.add('sort-header');th.tabIndex=0;th.addEventListener('keydown',e=>{if(e.target===th&&(e.key==='Enter'||e.key===' ')){e.preventDefault();th.click();}});
          th.addEventListener('click', (e) => {
            if (e.target.closest('.metric-help')) return;
            const dir = th.getAttribute('aria-sort') === 'descending' ? 'ascending' : 'descending';
@@ -153,6 +155,6 @@ export const READABLE_JS = `
  let pending = false;
  const observer = new MutationObserver(() => { if(pending) return; pending = true; queueMicrotask(() => { pending=false; observer.disconnect(); decorate(); observer.observe(document.querySelector('main') || document.body, {childList:true,subtree:true}); }); });
  decorate(); observer.observe(document.querySelector('main') || document.body, {childList:true,subtree:true});
- addEventListener('hashchange', () => { const section = document.getElementById(location.hash.slice(1)); section?.querySelectorAll('table.compact-table').forEach(t => { const region = t.closest('.table-wrap,.tbl') || t; region.previousElementSibling?.click(); }); section?.querySelectorAll('.family-card').forEach(d => d.open = true); });
+ addEventListener('hashchange',()=>{const section=document.getElementById(location.hash.slice(1));section?.querySelectorAll('.family-card').forEach(d=>d.open=true);});
 })();
 `;

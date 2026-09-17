@@ -1,344 +1,51 @@
-import { esc, FAVICON, SHARED_CSS, IDENTITY_JS, WORK_JS, readablePublic } from './ui.ts';
-import { READ_GUIDE } from '../assets/presentation.ts';
-import { PROMISES, terminalDemo, TRUST, FOUNDERS_FAQ, LANDING_CSS, LANDING_JS } from '../assets/landing-presentation.ts';
+import { WALKTHROUGH, WALKTHROUGH_CSS, WALKTHROUGH_JS } from '../assets/walkthrough.ts';
+import { esc, FAVICON, socialMeta, IDENTITY_JS } from './ui.ts';
+import { SITE_NAV, DESIGN_CSS, DESIGN_JS } from '../assets/design.ts';
 
-// The public front door. Self-contained HTML using the same visual primitives as the board.
+const LANDING_CSS = `
+.home{max-width:1344px;margin:auto;padding:0 32px}.hero{padding:76px 0 0;position:relative}.hero-heading{display:grid;grid-template-columns:1.3fr 1fr;gap:60px;align-items:end}.hero h1{font-size:clamp(56px,6.8vw,92px);font-weight:550;line-height:.99;letter-spacing:-5px;margin:23px 0 30px}.hero h1 em{font-style:normal;color:var(--accent)}.hero-intro{padding-bottom:30px;max-width:430px;justify-self:end}.hero-intro p{font-size:17px;line-height:1.75;color:var(--mut);margin:0 0 25px}.hero-actions{display:flex;flex-wrap:wrap;gap:10px}.hero-note{font:10px var(--mono);color:var(--mut);margin-top:16px}.evidence-window{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(280px,1fr);background:#fff;border:1px solid #d5dccf;border-radius:12px;box-shadow:0 15px 50px #25362608;overflow:hidden;margin-top:22px}.chart-panel{padding:24px 30px 16px;border-right:1px solid var(--line);background:linear-gradient(145deg,#fff,#f6f8f0)}.window-top{display:flex;align-items:center;gap:8px;font:10px var(--mono);color:var(--mut);text-transform:uppercase;letter-spacing:.04em}.window-top .window-dot{width:6px;height:6px;border:1px solid #afb5aa;border-radius:50%}.window-top .window-title{margin-left:10px}.example-label{margin-left:auto;font:9px var(--mono);text-transform:uppercase;color:#6f776c;border:1px solid var(--line);border-radius:4px;padding:3px 6px}.chart-heading{display:flex;justify-content:space-between;align-items:center;margin:24px 0 4px}.chart-heading h2{font-size:20px;letter-spacing:-.7px;font-weight:550;margin:0}.chart-tabs{display:flex;gap:4px;padding:3px;background:#e9ede3;border-radius:6px}.chart-tabs button{border:0;background:none;font:10px var(--mono);color:var(--mut);padding:6px 9px;border-radius:4px;cursor:pointer}.chart-tabs button[aria-pressed=true]{background:white;color:var(--fg);box-shadow:0 1px 3px #0001}.hero-chart{display:block;width:100%;height:auto;overflow:visible}.hero-chart text{font:10px var(--mono);fill:#7b8579}.chart-legend{display:flex;flex-wrap:wrap;gap:18px;font:10px var(--mono);color:var(--mut);margin:8px 0 10px}.chart-legend span{display:flex;align-items:center;gap:6px}.chart-legend i{width:15px;height:3px;background:var(--accent);border-radius:2px}.chart-legend span:nth-child(2) i{background:#88a454}.chart-legend span:nth-child(3) i{background:#b9bbae}.chart-caption{font-size:11px;color:var(--mut);margin:10px 0 0}.ranking-preview{padding:25px}.ranking-preview h3{font-size:15px;font-weight:550;margin:0}.rank-caption{font:10px var(--mono);color:var(--mut);margin:8px 0 23px}.preview-rank{display:grid;grid-template-columns:18px 30px 1fr auto;align-items:center;gap:10px;margin-top:18px;font-size:12px}.preview-rank>small{color:var(--mut);font:10px var(--mono)}.preview-rank .model-logo{height:30px;width:30px;padding:6px;border:1px solid var(--line);border-radius:7px}.preview-rank strong{font:13px var(--mono)}.preview-rank span small{display:block;font:9px var(--mono);color:var(--mut);margin-top:3px}.preview-track{height:4px;background:#edf0e7;border-radius:4px;margin:10px 0 0 58px}.preview-track i{height:100%;display:block;background:var(--accent);border-radius:4px}.preview-rank:nth-of-type(3) + .preview-track i{background:#86a254}.preview-foot{border-top:1px solid var(--line);margin-top:25px;padding-top:17px;display:flex;justify-content:space-between;font-size:11px}.tool-strip{padding:27px 0 33px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line);font-size:12px;color:var(--mut)}.tool-strip>span{font:9px/1.7 var(--mono);text-transform:uppercase;letter-spacing:.05em}.tool-strip b{font-weight:550;display:flex;align-items:center;gap:8px;color:#4a554b;white-space:nowrap}.tool-strip img{width:20px;height:20px;object-fit:contain}.section{padding:95px 0 0}.section-title{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:end;margin-bottom:35px}.section-title h2,.report-story h2,.install-story h2{font-size:clamp(34px,4vw,52px);font-weight:550;letter-spacing:-2px;line-height:1.1;margin:14px 0 0}.section-title>p{max-width:450px;color:var(--mut);margin:0;font-size:15px}.story-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}.story-card{border-top:1px solid var(--line);padding-top:22px}.story-card .number{font:10px var(--mono);color:var(--accent)}.story-card h3{font-size:22px;letter-spacing:-.6px;font-weight:550;margin:16px 0 12px}.story-card p{font-size:14px;color:var(--mut);line-height:1.8}.story-card a{display:inline-block;font-size:12px;font-weight:600;margin-top:10px}.mini-viz{height:160px;margin-top:25px;background:#e9edde;border-radius:8px;overflow:hidden;padding:22px;display:flex;align-items:center;justify-content:center}.mini-viz svg{width:100%;max-height:120px}.mini-viz.blue{background:#e8ecfb}.mini-viz.sand{background:#efeadd}.matrix-demo{display:grid;grid-template-columns:1.5fr repeat(3,1fr);gap:5px;align-items:center;width:100%;font:9px var(--mono)}.matrix-demo b{padding:8px;text-align:center;border-radius:3px;background:#c6d5a8;font-weight:500}.matrix-demo b:nth-child(3n){background:#a4bc76}.matrix-demo span{font-size:8px;color:#526047}.ring{display:flex;gap:24px;align-items:center}.ring svg{width:100px;height:100px}.ring strong{font:30px var(--mono);letter-spacing:-1px}.ring small{font:9px/1.7 var(--mono);display:block;color:var(--mut);margin-top:5px}.report-story{display:grid;grid-template-columns:.9fr 1.1fr;gap:75px;padding:60px;border-radius:14px;background:var(--fg);color:#fff;margin-top:95px;align-items:center}.report-story .kicker{color:#bdc8b9}.report-story h2{margin:15px 0 22px}.report-story>div>p:not(.kicker){color:#bbc8be;font-size:15px;line-height:1.85}.report-story code{display:inline-block;border:1px solid #ffffff30;border-radius:6px;background:#ffffff09;padding:11px 18px;margin-top:15px;color:#d7eea8;font-size:13px}.report-paper{background:#f7f7f2;color:var(--fg);padding:27px;border-radius:9px;transform:rotate(2deg);box-shadow:0 20px 45px #0003}.report-paper .paper-top{display:flex;justify-content:space-between;font:9px var(--mono);color:var(--mut)}.report-paper h3{font-size:25px;font-weight:550;letter-spacing:-1px;margin:25px 0 18px}.paper-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;border-bottom:1px solid var(--line);padding-bottom:22px}.paper-stats b{font:26px var(--mono)}.paper-stats small{display:block;font:9px var(--mono);color:var(--mut);margin-top:4px}.paper-row{display:flex;justify-content:space-between;font-size:11px;padding:15px 0;border-bottom:1px solid var(--line)}.paper-row b{font-family:var(--mono);font-weight:500;color:#4e7038}.paper-foot{font-size:10px;color:var(--mut);margin:18px 0 0}.live-heading{display:flex;align-items:end;gap:20px;justify-content:space-between;margin-bottom:25px}.live-heading h2{font-size:40px;font-weight:550;letter-spacing:-1.7px;line-height:1.1;margin:12px 0 0}.live-board{background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden}.live-meta{padding:17px 24px;background:#ecefe6;display:flex;justify-content:space-between;gap:15px;font:10px var(--mono);color:var(--mut)}.live-model{display:grid;grid-template-columns:40px minmax(0,1fr) 150px 100px 35px;align-items:center;gap:15px;padding:20px 24px;border-top:1px solid var(--line);font-size:13px}.live-model:hover{background:var(--hover)}.live-model>small{font:11px var(--mono);color:var(--mut)}.live-model>strong{font:16px var(--mono)}.live-model .identity{display:inline-flex;align-items:center;gap:10px}.live-model .logo{width:28px;height:28px;display:inline-grid;place-items:center}.live-model .logo img{width:21px;height:21px}.live-model .provider{display:none}.live-model .logo-fallback{font-size:10px}.live-model .logo [hidden]{display:none}.live-empty{padding:32px;color:var(--mut);font-size:14px}.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px;margin-top:35px}.flow article{position:relative;border-top:1px solid var(--line);padding-top:24px}.flow-number{font:12px var(--mono);color:var(--accent)}.flow article h3{font-size:19px;font-weight:550;letter-spacing:-.5px}.flow article p{font-size:13px;color:var(--mut);line-height:1.8}.flow article code{font-size:11px;color:var(--fg)}.trust-bar{margin-top:35px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;padding:28px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.trust-bar h3{font-size:13px;font-weight:600;margin:0 0 8px}.trust-bar p{font-size:12px;color:var(--mut);margin:0;line-height:1.8}.install-story{display:grid;grid-template-columns:1fr 1.2fr;gap:65px;align-items:center;padding:80px 0}.install-story h2{margin-bottom:20px}.install-story p{color:var(--mut);font-size:14px}.install-terminal{border-radius:10px;background:#202923;color:#d7dfd2;overflow:hidden;box-shadow:0 16px 35px #1f302512}.terminal-top{padding:15px 20px;border-bottom:1px solid #ffffff1c;font:10px var(--mono);display:flex;justify-content:space-between}.install-options{display:flex;gap:15px;font-size:11px;padding:20px 22px 0}.install-options label{display:flex;align-items:center;gap:5px;cursor:pointer}.install-options input{accent-color:#b8d787}.command{display:flex;align-items:center;gap:12px;padding:20px 22px}.command code{font-size:11px;overflow-wrap:anywhere;min-width:0;flex:1;color:#d8efa9;line-height:1.9}.command button{background:#ffffff0c;border:1px solid #ffffff25;border-radius:5px;color:white;padding:8px 10px;font-size:10px;cursor:pointer;min-width:58px}.install-instructions{padding:0 22px 20px;font:11px/2.2 var(--mono);color:#aab5a6}.install-instructions span{color:#d8efa9}.install-fine{padding:14px 22px;background:#ffffff06;font-size:10px;color:#aab5a6;line-height:1.8}.faq{display:grid;grid-template-columns:1fr 1.2fr;gap:65px;padding:25px 0 70px;border-top:1px solid var(--line)}.faq h2{font-size:32px;font-weight:550;letter-spacing:-1px;margin-top:12px}.faq details{border-bottom:1px solid var(--line);padding:16px 0;font-size:13px}.faq summary{cursor:pointer;font-weight:550}.faq details p{color:var(--mut);font-size:13px;line-height:1.8}.site-footer{padding:35px 0;display:flex;flex-wrap:wrap;align-items:center;gap:25px;border-top:1px solid var(--line);color:var(--mut);font-size:11px}.site-footer .footer-note{margin-right:auto}.site-footer .wordmark{font-size:23px;color:var(--fg)}
+@media(min-width:1500px){.hero{padding-top:100px}}
+@media(max-width:1000px){.hero-heading{gap:30px}.hero h1{font-size:70px}.hero-intro p{font-size:15px}.evidence-window{grid-template-columns:1.5fr 1fr}.chart-panel{padding:20px}.ranking-preview{padding:20px}.tool-strip{flex-wrap:wrap;justify-content:center}.tool-strip>span{width:100%;text-align:center}.report-story{padding:38px;gap:35px}.section-title{gap:30px}.report-story h2{font-size:40px}.install-story,.faq{gap:35px}}
+@media(max-width:700px){.home{padding:0 20px}.hero{padding-top:40px}.hero-heading{grid-template-columns:1fr;gap:0}.hero h1{font-size:66px;letter-spacing:-3.8px;margin:20px 0 24px}.hero-intro{justify-self:start;max-width:500px;padding-bottom:12px}.hero-intro p{font-size:15px}.evidence-window{grid-template-columns:1fr}.chart-panel{border-right:0;border-bottom:1px solid var(--line);padding:18px}.chart-heading h2{font-size:17px}.ranking-preview{padding:22px}.preview-rank{margin-top:14px}.tool-strip{gap:18px}.section{padding-top:65px}.section-title{grid-template-columns:1fr;gap:20px}.section-title h2{font-size:39px}.story-grid{grid-template-columns:1fr;gap:34px}.story-card{display:grid;grid-template-columns:1fr;gap:0}.mini-viz{max-width:none;height:170px}.report-story{grid-template-columns:1fr;margin-top:60px;padding:30px 24px;gap:25px}.report-story h2{font-size:39px}.report-paper{transform:none;padding:22px}.paper-stats b{font-size:24px}.live-heading{align-items:start;flex-direction:column}.live-heading h2{font-size:36px}.live-model{grid-template-columns:22px minmax(0,1fr) 55px;gap:10px;padding:18px 15px}.live-model .sample,.live-model .row-arrow{display:none}.live-meta{padding:15px;flex-wrap:wrap}.flow{grid-template-columns:1fr 1fr;gap:22px}.trust-bar{grid-template-columns:1fr;gap:22px}.install-story,.faq{grid-template-columns:1fr;gap:25px;padding:60px 0}.install-story h2{font-size:39px}.command{padding:18px 15px;gap:8px}.command code{font-size:10px}.install-options{padding-left:15px}.install-instructions{padding-left:15px}.faq{padding-top:28px}.site-footer{gap:15px}.site-footer .footer-note{width:100%;order:2}.chart-tabs button{padding:6px 7px}.window-title{font-size:9px}.example-label{font-size:8px}}
+
+.hero{padding-top:62px}.hero-heading{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:65px;align-items:center;margin-top:24px}.hero h1{font-size:clamp(52px,5.6vw,80px);line-height:1.05;letter-spacing:-4px;margin:0 0 25px}.hero-description{font-size:17px;color:var(--mut);line-height:1.75;max-width:560px;margin:0 0 24px}.hero-ranking-link{display:inline-flex;align-items:center;gap:25px;font-size:13px;font-weight:600;color:var(--accent)}.hero-intro{width:100%;max-width:480px;padding:0}.hero-install{background:#202923;color:#f3f5ef;padding:25px;border-radius:11px;box-shadow:0 12px 28px #1f302510}.hero-install-heading{display:flex;align-items:center;gap:10px;font:9px var(--mono);letter-spacing:.04em;color:#bbc6b5}.hero-terminal-icon{font-size:14px;color:#d9ecb6}.hero-free{margin-left:auto;font-size:8px;color:#a8be86}.hero-install h2{font-size:23px;line-height:1.2;font-weight:550;letter-spacing:-.7px;margin:24px 0 12px}.hero-intro .hero-install>p{font-size:12px;line-height:1.8;color:#c0cbbd;margin:0 0 22px}.hero-command{display:flex;align-items:center;gap:10px;padding:13px 10px 13px 14px;border:1px solid #ffffff28;border-radius:6px;background:#ffffff05}.hero-command code{font:11px/1.8 var(--mono);color:#dfedc7;overflow-wrap:anywhere;min-width:0;flex:1}.hero-command button{display:flex;align-items:center;gap:12px;border:0;border-radius:4px;padding:9px 10px;background:#dcebc1;color:#253924;font-size:10px;cursor:pointer;flex:none;min-width:62px;justify-content:center}.hero-command button:hover{background:#edf6dc}.hero-install-options{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:10px;color:#c3cdbf;margin-top:17px}.hero-install-options label{display:flex;align-items:center;gap:7px;cursor:pointer}.hero-install-options input{accent-color:#b8d787;margin:0;width:13px;height:13px}.hero-intro .hero-install .hero-sharing{font-size:10px;color:#a6b5a0;margin:16px 0 0;line-height:1.7}.hero-copy-status{display:block;font-size:10px;color:#dcebc1;line-height:1.7}.hero-copy-status:not(:empty){margin-top:10px}.hero-note{font:9px var(--mono);margin:14px 0 0;color:var(--mut)}
+@media(min-width:1500px){.hero{padding-top:75px}}
+@media(max-width:1000px){.hero-heading{gap:30px;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}.hero h1{font-size:57px;letter-spacing:-3px}.hero-description{font-size:15px}.hero-install{padding:20px}.hero-command{padding:10px}.hero-command code{font-size:10px}.hero-install h2{font-size:21px}.hero-free{font-size:7px}}
+@media(max-width:700px){.hero{padding-top:35px}.hero-heading{grid-template-columns:1fr;gap:30px;margin-top:20px}.hero h1{font-size:clamp(42px,9.8vw,60px);letter-spacing:-2.4px;margin:0 0 20px}.hero-description{font-size:15px;margin-bottom:18px}.hero-ranking-link{font-size:12px;gap:15px}.hero-intro{max-width:none}.hero-install{padding:21px 18px}.hero-install h2{font-size:22px;margin-top:22px}.hero-note{font-size:8px}.hero-command code{font-size:10px}.hero-install-heading{font-size:8px}.hero-free{font-size:7px}.hero .kicker{font-size:9px}}
+`;
+
+function graph(): string {
+ return `<svg class="hero-chart" viewBox="0 0 640 218" role="img" aria-labelledby="chart-title chart-desc"><title id="chart-title">Illustrative weekly model scores</title><desc id="chart-desc">Example models A, B and C change over eight weeks. Scores are illustrative, not live rankings.</desc><defs><linearGradient id="chart-area" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#3159eb" stop-opacity=".09"/><stop offset="1" stop-color="#3159eb" stop-opacity="0"/></linearGradient></defs><g stroke="#e2e6dc" stroke-width="1"><path d="M35 35H618M35 80H618M35 125H618M35 170H618"/></g><g><text x="4" y="38">100</text><text x="10" y="83">75</text><text x="10" y="128">50</text><text x="10" y="173">25</text><text x="35" y="205">W01</text><text x="193" y="205">W03</text><text x="354" y="205">W05</text><text x="594" y="205">W08</text></g><path d="M35 91L118 79L201 90L284 65L367 71L450 48L533 60L616 43V170H35Z" fill="url(#chart-area)"/><g fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path class="chart-line" id="chart-a" d="M35 91L118 79L201 90L284 65L367 71L450 48L533 60L616 43" stroke="#3159eb"/><path class="chart-line" id="chart-b" d="M35 123L118 109L201 116L284 96L367 110L450 94L533 89L616 98" stroke="#88a454" style="animation-delay:.15s"/><path class="chart-line" id="chart-c" d="M35 143L118 136L201 149L284 133L367 130L450 145L533 139L616 124" stroke="#b9bbae" style="animation-delay:.3s"/></g><circle cx="616" cy="43" r="5" fill="#3159eb" stroke="white" stroke-width="2" id="chart-end"/></svg>`;
+}
 
 export function landingPage(origin: string): string {
-  const install = `curl -fsSL ${origin}/install.sh | sh`;
-  const sub = 'nerfd watches your AI coding sessions from the terminal, scores every model on the work it actually did for you, and shows the week it changed. One command. Nothing you typed ever leaves your machine.';
-  const socialTitle = 'nerfd — is it you, or did the model get worse?';
-  // Insert after readablePublic so legacy hero and intro rewrites cannot alter this copy.
-  const intro = `<div class="hero">
-  <div class="hero-copy"><p class="eyebrow">Real sessions. Real repos. Ranked by outcome.</p>
-  <h1>Is it you, or did the model get worse?</h1>
-  <p class="lede">${sub}</p>
-  <div class="install" id="install"><code class="mono" id="cmd">${esc(install)}</code><button id="copy" type="button" aria-label="Copy install command"><svg viewBox="0 0 18 18" aria-hidden="true"><rect x="6" y="6" width="9" height="10" rx="2"/><path d="M4 12H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v1"/></svg><span aria-live="polite">Copy</span></button></div>
-  <p class="live-line"><b id="s-sessions">–</b> sessions on record · <b id="s-models">–</b> models · 10 kinds of work · <a href="/export.json">open data</a></p>
-  <p class="secondary-ctas"><a href="/board">See the board</a><a href="/model">One model, over time</a><a href="/privacy">What leaves your machine</a></p></div>
-  <figure class="record-card" aria-label="Illustrative session record. Model, tool, plan, category and counts are sent. Prompt text, paths and code never leave your machine.">
-  <figcaption class="record-caption"><span>session → public record</span><span>EXAMPLE</span></figcaption>
-  <div class="record-lines">${[
-    ['model', 'gpt-5.6-sol'], ['tool', 'Codex'], ['plan', 'ChatGPT Pro'], ['category', 'debugging'], ['prompts', '12'], ['edits', '8'], ['errors', '0'], ['survival', '94%'], ['prompt', '▰▰▰ ▰▰▰▰ ▰▰'], ['paths', '▰▰ / ▰▰▰ / ▰▰'], ['code', '▰▰▰ ▰▰ ▰▰▰▰'],
-  ].map(([key, value], i) => `<div class="record-line${i > 7 ? ' private' : ''}" style="--i:${i}"><span class="record-key">${key}</span><span class="record-value">${value}</span><small>${i > 7 ? 'never leaves' : 'sent'}</small></div>`).join('')}</div>
-  <p class="record-bottom"><strong>Counts, never conversations.</strong> Redacted on your machine.</p></figure>
-</div>
-${PROMISES}
-${terminalDemo(esc(install))}
-
-<section id="how" aria-labelledby="how-heading">
-  <p class="eyebrow">From your terminal to the public record</p>
-  <h2 id="how-heading">How it works</h2>
-  <ol class="how-steps">
-    <li><span class="step-number" aria-hidden="true">01</span><h3>Install once</h3><p>One command hooks into your tools.</p></li>
-    <li><span class="step-number" aria-hidden="true">02</span><h3>Work as usual</h3><p>Your machine counts tokens, errors, corrections and code survival.</p></li>
-    <li><span class="step-number" aria-hidden="true">03</span><h3>See your own report</h3><p><code>nerfd report</code>: your ranking, your costs, your windows.</p></li>
-    <li><span class="step-number" aria-hidden="true">04</span><h3>Add to the public record</h3><p>Share counts per session. Compare weekly, with sample sizes.</p></li>
-  </ol>
-  <div class="ranking-explainer">
-    <div>
-      <h3>How the tables rank</h3>
-      <dl class="criteria">
-        <div><dt>Quality</dt><dd>Your optional rating, from 1 to 5.</dd></div>
-        <div><dt>Reliability</dt><dd>Share of sessions with no errors, rate limits, interrupts or model switches.</dd></div>
-        <div><dt>Steering <small>lower is better</small></dt><dd>Corrections, re-prompts and pushback per turn.</dd></div>
-        <div><dt>Survival</dt><dd>Share of added lines still present an hour later.</dd></div>
-        <div><dt>Speed <small>lower is better</small></dt><dd>Median response latency.</dd></div>
-        <div><dt>Value <small>lower is better</small></dt><dd>Cost per successful session.</dd></div>
-      </dl>
-      <div class="tier-bands"><p>Each criterion, relative to the best: <strong>S ≥ 92% · A ≥ 78% · B ≥ 60% · C &lt; 60%</strong></p><p>Overall, from the composite score: <strong>S ≥ 80 · A ≥ 65 · B ≥ 50 · C &lt; 50</strong></p><p>At least ten sessions for a public tier. Every badge shows its underlying number.</p></div>
-    </div>
-    <figure class="record-flow">
-      <svg viewBox="0 0 340 380" role="img" aria-labelledby="flow-title flow-desc">
-        <title id="flow-title">From a session to a weekly ranking</title>
-        <desc id="flow-desc">A session flows into measure locally, redact, public record and ranked weekly. Prompts, code and paths never leave the machine.</desc>
-        <g fill="var(--soft)" stroke="var(--line)"><rect x="18" y="12" width="160" height="44" rx="9"/><rect x="18" y="86" width="160" height="44" rx="9"/><rect x="18" y="160" width="160" height="44" rx="9"/><rect x="18" y="234" width="160" height="44" rx="9"/><rect x="18" y="308" width="160" height="44" rx="9"/></g>
-        <g fill="none" stroke="currentColor" stroke-width="1.4"><path d="M98 56v30m-4-5 4 5 4-5M98 130v30m-4-5 4 5 4-5M98 204v30m-4-5 4 5 4-5M98 278v30m-4-5 4 5 4-5"/><path d="M178 182h20" stroke-dasharray="3 4"/></g>
-        <g fill="currentColor" text-anchor="middle" font-size="13"><text x="98" y="39">A session</text><text x="98" y="113">measure locally</text><text x="98" y="187">redact</text><text x="98" y="261">public record</text><text x="98" y="335">ranked weekly</text></g>
-        <g fill="var(--mut)" font-size="12"><text x="211" y="144">Never leave</text><text x="225" y="170">prompts</text><text x="225" y="194">code</text><text x="225" y="218">paths</text></g>
-        <g fill="none" stroke="var(--mut)" stroke-width="1.2"><path d="m208 162 7 7m-7 0 7-7m-7 24 7 7m-7 0 7-7m-7 24 7 7m-7 0 7-7M223 166h53m-53 24h32m-32 24h36"/></g>
-      </svg>
-      <figcaption>Counts, never conversations.<br><code>nerfd privacy</code> shows the exact record.</figcaption>
-    </figure>
-  </div>
-</section>
-${TRUST}
-`;
-  return readablePublic(`<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${socialTitle}</title>
-<meta name="description" content="${esc(sub)}">
-<meta property="og:title" content="${socialTitle}">
-<meta property="og:description" content="${esc(sub)}">
-<meta property="og:image" content="${esc(new URL('/assets/og.png', origin).href)}">
-<meta property="og:url" content="${esc(new URL('/', origin).href)}">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="${socialTitle}">
-<meta name="twitter:description" content="${esc(sub)}">
-<meta name="twitter:image" content="${esc(new URL('/assets/og.png', origin).href)}">
-${FAVICON}
-<style>${SHARED_CSS}
-.wrap{max-width:980px;margin:auto;padding:0 20px}main,section{min-width:0}section,h2{text-align:left}
-nav{display:flex;align-items:center;gap:24px;min-height:76px;border-bottom:1px solid var(--line);font-size:13px;color:var(--mut)}nav .brand{color:var(--fg)}nav .sp{flex:1}
-.install{display:flex;align-items:center;gap:8px;max-width:710px;background:var(--soft);border:1px solid var(--line);border-radius:11px;padding:7px;box-shadow:inset 0 1px 3px #00000004}.install code{flex:1;min-width:0;padding:8px 9px;font-size:13px;overflow-wrap:anywhere}.install button{flex:none;font-size:12px;padding:8px 13px;display:flex;align-items:center;gap:6px}.install button svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.4}
-section{padding:45px 0 0}h2{font-size:23px;letter-spacing:-.6px;font-weight:600;margin:0 0 7px}.sub{font-size:14px;margin:0 0 20px;max-width:720px}.section-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px 16px}.section-head .section-number{grid-column:1/-1;margin:0}.section-head a{font-size:12px;color:var(--mut);white-space:nowrap}
-footer{margin:56px 0 0;padding:24px 0 36px;border-top:1px solid var(--line);font-size:12px;color:var(--mut);display:flex;flex-wrap:wrap;gap:12px 22px}
-#limits{min-width:0}#limits .table-wrap{max-width:100%;overflow-x:auto}#limits .limit-key li{min-width:0;overflow-wrap:anywhere}#limits .limit-key .identity{white-space:normal}
-.model-detail{display:block;font-size:10px;margin-top:3px}
-#providers th,#providers td,#friction th,#friction td{padding:10px 12px}
-.landing-rate{display:inline-block;min-width:62px;padding:2px 4px;font-size:11px;background:linear-gradient(to right,var(--line) var(--rate),transparent var(--rate)) left center/100% 4px no-repeat}
-.how-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;list-style:none;padding:0;margin:24px 0 30px}.how-steps li{padding:20px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}.step-number{display:grid;place-items:center;width:30px;height:30px;margin-bottom:24px;border:1px solid var(--line);border-radius:50%;font:12px var(--mono);color:var(--mut)}.ranking-explainer{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:36px;border-top:1px solid var(--line);padding-top:28px}.ranking-explainer h3{font-size:17px;margin:0 0 20px}.criteria{margin:0;font-size:13px}.criteria>div{display:grid;grid-template-columns:120px minmax(0,1fr);gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}.criteria dt{font-weight:600}.criteria dd{margin:0;color:var(--mut);line-height:1.65}.criteria small{display:block;font-size:10px;font-weight:400;color:var(--mut);margin-top:4px}.tier-bands{font-size:12px;color:var(--mut);line-height:1.8;margin-top:18px}.tier-bands p{margin:8px 0}.tier-bands strong{display:block;color:var(--fg);font-weight:500}.record-flow{margin:0;padding:20px 12px;align-self:start;background:var(--panel);border:1px solid var(--line);border-radius:12px}.record-flow svg{display:block;width:100%;max-width:340px;margin:auto;font-family:inherit}.record-flow figcaption{font-size:12px;color:var(--mut);line-height:1.8;padding:0 12px}.record-flow code{color:var(--fg)}
-@media(max-width:800px){.how-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.ranking-explainer{gap:24px}}
-.secondary-ctas{display:flex;flex-wrap:wrap;font-size:12px}.how-steps h3{font-size:14px;margin:0 0 8px}.how-steps p{font-size:13px;color:var(--mut);margin:0}.hero .eyebrow{display:flex;align-items:center;gap:8px}.hero .eyebrow::before{content:"";width:6px;height:6px;border-radius:50%}.lede{color:var(--mut)}h1{font-weight:600;margin:0 0 22px}
-@media(max-width:600px){.how-steps,.ranking-explainer{grid-template-columns:1fr}.step-number{margin-bottom:14px}.criteria>div{grid-template-columns:100px minmax(0,1fr)}.ranking-explainer{gap:20px}}
-</style>
-<style>${LANDING_CSS}</style>
-</head>
-<body>
-<div class="wrap">
-<nav class="site-nav" aria-label="Main navigation">
-  <a class="brand" href="/"><span class="app-icon" aria-hidden="true">n</span><span>nerfd<em>.ai</em></span></a><span class="sp"></span><a href="/board">Board</a><a href="/model">Models</a><a class="nav-method" href="#how">How it works</a><a class="nav-install" href="#install">Install</a>
-</nav>
-
-<main>
-<!-- landing-intro -->
-<div class="board-heading"><p class="eyebrow">The live public record</p><h2>See what the sessions say.</h2><p class="answer" id="glance-answer" aria-live="polite">Loading this week’s record. Sample sizes show what you can compare.</p><p class="board-week"><b id="s-week">–</b> sessions this week · <a href="/board">Open the full board ↗</a></p></div>
-${READ_GUIDE}
-<section id="tiers-section">
-  <div class="section-head"><h2>Tiers, last four weeks</h2><a href="/board">Full scorecard ↗</a></div>
-  <p class="sub">Relative to the best model in the field on each criterion. A tier needs at least ten sessions. Each badge includes its underlying number.</p>
-  <div class="tbl" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="tiers"><thead>
-    <tr><th>model</th><th>overall</th><th>quality</th><th>reliability</th><th>steering</th><th>survival</th><th>speed</th><th>value</th><th class="n">waste</th><th class="n">n</th></tr>
-  </thead><tbody><tr><td colspan="10" class="mut">loading</td></tr></tbody></table></div>
-</section>
-
-<section id="work" aria-labelledby="work-heading">
-  <div class="section-head"><h2 id="work-heading">Best at each kind of work</h2><a href="/board#work">Every kind of work ↗</a></div>
-  <p class="sub">The same tiering, run inside each kind of work. A model can lead at debugging and trail at UI. Each card links to the board filtered to that work.</p>
-  <div class="work-grid" id="work-cards" aria-live="polite"><p class="empty">Loading kinds of work…</p></div>
-</section>
-
-<section id="providers" aria-labelledby="providers-heading">
-  <div class="section-head"><h2 id="providers-heading">Same weights, different host</h2><a href="/board">Full provider board ↗</a></div>
-  <p class="sub">Open models are served by many providers at different quantisations. The scorecard keys on model, provider and quantisation, so they are never averaged together.</p>
-  <div id="provider-families" aria-live="polite"><p class="empty">No provider data yet. Open-model sessions from OpenCode, Goose, Kimi Code, Crush and Aider populate this board.</p></div>
-</section>
-
-<section id="limits" aria-labelledby="limits-heading">
-  <h2 id="limits-heading">What a plan actually gives you</h2>
-  <p class="sub">Measured from real sessions: how many tokens a window holds, how much people use, how often they hit the wall, and what that costs per dollar. Bands, not points; every estimate carries its n.</p>
-  <p class="metric-note mut">Last eight weeks · USD · ranked by median tokens per dollar</p>
-  <div id="limits-content" aria-live="polite"><p class="empty">No window data yet. Codex sessions and Claude Code with the status-line sampler populate this.</p></div>
-</section>
-
-<section id="friction" aria-labelledby="friction-heading">
-  <div class="section-head"><h2 id="friction-heading">How hard people had to push</h2><a href="/board">Full friction board ↗</a></div>
-  <p class="sub">Counts derived on your machine from how the conversation went: corrections, re-prompts, pushback, frustration, clarifying questions. <a href="/privacy">No text ever leaves the machine.</a></p>
-  <div class="table-wrap" tabindex="0" role="region" aria-label="Friction rates, scroll to compare"><table id="friction-table"><thead><tr>
-    <th>model</th><th class="n">n</th><th class="n">steering %</th><th class="n">corrections %</th><th class="n">re-prompts %</th><th class="n">frustration %</th><th class="n">pushback %</th><th class="n">clarifications %</th><th class="n">edits w/o read %</th><th class="n">abandoned %</th>
-  </tr></thead><tbody aria-live="polite"><tr><td colspan="10" class="empty">No friction data yet. Conversation signals will appear as sessions are shared.</td></tr></tbody></table></div>
-  <p class="metric-note mut">Lower is better. “–” means unavailable.</p>
-</section>
-
-<section id="plans-section">
-  <h2>What your month actually buys</h2>
-  <p class="sub">The plan is detected from each tool's own config, never typed in. We count what it delivered: successful sessions, hours, the API-equivalent value of the tokens, and how often they reached a rate limit. Medians across reporter-weeks, with the plan price charged pro-rata.</p>
-  <div class="tbl" tabindex="0" role="region" aria-label="Scrollable metrics"><table id="plans"><thead>
-    <tr><th>plan</th><th class="n">price</th><th class="n">sessions</th><th class="n">successes</th><th class="n">api-equiv</th><th class="n">multiple</th><th class="n">$ / success</th><th class="n">hit limit</th><th class="n" title="one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks">reporter-weeks</th></tr>
-  </thead><tbody><tr><td colspan="9" class="mut">loading</td></tr></tbody></table></div>
-</section>
-
-${FOUNDERS_FAQ}
-
-</main>
-<footer>
-  <div class="footer-formula"><code>score = 100 × (0.55 × rating_norm + 0.30 × survival + 0.15 × clean)</code><br>Rating maps 1–5 to 0–1. Missing parts are dropped and weights renormalised. Scores need 3 sessions; public tiers need 10. Good-session rates carry 95% intervals.</div>
-  <a href="https://github.com/jspaterson000/nerfd">GitHub</a>
-  <span>open collector, open data, open formula</span>
-  <a href="/export.json">raw data</a>
-  <a href="/v1/stats">api</a>
-  <a href="/board">full board</a>
-  <a href="/privacy">privacy</a>
-  <span>no money from model labs, ever</span>
-</footer>
-</div>
-
-<script>
-${IDENTITY_JS}
-${WORK_JS}
-${LANDING_JS}
+ const install = `curl -fsSL ${origin}/install.sh | sh`;
+ return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>nerfd — Community-led AI model accountability.</title><meta name="description" content="Community-led accountability for AI coding models. Independent evidence of what works, what fails and what changes, from real work. Prompts and code stay on your machine.">${FAVICON}${socialMeta(origin,'/','nerfd — Community-led AI model accountability.','Community-led model accountability. Real work. Positive and negative outcomes. Open evidence.')}<style>${DESIGN_CSS}${LANDING_CSS}${WALKTHROUGH_CSS}</style></head><body><div class="home">${SITE_NAV}<main id="main">
+<section class="hero"><p class="kicker"><span class="signal-dot"></span> Independent benchmarks, built by the community</p><div class="hero-heading"><div class="hero-message"><h1>AI benchmarks.<br><em>From real work.</em></h1><p class="hero-description">nerfd compares AI coding models using results shared by the people who use them. See which models work well, where they fall short, and how they change.</p><a class="hero-ranking-link" href="/board">Explore the community rankings <span>→</span></a></div><div class="hero-intro"><div class="hero-install"><div class="hero-install-heading"><span class="hero-terminal-icon" aria-hidden="true">&gt;_</span><span>INSTALL NERFD</span><span class="hero-free">FREE & OPEN SOURCE</span></div><h2>Start contributing.</h2><p>Connect your coding tools with one command.<br>nerfd records the results as you work.</p><div class="hero-command"><code id="hero-command">${esc(install)}</code><button type="button" id="hero-copy" aria-label="Copy hero install command">Copy <span aria-hidden="true">↗</span></button></div><div class="hero-install-options"><label><input type="checkbox" id="hero-private"> Keep it local</label><a href="${esc(origin)}/install.sh">Inspect script ↗</a></div><p class="hero-sharing" id="hero-sharing">Shares session measurements. Your prompts and code stay local.</p><span class="hero-copy-status" id="hero-copy-status" role="status"></span></div><div class="hero-note">No account · Node.js 22.13+ · No lab funding</div></div></div>
+${WALKTHROUGH}
+<div class="tool-strip"><span>Works where<br>you already work</span>${[['anthropic','Claude Code'],['openai','Codex'],['opencode','OpenCode'],['google','Gemini CLI'],['qwen','Qwen Code']].map(([logo,name])=>`<b><img src="/assets/logos/${logo}.svg" alt="">${name}</b>`).join('')}<a href="https://github.com/jspaterson000/nerfd/blob/main/docs/INTEGRATIONS.md">All integrations ↗</a></div></section>
+<section class="section" id="why"><div class="section-title"><div><p class="kicker">01 / What you can learn</p><h2>See how models perform<br>on everyday tasks.</h2></div><p>Lab tests are useful, but they cannot tell you everything about using a model. nerfd adds results from real coding work, including successful sessions, errors and repeated corrections.</p></div><div class="story-grid">
+<article class="story-card"><span class="number">01.1 / COMPARE REAL TASKS</span><h3>Compare models by task.</h3><p>Compare ten kinds of work, from debugging to design. Each result shows how many sessions it is based on.</p><a href="/board#work">Compare tasks ↗</a><div class="mini-viz" role="img" aria-label="Illustrative category score matrix"><div class="matrix-demo"><span>EXAMPLE</span><span>MODEL A</span><span>MODEL B</span><span>MODEL C</span><span>Debugging</span><b>90</b><b>85</b><b>68</b><span>Review</span><b>83</b><b>89</b><b>80</b><span>Refactoring</span><b>87</b><b>75</b><b>72</b></div></div></article>
+<article class="story-card"><span class="number">01.2 / TRACK CHANGES</span><h3>Track performance over time.</h3><p>See whether a model’s results improve or decline. Compare its weekly scores with its earlier results and other models.</p><a href="/model">View model histories ↗</a><div class="mini-viz blue"><svg viewBox="0 0 300 100" role="img" aria-label="Illustrative model score dropping while the field stays level"><g fill="none"><path d="M0 30H300M0 60H300M0 90H300" stroke="#d5dcf0"/><path d="M0 47L50 43L100 48L150 42L200 44L250 42L300 45" stroke="#a1abc5" stroke-dasharray="4 4"/><path d="M0 26L50 18L100 28L150 20L200 72L250 77L300 80" stroke="#3159eb" stroke-width="3" class="chart-line"/><path d="M200 5V95" stroke="#8093d6" stroke-dasharray="3 4"/></g><circle cx="200" cy="72" r="5" fill="#3159eb"/><text x="213" y="20" font-size="9" fill="#64749e">EXAMPLE SHIFT</text></svg></div></article>
+<article class="story-card"><span class="number">01.3 / CHECK THE RESULTS</span><h3>See what worked.</h3><p>See how people rated the work, how much of the code they kept, and how often they had to correct the model.</p><a href="/board#score-section">View session results ↗</a><div class="mini-viz sand"><div class="ring"><svg viewBox="0 0 100 100" role="img" aria-label="Example: 75 percent successful sessions"><circle cx="50" cy="50" r="38" fill="none" stroke="#ddd8c8" stroke-width="10"/><circle cx="50" cy="50" r="38" fill="none" stroke="#8f9e55" stroke-width="10" stroke-dasharray="179 239" transform="rotate(-90 50 50)"/><text x="50" y="54" text-anchor="middle" font-size="15" fill="#52603e">75%</text></svg><div><strong>63 / 84</strong><small>SUCCESSFUL SESSIONS<br>ILLUSTRATIVE DATA</small></div></div></div></article></div></section>
+<section class="section" id="rankings"><div class="live-heading"><div><p class="kicker"><span class="signal-dot"></span>02 / The community benchmark</p><h2>The community’s results.</h2></div><a class="btn" href="/board">Full rankings ↗</a></div><div class="evidence-window reveal"><div class="chart-panel"><div class="window-top"><i class="window-dot"></i><i class="window-dot"></i><i class="window-dot"></i><span class="window-title">Weekly results</span><span class="example-label">Illustrative data</span></div><div class="chart-heading"><h2 id="chart-heading">Model scores by week</h2><div class="chart-tabs" role="group" aria-label="Example chart metric"><button type="button" data-metric="score" aria-pressed="true">Score</button><button type="button" data-metric="survival" aria-pressed="false">Survival</button></div></div>${graph()}<div class="chart-legend"><span><i></i>Model A</span><span><i></i>Model B</span><span><i></i>Model C</span></div><p class="chart-caption" id="chart-caption">Example scores over eight weeks. Visit a model page for its recorded results.</p></div><div class="ranking-preview"><div class="window-top"><h3>The community scorecard</h3><span class="example-label">Example</span></div><p class="rank-caption">CONTRIBUTED SESSIONS · LAST 4 WEEKS</p>${[['anthropic','Claude Opus 4.6','28 sessions','88','88%'],['openai','GPT-5.4','24 sessions','81','81%'],['moonshotai','Kimi K2.5','12 sessions','74','74%']].map(([logo,name,n,score,width],i)=>`<div class="preview-rank"><small>0${i+1}</small><img class="model-logo" src="/assets/logos/${logo}.svg" alt=""><span>${name}<small>${n}</small></span><strong>${score}</strong></div><div class="preview-track"><i class="bar-fill" style="width:${width};animation-delay:${i*.15}s"></i></div>`).join('')}<div class="preview-foot"><span>Results vary by task.</span><a href="/model" aria-label="Explore model pages">↗</a></div></div></div>
+<div class="live-board"><div class="live-meta"><span>OVERALL SCORE · LAST 4 WEEKS</span><span id="live-meta">Loading public record…</span></div><div id="live-ranks" aria-live="polite"><p class="live-empty">Loading rankings…</p></div></div><p class="chart-caption">A public rank requires at least 10 sessions. Scores combine human ratings, retained code and sessions without errors or interruptions. Tasks and users differ, so compare similar work.</p></section>
+<section class="report-story"><div><p class="kicker">03 / Your personal report</p><h2>Your own results,<br>in one report.</h2><p>You also get a report of your own sessions: which models worked best, what your subscriptions provided, and where you spent time correcting mistakes.</p><p>Import your existing session history to get started. Your report works whether or not you share results with the community.</p><code>nerfd report</code></div><div class="report-paper"><div class="paper-top"><span>nerfd / PERSONAL REPORT</span><span>EXAMPLE · 4 WEEKS</span></div><h3>Your monthly summary</h3><div class="paper-stats"><div><b>84</b><small>sessions</small></div><div><b>62.4</b><small>hours of work</small></div><div><b>63</b><small>successful</small></div></div><div class="paper-row"><span>Claude Max 5× · API-equivalent value</span><b>3.4×</b></div><div class="paper-row"><span>GPT-5.4 · code survival</span><b>88%</b></div><div class="paper-row"><span>Claude Opus 4.6 · your score</span><b>88 / 100</b></div><p class="paper-foot">Saved as an HTML file on your machine.<br>API-equivalent value is an estimate, not cash saved.</p></div></section>
+<section class="section" id="how"><div class="section-title"><div><p class="kicker">04 / How it works</p><h2>From your coding tools<br>to the public rankings.</h2></div><p>nerfd measures sessions on your machine. If sharing is on, it sends those measurements to the public dataset. The same published scoring method applies to every model.</p></div><div class="flow"><article><span class="flow-number">01 →</span><h3>Install once.</h3><p>The installer connects to supported tools it finds. Start with existing history using <code>nerfd backfill --since 90d</code>.</p></article><article><span class="flow-number">02 →</span><h3>Work as usual.</h3><p>Session hooks collect tokens, timing and errors. Conversation signals become counts locally. <code>nerfd check</code> measures code survival later.</p></article><article><span class="flow-number">03 →</span><h3>Share session results.</h3><p>Sharing adds your session measurements to the rankings. Prompts, code, file paths and project names stay on your machine.</p></article><article><span class="flow-number">04 ↗</span><h3>Compare the results.</h3><p>Browse community rankings and model histories. Run <code>nerfd report</code> to see your own results and costs.</p></article></div><div class="trust-bar"><div><h3>Your work stays private.</h3><p>Prompts, code and project details stay local. Shared metrics use weekly rotating pseudonymous IDs. <a href="/privacy">Read the privacy details ↗</a></p></div><div><h3>A method you can inspect.</h3><p>Read the source code, check the scoring method or download the dataset. <a href="https://github.com/jspaterson000/nerfd/blob/main/docs/METHOD.md">See the method ↗</a></p></div><div><h3>Independent of model labs.</h3><p>nerfd accepts no funding from model labs. Anyone can review the code and data. <a href="/export.json">Explore the data ↗</a></p></div></div></section>
+<section class="install-story" id="install"><div><p class="kicker">05 / Help build the benchmark</p><h2>Add your results<br>to the benchmark.</h2><p>Help others compare models using results from your work. Successful sessions and failed attempts are both useful.</p><p>Free and open source. No account. Node.js 22.13 or newer.<br>Sharing is your choice; your personal report works either way.</p><a href="${esc(origin)}/install.sh" class="chart-caption">Inspect the install script ↗</a></div><div class="install-terminal"><div class="terminal-top"><span>TERMINAL</span><span>~/ your machine</span></div><div class="install-options"><label><input type="radio" name="sharing" value="on" checked> Share counts</label><label><input type="radio" name="sharing" value="off"> Keep it local</label></div><div class="command"><code id="install-command">${esc(install)}</code><button type="button" id="copy-install" aria-label="Copy install command">Copy</button></div><div class="install-instructions"><div><span>$</span> nerfd backfill --since 90d</div><div><span>$</span> nerfd report</div></div><div class="install-fine" id="sharing-note" aria-live="polite">Sharing is on. Session measurements contribute to the rankings. Turn it off with nerfd share off.</div><div id="copy-status" class="install-fine" role="status">Copy the command, then run it in your terminal.</div></div></section>
+<section class="faq"><div><p class="kicker">Common questions</p><h2>Before you install.</h2></div><div><details><summary>How is my work kept private?</summary><p>Sharing sends session measurements, including the model, tool, plan, task category, timing and results. It does not send prompts, code, file paths or project names. Shared records use an ID that changes weekly. They are pseudonymous, not guaranteed anonymous; combinations of metadata may still identify someone. <a href="/privacy">Inspect the full privacy statement.</a></p></details><details><summary>How is this different from a lab benchmark?</summary><p>Lab benchmarks test models under controlled conditions. nerfd compares results from everyday coding sessions. This shows how models perform in practice, but tasks, tools and users vary. Check the task filters and session counts when comparing models.</p></details><details><summary>Does it work with local models?</summary><p>Yes, through supported tools such as OpenCode and Goose. Different hosts and model variants are tracked separately, including quantised versions run locally.</p></details><details><summary>How do I remove it?</summary><p>Run <code>nerfd share off</code> to stop sharing and <code>nerfd init --remove</code> to remove the hooks. Your local report remains a file you can keep.</p></details><details><summary>Does it include good and bad results?</summary><p>Yes. With sharing on, supported completed sessions are included whether they went well or badly. Errors, corrections and interruptions are recorded too. Automated sessions are excluded from quality rankings by default.</p></details><details><summary>How can I help?</summary><p>Contribute session metrics, report an issue, improve an adapter or review the scoring method. <a href="https://github.com/jspaterson000/nerfd/blob/main/CONTRIBUTING.md">Start with the contribution guide.</a></p></details></div></section>
+</main><footer class="site-footer"><a class="wordmark" href="/">nerfd<span class="wordmark-dot">↗</span></a><span class="footer-note">Model comparisons from real coding work.</span><a href="https://github.com/jspaterson000/nerfd">GitHub ↗</a><a href="/privacy">Privacy</a><a href="/export.json">Open data</a><a href="https://github.com/jspaterson000/nerfd/blob/main/docs/METHOD.md">Method</a></footer></div>
+<script>const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));${IDENTITY_JS}</script><script>${DESIGN_JS}${WALKTHROUGH_JS}</script><script>
 (() => {
-  const finite = v => typeof v === 'number' && Number.isFinite(v);
-  const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const count = v => finite(v) ? Math.round(v).toLocaleString('en-US') : '–';
-  const decimal = v => finite(v) ? v.toLocaleString('en-US', {maximumSignificantDigits:3}) : '–';
-  const tokens = v => {
-    if (!finite(v)) return '–';
-    const unit = v >= 1e9 ? [1e9,'B'] : v >= 1e6 ? [1e6,'M'] : v >= 1e3 ? [1e3,'K'] : [1,''];
-    return Number((v / unit[0]).toFixed(1)) + unit[1];
-  };
-  const money = v => finite(v) ? '$' + (v < 10 ? v.toFixed(2) : Math.round(v)) : '–';
-  const percent = v => finite(v) ? Math.round(v) + '%' : '–';
-  const band = b => b && finite(b.p25) && finite(b.p75) ? tokens(b.p25) + '–' + tokens(b.p75) : '–';
-  const windowName = (r, per = false) => {
-    const minutes = r.window_min;
-    const label = minutes === 300 ? '5 h' : minutes === 10080 ? '7 d' : finite(minutes) && minutes > 0 ? (minutes % 1440 === 0 ? minutes / 1440 + ' d' : minutes % 60 === 0 ? minutes / 60 + ' h' : minutes + ' min') : r.scope === 'spend' ? 'spend' : 'unknown window';
-    return per ? (minutes === 300 ? 'per 5h' : minutes === 10080 ? 'per week' : 'per ' + label) : label;
-  };
-  const empty = '<p class="empty">No window data yet. Codex sessions and Claude Code with the status-line sampler populate this.</p>';
-  const table = (title, headers, rows) => '<h3>' + title + '</h3><div class="table-wrap" tabindex="0" role="region" aria-label="' + title + ', scroll to compare"><table><thead><tr>' + headers.map(h => '<th scope="col">' + h + '</th>').join('') + '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>';
-  const row = values => '<tr>' + values.map(v => '<td>' + v + '</td>').join('') + '</tr>';
-  const usage = v => finite(v) ? '<span class="limit-usage"><i aria-hidden="true" style="width:' + Math.max(0, Math.min(100, v)) + '%"></i></span><span class="mono">' + percent(v) + '</span>' : '–';
-  const wall = v => '<span class="limit-wall' + (finite(v) && v > .3 ? ' high' : '') + '">' + percent(finite(v) ? v * 100 : null) + '</span>';
-  const planIdentity = p => {
-    const key = ({'claude-code':'anthropic',codex:'openai',opencode:'opencode',kimi:'moonshotai',gemini:'google'})[p.tool];
-    return '<span class="identity"><span class="logo">' + (key ? '<img src="/assets/logos/' + key + '.svg" alt="" width="18" height="18" onerror="this.hidden=true;this.nextElementSibling.hidden=false">' : '') + '<span class="logo-fallback"' + (key ? ' hidden' : '') + '>·</span></span><span>' + safe(p.name || p.plan_id || 'Unknown plan') + '</span></span>';
-  };
-  function scatter(plans) {
-    const points = plans.filter(p => finite(p.successes_per_dollar) && p.successes_per_dollar >= 0 && finite(p.quality));
-    if (!points.length) return '<p class="empty">The quality comparison appears when successes per dollar and quality are both measured.</p>';
-    const max = Math.max(.01, ...points.map(p => p.successes_per_dollar)) * 1.15;
-    const maxN = Math.max(1, ...points.map(p => finite(p.n) ? p.n : 0));
-    const dots = points.map((p, i) => {
-      const x = 58 + p.successes_per_dollar / max * 574;
-      const y = 212 - Math.max(0, Math.min(100, p.quality)) * 1.8;
-      const r = 4 + 10 * Math.sqrt(Math.max(0, finite(p.n) ? p.n : 0) / maxN);
-      return '<g><title>' + safe(p.name || p.plan_id) + ': ' + decimal(p.successes_per_dollar) + ' successes / dollar; quality ' + count(p.quality) + '; n=' + count(p.n) + ' sessions</title><circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="var(--mut)" fill-opacity=".22" stroke="var(--fg)"/><text x="' + x + '" y="' + (y + 3) + '" text-anchor="middle" font-size="9" fill="var(--fg)">' + (i + 1) + '</text></g>';
-    }).join('');
-    return '<figure class="limit-scatter"><svg viewBox="0 0 680 268" role="img" aria-label="Plan quality versus successful sessions per dollar. Dot area increases with session count; numbered labels identify plans below."><text x="58" y="16">Quality / 100</text>' + [0,50,100].map(q => '<path d="M58 ' + (212-q*1.8) + 'H632" stroke="var(--line)"/><text x="47" y="' + (216-q*1.8) + '" text-anchor="end">' + q + '</text>').join('') + '<path d="M58 32V212" stroke="var(--line)"/>' + [0,.5,1].map(t => '<text x="' + (58+t*574) + '" y="233" text-anchor="middle">' + decimal(t*max) + '</text>').join('') + dots + '<text x="345" y="259" text-anchor="middle">Successful sessions / dollar</text></svg><figcaption>Generosity only counts when the tokens were worth having. Dot size reflects n sessions.</figcaption><ol class="limit-key">' + points.map(p => '<li>' + planIdentity(p) + ' <span class="mut">n=' + count(p.n) + '</span></li>').join('') + '</ol></figure>';
-  }
-  function render(data) {
-    const plans = (Array.isArray(data?.plans) ? data.plans : []).filter(p => p && typeof p === 'object').slice().sort((a,b) => (finite(b.tokens_per_dollar?.p50) ? b.tokens_per_dollar.p50 : -1) - (finite(a.tokens_per_dollar?.p50) ? a.tokens_per_dollar.p50 : -1));
-    const windows = (Array.isArray(data?.windows) ? data.windows : []).filter(w => w && typeof w === 'object');
-    if (!plans.length && !windows.length) return empty;
-    const scale = Math.max(1, ...plans.flatMap(p => [p.tokens_per_dollar?.p25, p.tokens_per_dollar?.p50, p.tokens_per_dollar?.p75].filter(finite)));
-    const position = v => Math.max(0, Math.min(100, v / scale * 100));
-    const bars = p => {
-      const b = p.tokens_per_dollar;
-      if (!b || !finite(b.p25) || !finite(b.p75)) return '<span class="mut">Band unavailable</span>';
-      return '<span class="limit-band" role="img" aria-label="Tokens per dollar: p25 ' + tokens(b.p25) + ', median ' + tokens(b.p50) + ', p75 ' + tokens(b.p75) + '"><i style="left:' + position(b.p25) + '%;width:' + Math.max(0, position(b.p75)-position(b.p25)) + '%"></i>' + (finite(b.p50) ? '<b style="left:' + position(b.p50) + '%"></b>' : '') + '</span><span class="mono">' + band(b) + '</span><small class="limit-detail">p50 ' + tokens(b.p50) + ' · ' + windowName(p, true) + '</small>';
-    };
-    const ranked = plans.length ? table('Plans · tokens per dollar', ['Rank / plan','USD / month','Tokens / dollar · p25–p75','Usage median','Wall-hit share','Successes / dollar','Quality','Evidence'], plans.map((p,i) => {
-      const tier = !finite(p.quality) ? 'dash' : p.quality >= 80 ? 'S' : p.quality >= 65 ? 'A' : p.quality >= 50 ? 'B' : 'C';
-      return row(['<span class="mut">' + (i+1) + '.</span> ' + planIdentity(p), money(p.usd_month), bars(p), usage(p.usage_median_pct), wall(p.wall_hit_share), decimal(p.successes_per_dollar), '<span class="tier ' + tier + '">' + (tier === 'dash' ? '–' : tier) + '</span>' + count(p.quality), '<span class="mono">n=' + count(p.n) + '</span><small class="limit-detail">' + count(p.n_windows) + ' windows · ' + count(p.reporter_weeks) + ' reporter-weeks</small>']);
-    })) : empty;
-    const capacity = windows.length ? table('Capacity by window · estimates', ['Plan','Window / scope','Total tokens · p25–p75','Uncached + output · p25–p75','Usage median','Wall hits','n windows','<span title="one person counts once per week, by design: ids rotate weekly so sessions cannot be linked across weeks">n reporter-weeks</span>'], windows.map(w => {
-      const p = plans.find(p => p.plan_id === w.plan_id);
-      return row([safe(p?.name || w.plan_id || 'Unknown plan'), windowName(w) + '<small class="limit-detail">' + safe(w.scope || 'unknown') + '</small>', band(w.capacity_total), band(w.capacity_uncached), usage(w.usage_median_pct), wall(w.wall_hit_share), count(w.n_windows), count(w.n_reporters)]);
-    })) : empty;
-    return ranked + '<p class="metric-note mut">Bands are p25–p75, with the median marked on one shared scale. Tokens per dollar extrapolates the selected window to a month. Wall-hit share counts reporter-weeks with a hit; successes exclude wall and context-limit hits. Quality: S ≥ 80 · A ≥ 65 · B ≥ 50 · C &lt; 50.</p>' + capacity + '<p class="metric-note mut">Capacity is estimated, including cached input in total tokens. Uncached is input plus output. Usage and wall hits in this table describe the qualifying windows only; n counts those windows and reporters.</p><h3>Generosity and quality</h3>' + scatter(plans);
-  }
-  let request = 0;
-  async function loadLimits() {
-    const current = ++request;
-    let data = null;
-    try { const response = await fetch('/v1/limits?weeks=8'); if (response.ok) data = await response.json(); } catch {}
-    if (current === request) { window.nerfdAnswers('limits', data); document.getElementById('limits-content').innerHTML = render(data); }
-  }
-  loadLimits();
-  document.getElementById('reload')?.addEventListener('click', loadLimits);
-})();
-const $ = (s) => document.querySelector(s);
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const usd = (v) => v == null ? '–' : v < 10 ? '$' + v.toFixed(2) : '$' + Math.round(v);
-const pct = (v) => v == null ? '–' : Math.round(v * 100) + '%';
-const tier = (t, title) => '<span class="tier ' + (t === '-' ? 'dash' : t) + '" title="' + esc(title ?? '') + '">' + t + '</span>';
-$('#copy').addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText($('#cmd').textContent); $('#copy span').textContent = 'Copied'; setTimeout(() => $('#copy span').textContent = 'Copy', 1500); } catch { $('#copy span').textContent = 'Select text'; const range = document.createRange(); range.selectNodeContents($('#cmd')); const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range); }
-});
-const finite = (v) => typeof v === 'number' && Number.isFinite(v);
-const number = (v) => finite(v) ? String(v) : '–';
-const providerEmpty = '<p class="empty">No provider data yet. Open-model sessions from OpenCode, Goose, Kimi Code, Crush and Aider populate this board.</p>';
-const frictionEmpty = '<tr><td colspan="10" class="empty">No friction data yet. Conversation signals will appear as sessions are shared.</td></tr>';
-const logoAssets = new Set('kimi-for-coding moonshotai cerebras ollama lmstudio together deepinfra openrouter alibaba minimax-coding-plan anthropic opencode google amazon-bedrock qwen nerfd minimax deepseek mistral fireworks zhipuai zai-coding-plan openai groq vertex xai github zai meta'.split(' '));
-function landingIdentity(label, key) {
-  const name = String(label || 'Unknown');
-  const logo = logoAssets.has(key) ? key : logoFor(key);
-  return '<span class="identity"><span class="logo">' + (logo ? '<img src="/assets/logos/' + logo + '.svg" width="18" height="18" alt="" onerror="this.hidden=true;this.nextElementSibling.hidden=false">' : '') + '<span class="logo-fallback"' + (logo ? ' hidden' : '') + '>·</span></span><span>' + esc(name) + '</span></span>';
-}
-function rate(v) {
-  return finite(v) ? '<span class="landing-rate" style="--rate:' + Math.max(0, Math.min(100, v * 100)) + '%">' + (v * 100).toFixed(1) + '%</span>' : '<span class="mut">–</span>';
-}
-async function comparisonData(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Metrics unavailable');
-  return response.json();
-}
-(async () => {
-  const target = $('#provider-families');
-  try {
-    const data = await comparisonData('/v1/providers?weeks=8');
-    const total = (f) => f.rows.reduce((n, r) => n + (finite(r.n) ? r.n : 0), 0);
-    window.nerfdAnswers('providers', data);
-    target.innerHTML = (Array.isArray(data?.families) ? data.families : []).filter(f => Array.isArray(f.rows) && f.rows.length)
-      .sort((a, b) => total(b) - total(a)).slice(0, 4).map(f => {
-        const rows = f.rows.map(r => {
-          const k = r.key || {};
-          const score = finite(r.score) ? r.score : null;
-          const band = score == null ? 'dash' : score >= 80 ? 'S' : score >= 65 ? 'A' : score >= 50 ? 'B' : 'C';
-          return '<tr><td>' + landingIdentity(k.provider, k.provider) + '<small class="model-detail mut">' + esc(k.model || f.family) + '</small></td>' +
-            '<td><span class="chip mono ' + (!k.quant || k.quant === 'unknown' ? 'mut' : '') + '">' + esc(k.quant || 'unknown') + '</span></td>' +
-            '<td class="mode">' + esc(k.serving_mode || 'unknown') + '</td><td class="n">' + number(r.n) + '</td>' +
-            '<td class="n"><span class="tier ' + band + '">' + (score == null ? '–' : score.toFixed(0)) + '</span></td>' +
-            '<td class="n tool-error">' + rate(r.tool_call_error_rate) + '</td>' +
-            '<td class="n">' + (finite(r.latency_p50_ms) ? (r.latency_p50_ms < 1000 ? Math.round(r.latency_p50_ms) + ' ms' : (r.latency_p50_ms / 1000).toFixed(1) + ' s') : '–') + '</td>' +
-            '<td class="n">' + (k.serving_mode === 'local' ? 'local' : finite(r.cost_per_success) ? usd(r.cost_per_success) : '–') + '</td></tr>';
-        }).join('');
-        return '<article class="family-card"><h3>' + landingIdentity(f.display || f.family, logoFor(f.family)) + (f.open_weights ? '<span class="chip">open weights</span>' : '') + '</h3>' +
-          '<div class="table-wrap" tabindex="0" role="region" aria-label="' + esc(f.display || f.family) + ' providers, scroll to compare"><table><thead><tr><th>provider</th><th>quant</th><th>mode</th><th class="n">n</th><th class="n">score</th><th class="n tool-error">tool-call errors</th><th class="n">p50 latency</th><th class="n">$ / success</th></tr></thead><tbody>' + rows + '</tbody></table></div></article>';
-      }).join('') || providerEmpty;
-  } catch { target.innerHTML = providerEmpty; }
-})();
-(async () => {
-  const target = $('#friction-table tbody');
-  try {
-    const data = await comparisonData('/v1/friction?weeks=8');
-    window.nerfdAnswers('friction', data);
-    target.innerHTML = (Array.isArray(data?.models) ? data.models : []).sort((a, b) => (b.n || 0) - (a.n || 0)).slice(0, 8).map(r =>
-      '<tr><td>' + identity(r.model) + '</td><td class="n">' + number(r.n) + '</td>' +
-      [r.steering, r.correction_rate, r.reprompt_rate, r.frustration_rate, r.pushback_rate, r.clarification_rate, r.edit_without_read_rate, r.abandoned_rate]
-        .map(v => '<td class="n">' + rate(v) + '</td>').join('') + '</tr>').join('') || frictionEmpty;
-  } catch { target.innerHTML = frictionEmpty; }
-})();
-(async () => {
-  try {
-    const m = await (await fetch('/v1/meta')).json();
-    window.nerfdAnswers('meta', m);
-    countUp('s-sessions', m.reports);
-    countUp('s-reporters', m.reporter_weeks ?? m.reporters);
-    countUp('s-models', m.models.length);
-    const wk = await (await fetch('/v1/stats?by=week&weeks=1')).json();
-    window.nerfdAnswers('week', wk);
-    $('#s-week').textContent = wk.n.toLocaleString();
-    const t = await (await fetch('/v1/tiers?weeks=4')).json();
-    window.nerfdAnswers('tiers', t);
-    $('#tiers tbody').innerHTML = t.tiers.map((r) => '<tr>' +
-      '<td class="model">' + modelLink(r.model, identity(r.model, r.provider)) + '</td>' +
-      '<td>' + tier(r.overall, 'score ' + (r.score ?? '–')) + '<span class="mut">' + (r.score ?? '') + '</span></td>' +
-      ['quality','reliability','steering','survival','speed','value'].map((c) => '<td>' + tier(r.criteria?.[c]?.tier ?? '-', r.criteria?.[c]?.display ?? '–') + '<span class="mut">' + esc(r.criteria?.[c]?.display ?? '–') + '</span></td>').join('') +
-      '<td class="n">' + pct(r.waste_share) + '</td>' +
-      '<td class="n">' + r.n + '</td></tr>').join('') || '<tr><td colspan="10" class="mut">no model has ' + t.min_n + ' sessions yet. be the first: run the installer.</td></tr>';
-    try { const w = await (await fetch('/v1/work?weeks=4')).json(); window.nerfdAnswers('work', w); $('#work-cards').innerHTML = renderWorkCards(w, true); } catch { $('#work-cards').innerHTML = '<p class="empty">Unable to load kinds of work. Please refresh to try again.</p>'; }
-    const p = await (await fetch('/v1/plans?weeks=12')).json();
-    window.nerfdAnswers('plans', p);
-    $('#plans tbody').innerHTML = p.plans.map((s) => '<tr>' +
-      '<td>' + identity(s.plan_id, s.provider) + ' <span class="mut">' + esc(s.tool) + '</span></td>' +
-      '<td class="n">' + (s.plan_usd_month == null ? 'usage' : '$' + s.plan_usd_month) + '</td>' +
-      '<td class="n">' + (s.sessions_median ?? '–') + '</td>' +
-      '<td class="n">' + (s.successes_median ?? '–') + '</td>' +
-      '<td class="n">' + usd(s.api_equiv_median) + '</td>' +
-      '<td class="n">' + (s.value_multiple_median == null ? '–' : (s.value_multiple_median < 1 ? s.value_multiple_median.toFixed(2) : s.value_multiple_median.toFixed(1)) + "×") + '</td>' +
-      '<td class="n">' + usd(s.cost_per_success_median) + '</td>' +
-      '<td class="n">' + pct(s.limit_hit_share) + '</td>' +
-      '<td class="n">' + (s.reporter_weeks ?? s.reporters) + '</td></tr>').join('') || '<tr><td colspan="9" class="mut">no plan data yet. reporters set theirs with <span class="mono">nerfd plan claude claude-max-20x</span>.</td></tr>';
-  } catch (e) { console.error(e); for (const id of ['tiers', 'plans']) if ($('#' + id + ' tbody').textContent.trim() === 'loading') $('#' + id + ' tbody').innerHTML = '<tr><td colspan="' + (id === 'tiers' ? 10 : 9) + '" class="mut">Unable to load metrics. Please refresh to try again.</td></tr>'; }
-})();
-</script>
-</body>
-</html>`, true)
-    .replace('<!-- landing-intro -->', () => intro)
-    .replace(/(<a href=")#method(">\d+ )Method(<\/a>)/, '$1#how$2How it works$3');
+const command=document.getElementById('install-command'),heroCommand=document.getElementById('hero-command'),base=command.textContent;
+function syncSharing(off){command.textContent=heroCommand.textContent=base+(off?' -s -- --no-share':'');document.getElementById('hero-private').checked=off;document.querySelectorAll('input[name="sharing"]').forEach(i=>i.checked=i.value===(off?'off':'on'));document.getElementById('sharing-note').textContent=off?'Sharing is off. Your measurements and personal report stay local.':'Sharing is on. Session measurements contribute to the rankings. Turn it off with nerfd share off.';document.getElementById('hero-sharing').textContent=off?'Sharing is off. Your personal scorecard stays on your machine.':'Shares session measurements. Your prompts and code stay local.';document.getElementById('hero-copy-status').textContent='';}
+document.querySelectorAll('input[name="sharing"]').forEach(input=>input.addEventListener('change',()=>syncSharing(input.value==='off')));
+document.getElementById('hero-private').addEventListener('change',e=>syncSharing(e.target.checked));
+function wireCopy(buttonId,commandEl,statusId){const button=document.getElementById(buttonId);button.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(commandEl.textContent);document.getElementById(statusId).textContent='Copied. Paste into your terminal.';button.textContent='Copied';setTimeout(()=>button.textContent='Copy',2200)}catch{document.getElementById(statusId).textContent='Copy unavailable. Select the command and copy it manually.'}})}
+wireCopy('copy-install',command,'copy-status');wireCopy('hero-copy',heroCommand,'hero-copy-status');
+const paths={score:['M35 91L118 79L201 90L284 65L367 71L450 48L533 60L616 43','M35 123L118 109L201 116L284 96L367 110L450 94L533 89L616 98','M35 143L118 136L201 149L284 133L367 130L450 145L533 139L616 124'],survival:['M35 62L118 56L201 60L284 47L367 51L450 44L533 49L616 39','M35 92L118 80L201 73L284 82L367 63L450 66L533 61L616 57','M35 113L118 101L201 107L284 91L367 100L450 82L533 91L616 85']};
+document.querySelectorAll('[data-metric]').forEach(button=>button.addEventListener('click',()=>{const metric=button.dataset.metric;document.querySelectorAll('[data-metric]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));['a','b','c'].forEach((id,i)=>{const p=document.getElementById('chart-'+id);p.setAttribute('d',paths[metric][i]);p.getAnimations().forEach(a=>{a.cancel();a.play()})});document.getElementById('chart-end').setAttribute('cy',metric==='score'?'43':'39');document.querySelector('[fill="url(#chart-area)"]').setAttribute('d',paths[metric][0]+'V170H35Z');document.getElementById('chart-caption').textContent=metric==='score'?'Example scores over eight weeks. Visit a model page for its recorded results.':'Code survival / % · Added lines still present an hour later. Eight example weeks.';document.getElementById('chart-title').textContent=metric==='score'?'Illustrative weekly model scores':'Illustrative weekly code survival';}));
+const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+fetch('/v1/tiers?weeks=4').then(r=>{if(!r.ok)throw Error();return r.json()}).then(data=>{document.getElementById('live-meta').textContent=data.n.toLocaleString()+' sessions · minimum '+data.min_n+' per model';const rows=data.tiers.filter(t=>typeof t.score==='number').slice(0,5);document.getElementById('live-ranks').innerHTML=rows.length?rows.map((t,i)=>'<a class="live-model" href="/model/'+encodeURIComponent(t.model)+'"><small>'+String(i+1).padStart(2,'0')+'</small><span>'+identity(t.model)+'</span><small class="sample">'+safe(t.n)+' sessions</small><strong>'+t.score.toFixed(0)+'<small> /100</small></strong><span class="row-arrow">↗</span></a>').join(''):'<p class="live-empty">No models have enough sessions to rank yet. <a href="#install">Contribute your results →</a></p>'}).catch(()=>{document.getElementById('live-meta').textContent='Public record unavailable';document.getElementById('live-ranks').innerHTML='<p class="live-empty">The rankings could not be loaded. <a href="/board">Open the full board to try again →</a></p>'});
+})();</script></body></html>`;
 }

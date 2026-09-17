@@ -1,3 +1,4 @@
+import { DESIGN_CSS, SITE_NAV } from '../assets/design.ts';
 import { SHARED_CSS, FAVICON, socialMeta } from './ui.ts';
 
 // The public privacy statement, served at /privacy. Deliberately plain: no
@@ -109,21 +110,18 @@ export function privacyPage(origin: string): string {
 <meta name="description" content="What nerfd collects, what it never collects, and how to stop it.">
 ${socialMeta(origin, '/privacy', 'What leaves your machine · nerfd.ai', 'Counts, never conversations. The exact record nerfd sends, what it never sends, and how to stop it.')}
 ${FAVICON}
-<style>${CSS}</style>
+<style>${CSS}${DESIGN_CSS}
+.wrap{max-width:1280px;padding:0 28px}main{max-width:860px;margin:auto}main h1{font-size:clamp(44px,6vw,70px);line-height:1.1;letter-spacing:-2.5px;font-weight:550;margin:65px 0 22px}main h2{font-weight:550;margin-top:48px}main table{table-layout:fixed}main td{white-space:normal;overflow-wrap:anywhere}main pre{overflow:auto}footer{margin-top:60px}.site-header nav{border:0;min-height:0;padding:0} .site-header{margin:0} @media(max-width:600px){.wrap{padding:0 18px}main h1{margin-top:35px}}
+</style>
 </head>
 <body>
 <div class="wrap">
 
-<nav aria-label="Main navigation">
-  <a class="brand" href="/"><span class="app-icon" aria-hidden="true">n</span><span>nerfd<em>.ai</em></span></a>
-  <a href="/board">Board</a>
-  <a href="/#install">Install</a>
-  <a href="/privacy" aria-current="page">Privacy</a>
-</nav>
+${SITE_NAV}
 <div class="page-links"><a href="/export.json">raw data</a><a href="#security">for your security team</a></div>
 
-<main>
-<h1>Privacy</h1>
+<main id="main">
+<p class="kicker">YOUR DATA / YOUR CHOICE</p><h1>Counts.<br>Never conversations.</h1>
 <p class="lede">nerfd measures how a session went, never what it was about.</p>
 <p>Prompts, code, file paths, repo names and notes stay on your machine. When sharing is on, one small JSON object per session is sent to one address. Before believing any of that, run <code>nerfd privacy</code>: it prints the exact record, built by the same code that sends it.</p>
 
