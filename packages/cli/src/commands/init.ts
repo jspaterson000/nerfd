@@ -1,6 +1,6 @@
 import { parsePlan } from '@nerfd/core';
 import { ADAPTERS } from '../adapters/registry.ts';
-import { lastStatuslineNote } from '../hooks/install.ts';
+import { CODEX_UNTRUSTED_NOTE, codexHookStatus, lastStatuslineNote } from '../hooks/install.ts';
 import { openDb } from '../db.ts';
 import { flag, str, type Args } from '../args.ts';
 import { CONFIG_PATH, DB_PATH, loadConfig, saveConfig } from '../paths.ts';
@@ -50,6 +50,12 @@ export function init(a: Args): void {
     // Claude Code's window state only exists in the status line, so when one
     // was installed where there was none, say so rather than do it quietly.
     if (lastStatuslineNote) lines.push(`         ${lastStatuslineNote}`);
+    // Codex installs the hook and then declines to run it until the person
+    // has trusted it in /hooks. Say so here, where "hooked via" would
+    // otherwise read as "working".
+    if (adapter.id === 'codex' && !remove && codexHookStatus() === 'untrusted') {
+      lines.push(...CODEX_UNTRUSTED_NOTE.map((l) => '         ' + l));
+    }
   }
   if (targets.length === 0) lines.push('hooks    none installed (no supported tool found). other tools: `nerfd record --tool <name> ...`');
   const plans = Object.entries(cfg.plans).map(([t, p]) => `${t}=${p!.name}`).join(', ');

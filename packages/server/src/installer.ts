@@ -52,6 +52,11 @@ chmod +x "$BIN/nerfd"; ln -sf "$BIN/nerfd" "$BIN/ms"
 
 "$BIN/nerfd" init --server "$BASE" "$SHARE_FLAG"
 
+say ""
+say "importing the last 90 days your tools already wrote, so the scorecard is populated on day one"
+"$BIN/nerfd" backfill --since 90d || say "backfill failed; run  nerfd backfill --since 90d  later"
+"$BIN/nerfd" backfill --restamp >/dev/null 2>&1 || true
+
 case ":$PATH:" in
   *":$BIN:"*) ;;
   *) say ""; say "add to your shell profile:  export PATH=\\"$BIN:\\$PATH\\"" ;;

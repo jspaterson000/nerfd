@@ -9,7 +9,7 @@ Nine adapters ship. `nerfd init` installs whichever of them it finds; `nerfd bac
 | Tool | Status | What is live |
 |---|---|---|
 | **Claude Code** | built | eight hooks merged into `~/.claude/settings.json`, transcript ledger, turns for behavioural signals, backfill from `~/.claude/projects/**`. |
-| **Codex** | built | hooks in `~/.codex/hooks.json`, `rollout-*.jsonl` ledger with its directly reported rate-limit window, turns, backfill. |
+| **Codex** | built, backfill-first | hooks in `~/.codex/hooks.json`, which Codex silently skips until they are trusted in `/hooks` (trust is a hash under `[hooks.state]` in `config.toml`; `nerfd doctor` reports `untrusted`). The Codex app and the Codex view in the ChatGPT app have no `/hooks` screen but write the same `rollout-*.jsonl` (originator `Codex Desktop` or `codex_work_desktop`, source `vscode`), so backfill covers them. `rollout-*.jsonl` ledger with its directly reported rate-limit window, turns, backfill. |
 | **OpenCode** | built | a JS plugin in `~/.config/opencode/plugins/` that shells out to `nerfd hook opencode` on the event bus, plus the SQLite ledger and backfill from `~/.local/share/opencode/`. |
 | **Goose** | built | twelve hooks in `~/.agents/plugins/nerfd/hooks/hooks.json` (no `*` matcher — it is silently skipped), the `usage_ledger` table for tokens and cost, turns, backfill. |
 | **Gemini CLI** | built | hooks in `~/.gemini/settings.json`, JSONL ledger and turns from `~/.gemini/tmp/<project>/chats/session-*.jsonl`, backfill. The OTel stream is deliberately not read: its attributes include `user.email`. |

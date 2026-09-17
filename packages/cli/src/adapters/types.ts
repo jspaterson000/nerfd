@@ -133,8 +133,12 @@ export function attachSignals(s: Session, turns: Turn[], onError?: (name: string
  * Codex is the only tool that writes one today (`codex exec` in CI, the
  * auto-review that fires on its own), and absent means "this build writes
  * none", which is not evidence either way.
+ *
+ * `vscode` is a person: the Codex desktop app, the Codex view inside the
+ * ChatGPT app and the VS Code extension all drive Codex through the same
+ * app-server, and every one of them stamps its threads with that source.
  */
-const USER_THREAD_SOURCES = /^(user|thread|user[_-]thread|interactive|cli)$/i;
+const USER_THREAD_SOURCES = /^(user|thread|user[_-]thread|interactive|cli|vscode)$/i;
 
 export function isUnattendedSource(metaSource: string | null | undefined): boolean {
   return metaSource != null && !USER_THREAD_SOURCES.test(metaSource);

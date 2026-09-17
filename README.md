@@ -70,7 +70,7 @@ Score, published and deliberately simple: `score = 0.55 × rating + 0.30 × surv
 | Tool | Live capture | History import | Notes |
 |---|---|---|---|
 | Claude Code | hooks | yes | plus a status-line sampler for subscription windows |
-| Codex | hooks | yes | rollout logs carry window usage |
+| Codex | hooks, after you trust them | yes | Codex skips a hook until you trust it in `/hooks`; the Codex app and the ChatGPT app's Codex are covered by backfill; rollout logs carry window usage |
 | OpenCode | plugin | yes | model, provider and quantisation from the session store |
 | Gemini CLI, Qwen Code | hooks | yes | |
 | Kimi Code | hooks | yes | |

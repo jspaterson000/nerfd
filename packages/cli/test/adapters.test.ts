@@ -6,6 +6,8 @@ import { join } from 'node:path';
 import { ADAPTERS, adapterFor } from '../src/adapters/registry.ts';
 import { CANONICAL_EVENTS } from '../src/adapters/types.ts';
 import { parseClaudeTranscript, parseCodexRollout } from '../src/transcript.ts';
+import { codexAutomated } from '../src/adapters/codex.ts';
+import { isUnattendedSource } from '../src/adapters/types.ts';
 
 const claude = adapterFor('claude')!;
 const codex = adapterFor('codex')!;
@@ -111,4 +113,29 @@ test('the Codex ledger reads totals, limits and malformed tool calls', () => {
   assert.equal(f.rate_limit_used_pct, 42);
   assert.equal(f.rate_limit_window_min, 300);
   assert.equal(codex.ledger({ id: 'x', transcript_path: path } as never)!.raw_provider, 'openai');
+});
+
+const FIXTURES = join(import.meta.dirname, 'fixtures', 'codex');
+
+test('a Codex desktop-app thread is a person, not a robot', () => {
+  // The Codex app, the ChatGPT app's Codex view and the VS Code extension all
+  // stamp `source: "vscode"`; a real model and real user turns sit behind it.
+  const f = parseCodexRollout(join(FIXTURES, 'desktop-rollout.jsonl'));
+  assert.equal(f.meta_source, 'vscode');
+  assert.equal(f.model, 'gpt-5.6-sol');
+  assert.equal(f.tool_version, '0.154.0-alpha.6.2');
+  assert.equal(isUnattendedSource('vscode'), false);
+  assert.equal(codexAutomated(f.meta_source, f.model), false);
+});
+
+test('a Codex subagent thread is unattended whatever kind it is', () => {
+  const f = parseCodexRollout(join(FIXTURES, 'subagent-rollout.jsonl'));
+  assert.equal(f.meta_source, 'subagent');
+  assert.equal(isUnattendedSource('subagent'), true);
+  assert.equal(codexAutomated(f.meta_source, f.model), true);
+  // The other shapes still parse.
+  assert.equal(codexAutomated('exec', 'gpt-6-astra'), true);
+  assert.equal(codexAutomated('cli', 'gpt-6-astra'), false);
+  assert.equal(codexAutomated(null, 'gpt-6-astra'), false);
+  assert.equal(codexAutomated(null, 'codex-auto-review'), true);
 });

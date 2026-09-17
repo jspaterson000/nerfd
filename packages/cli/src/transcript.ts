@@ -177,13 +177,17 @@ export function findCodexRollout(sessionId: string): string | null {
 
 /**
  * The `source` a Codex rollout records for itself: a string on newer builds,
- * `{ type }` on others. Kept only if it is a short enum token, because the
- * point is to tell "user thread" from "auto review" and nothing longer than
- * that is an answer to that question.
+ * `{ type }` on others, and `{ subagent: ... }` for a thread the agent spawned
+ * for itself. Kept only if it is a short enum token, because the point is to
+ * tell "user thread" from "auto review" and nothing longer than that is an
+ * answer to that question. A subagent object collapses to `subagent`: what
+ * kind is irrelevant, no person typed into it.
  */
 function metaSource(p: Record<string, any>): string | null {
   const raw = typeof p.source === 'string' ? p.source
-    : (p.source && typeof p.source === 'object' && typeof p.source.type === 'string' ? p.source.type : null);
+    : (p.source && typeof p.source === 'object'
+      ? (typeof p.source.type === 'string' ? p.source.type : ('subagent' in p.source ? 'subagent' : null))
+      : null);
   return raw && /^[A-Za-z][A-Za-z0-9_-]{0,31}$/.test(raw) ? raw.toLowerCase() : null;
 }
 

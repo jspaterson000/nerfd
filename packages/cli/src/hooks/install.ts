@@ -196,9 +196,49 @@ function installClaudeCommand(remove: boolean): void {
   ].join('\n'));
 }
 
-export function hookStatus(): { claude: boolean; codex: boolean } {
+export type CodexHookStatus = 'on' | 'untrusted' | 'off';
+
+/** What `nerfd init` and `nerfd doctor` say when Codex has our hooks but will not run them. */
+export const CODEX_UNTRUSTED_NOTE = [
+  'codex runs a hook only after you trust it: open `codex` in a terminal, type /hooks, and trust the nerfd entries.',
+  'until then nothing is captured live. the Codex app and the ChatGPT app write the same session logs, and',
+  '`nerfd backfill --since 90d` reads those, so their sessions are counted either way.',
+];
+
+/**
+ * Codex refuses to run a user-level hook until the person has reviewed it
+ * in /hooks. It records that consent in config.toml as
+ * `[hooks.state."<hooks.json path>:<event>:<group>:<index>"] trusted_hash`,
+ * keyed by the snake_case event name and our position in the file. This
+ * reads those keys back so the two commands can say "installed but off"
+ * instead of "on". One regex over the lines; the file is TOML but the keys
+ * are one line each.
+ */
+export function codexHookStatus(): CodexHookStatus {
+  const hooksPath = join(homedir(), '.codex', 'hooks.json');
+  const x = readJson(hooksPath).hooks as HooksMap | undefined;
+  if (!x) return 'off';
+  const ours: string[] = [];
+  for (const [ev, groups] of Object.entries(x)) {
+    groups.forEach((g, gi) => {
+      if (!isOurs(g)) return;
+      const snake = ev.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+      g.hooks.forEach((_, hi) => ours.push(`${hooksPath}:${snake}:${gi}:${hi}`));
+    });
+  }
+  if (ours.length === 0) return 'off';
+  let toml = '';
+  try { toml = readFileSync(join(homedir(), '.codex', 'config.toml'), 'utf8'); } catch { return 'untrusted'; }
+  const trusted = new Set<string>();
+  for (const line of toml.split('\n')) {
+    const m = /^\s*\[hooks\.state\."(.+)"\]\s*$/.exec(line);
+    if (m) trusted.add(m[1]!);
+  }
+  return ours.every((k) => trusted.has(k)) ? 'on' : 'untrusted';
+}
+
+export function hookStatus(): { claude: boolean; codex: CodexHookStatus } {
   const c = readJson(join(homedir(), '.claude', 'settings.json')).hooks as HooksMap | undefined;
-  const x = readJson(join(homedir(), '.codex', 'hooks.json')).hooks as HooksMap | undefined;
   const has = (h?: HooksMap) => !!h && Object.values(h).some((entries) => entries.some(isOurs));
-  return { claude: has(c), codex: has(x) };
+  return { claude: has(c), codex: codexHookStatus() };
 }
